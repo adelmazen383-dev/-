@@ -22,88 +22,124 @@ class DatabaseSeeder extends Seeder
         ContractTemplate::firstOrCreate([
             'name' => 'عقد تأجير شقق',
         ], [
-            'html_content' => '
-<table style="width: 100%; margin-bottom: 30px; border-bottom: 2px solid #254a34; padding-bottom: 15px;">
+'html_content' => '
+<div style="background-color: #14532d; color: #ffffff; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
+    رقم ترخيص السياحة للمؤجر : {{TOURISM_LICENSE}}
+</div>
+
+<table style="width: 100%; margin-bottom: 20px; table-layout: fixed;">
     <tr>
-        <td style="width: 60%; vertical-align: top;">
-            <div style="font-size: 28px; font-weight: bold; color: #254a34; margin-bottom: 5px;">عقد تأجير عقار</div>
-            <div style="color: #64748b; font-size: 14px;">فاتورة ومسودة عقد / Contract Agreement</div>
+        <td style="width: 33%; vertical-align: middle; padding-left: 10px;">
+            <div style="background-color: #16a34a; color: #ffffff; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center;">
+                رقم الشقة : {{PROPERTY_DETAILS}}
+            </div>
         </td>
-        <td style="width: 40%; text-align: left; vertical-align: top;">
-            <img src="{{LOGO_BASE64}}" style="max-height: 80px;" />
+        <td style="width: 34%; text-align: center; vertical-align: middle;">
+            {{LOGO_HTML}}
+        </td>
+        <td style="width: 33%; vertical-align: middle; padding-right: 10px;">
+            <div style="background-color: #16a34a; color: #ffffff; padding: 8px 12px; border-radius: 4px; font-weight: bold; font-size: 13px; text-align: center;">
+                رقم العقد : {{CONTRACT_NUMBER}}
+            </div>
         </td>
     </tr>
 </table>
 
-<table style="width: 100%; margin-bottom: 30px;">
+<div style="border-top: 3px solid #16a34a; margin-bottom: 20px;"></div>
+
+<div style="font-size: 14px; line-height: 1.8; color: #1f2937; margin-bottom: 30px; text-align: justify;">
+    تم عمل هذا العقد في يوم <strong>{{DATE}}</strong> بين كل من الطرف الأول (المؤجر) <strong>{{LESSOR_NAME}}</strong> (هوية: <strong>{{LESSOR_ID}}</strong>)، 
+    والطرف الثاني (المستأجر) <strong>{{CUSTOMER_NAME}}</strong> (هوية: <strong>{{NATIONAL_ID}}</strong>).
+</div>
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
     <tr>
-        <td style="width: 33%; vertical-align: top;">
-            <div style="font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 5px;">تفاصيل العقد</div>
-            <div style="font-size: 14px; font-weight: bold; color: #1e293b;">رقم العقد: <span style="font-weight:normal;">{{CONTRACT_NUMBER}}</span></div>
-            <div style="font-size: 14px; font-weight: bold; color: #1e293b; margin-top: 3px;">تاريخ الإصدار: <span style="font-weight:normal;">{{DATE}}</span></div>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الأول</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">تأجير الشقة المذكورة أعلاه لغرض السكن.</div>
         </td>
-        <td style="width: 33%; vertical-align: top;">
-            <div style="font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 5px;">الطرف الأول (المالك)</div>
-            <div style="font-size: 15px; font-weight: bold; color: #254a34;">إدارة الأملاك</div>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الثاني</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">مدة الإيجار من <strong>{{START_DATE}}</strong> إلى <strong>{{END_DATE}}</strong>، تجديد الإقامة قبل الساعة 12 ظهراً، وفي حالة التأخير تفرض رسوم نصف يوم.</div>
         </td>
-        <td style="width: 33%; vertical-align: top;">
-            <div style="font-size: 11px; color: #64748b; font-weight: bold; margin-bottom: 5px;">الطرف الثاني (المستأجر)</div>
-            <div style="font-size: 15px; font-weight: bold; color: #254a34;">{{CUSTOMER_NAME}}</div>
-            <div style="font-size: 13px; color: #64748b; margin-top: 3px;">هوية رقم: {{NATIONAL_ID}}</div>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الثالث</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">إجمالي مبلغ الإيجار <strong>{{RENT_AMOUNT}} ريال</strong>، يُدفع قبل الإقامة.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الرابع</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">مبلغ تأمين <strong>{{DEPOSIT_AMOUNT}} ريال</strong> يرد عند التسليم لو الشقة سليمة من أي عيوب أو تكسير.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الخامس</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">الالتزام بمراعاة لائحة الذوق العام وعدم التسبب لأي مضايقة للجيران برفع الصوت أو أي فعل يمس براحة وخصوصية الجيران.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند السادس</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">يلتزم المستأجر بدفع كامل فترة الإقامة قبل تسجيل الوصول.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند السابع</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">المبلغ المدفوع لا يسترد نهائياً للحجز أو الإقامة.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الثامن</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">يمنع التأجير من الباطن بدون موافقة خطية من المؤجر وإلا اعتبر العقد ملغياً.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند التاسع</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">الالتزام باستخدام الإنترنت بشكل نظامي وعدم استخدامه لأي أنشطة مخالفة لأنظمة المملكة العربية السعودية.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند العاشر</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">موعد تسجيل الوصول 3 مساءً وتسجيل الخروج 12 مساءً.</div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 10px 0;">
+            <div style="text-align: center; color: #14532d; font-size: 16px; font-weight: bold; margin-bottom: 8px;">البند الحادي عشر</div>
+            <div style="font-size: 14px; text-align: right; line-height: 1.8;">يحق للمؤجر فسخ العقد وإخلاء الشقة فوراً دون تعويض عند إخلال المستأجر بأي بند من بنود هذا العقد.</div>
         </td>
     </tr>
 </table>
 
-<table class="invoice-table">
-    <thead>
-        <tr>
-            <th style="width: 40%;">وصف العقار</th>
-            <th style="width: 30%;">الفترة الإيجارية</th>
-            <th style="width: 30%;">رقم الرخصة السياحية</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-                <div style="font-weight: bold; color: #1e293b;">شقة سكنية</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">{{PROPERTY_DETAILS}}</div>
-            </td>
-            <td>
-                من: {{START_DATE}}<br>
-                إلى: {{END_DATE}}
-            </td>
-            <td>{{TOURISM_LICENSE}}</td>
-        </tr>
-    </tbody>
-</table>
-
-<div class="total-section">
-    <table style="width: 100%;">
-        <tr>
-            <td style="width: 50%;"></td>
-            <td style="width: 50%;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 10px; font-weight: bold; color: #475569; text-align: right; border-bottom: 1px solid #e2e8f0;">القيمة الإيجارية</td>
-                        <td style="padding: 10px; font-weight: bold; color: #1e293b; text-align: left; border-bottom: 1px solid #e2e8f0;">{{RENT_AMOUNT}} ريال</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 12px 10px; font-weight: bold; color: #254a34; font-size: 18px; text-align: right;">الإجمالي المتفق عليه</td>
-                        <td style="padding: 12px 10px; font-weight: bold; color: #254a34; font-size: 18px; text-align: left;">{{RENT_AMOUNT}} ريال</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+<div style="text-align: center; font-weight: bold; color: #14532d; font-size: 16px; margin-bottom: 8px;">شروط إضافية</div>
+<div style="background-color: #f9fafb; padding: 15px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 14px; line-height: 1.8; color: #1f2937; margin-bottom: 20px; text-align: right;">
+    {{ADDITIONAL_TERMS}}
 </div>
 
-<div style="margin-top: 40px; page-break-inside: avoid;">
-    <div style="font-size: 14px; font-weight: bold; color: #254a34; margin-bottom: 10px; border-bottom: 1px solid #254a34; padding-bottom: 5px; width: max-content;">الشروط الإضافية والملاحظات</div>
-    <div class="terms">
-        {{ADDITIONAL_TERMS}}
-    </div>
-</div>
-            ',
+<div style="border-top: 3px solid #16a34a; margin-bottom: 20px;"></div>
+
+<table style="width: 100%; border-collapse: separate; border-spacing: 20px 0;">
+    <tr>
+        <td style="width: 50%; background-color: #f0fdf4; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #bbf7d0;">
+            <div style="color: #14532d; font-weight: bold; margin-bottom: 30px;">توقيع الطرف الأول (المؤجر)</div>
+            {{LESSOR_SIGNATURE}}
+        </td>
+        <td style="width: 50%; background-color: #f0fdf4; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #bbf7d0;">
+            <div style="color: #14532d; font-weight: bold; margin-bottom: 30px;">توقيع الطرف الثاني (المستأجر)</div>
+            {{LESSEE_SIGNATURE}}
+        </td>
+    </tr>
+</table>',
             'is_active' => true
         ]);
     }
