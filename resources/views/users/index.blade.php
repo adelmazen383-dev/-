@@ -2,7 +2,7 @@
     <x-slot name="header">إدارة النظام والموظفين</x-slot>
 
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-white">قائمة الموظفين</h2>
+        <h2 class="text-xl font-bold text-slate-800">قائمة الموظفين</h2>
         <a href="{{ route('users.create') }}" class="btn btn-indigo">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
             إضافة موظف جديد
@@ -25,8 +25,8 @@
                 <tbody>
                     @forelse($users as $user)
                     <tr>
-                        <td class="font-bold text-white">{{ $user->name }}</td>
-                        <td class="text-slate-300">{{ $user->email }}</td>
+                        <td class="font-bold text-slate-800">{{ $user->name }}</td>
+                        <td class="text-slate-700">{{ $user->email }}</td>
                         <td>
                             @if($user->hasRole('admin'))
                                 <span class="badge badge-sent">مدير النظام</span>
@@ -41,7 +41,7 @@
                                 <span class="badge badge-rejected">معطل</span>
                             @endif
                         </td>
-                        <td class="text-slate-400 text-sm">{{ $user->created_at->format('Y-m-d') }}</td>
+                        <td class="text-slate-600 text-sm">{{ $user->created_at->format('Y-m-d') }}</td>
                         <td>
                             @if($user->id !== auth()->id())
                                 <div class="flex gap-2">
@@ -59,12 +59,12 @@
                                     </form>
                                 </div>
                             @else
-                                <span class="text-slate-500 text-sm italic">حسابك الحالي</span>
+                                <span class="text-slate-600 text-sm italic">حسابك الحالي</span>
                             @endif
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center py-6 text-slate-500">لا يوجد مستخدمين.</td></tr>
+                    <tr><td colspan="6" class="text-center py-6 text-slate-600">لا يوجد مستخدمين.</td></tr>
                     @endforelse
                 </tbody>
             </table>

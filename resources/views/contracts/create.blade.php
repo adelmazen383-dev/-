@@ -8,15 +8,15 @@
 
                 <!-- Section: Client & Template -->
                 <div class="mb-8">
-                    <h3 class="text-white font-bold text-base mb-4 flex items-center gap-2">
+                    <h3 class="text-slate-800 font-bold text-base mb-4 flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xs font-black">1</span>
                         بيانات العميل والقالب
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="lessor_id" class="form-label">اختر المؤجر</label>
+                            <label for="lessor_id" class="form-label">اختر المالك</label>
                             <select id="lessor_id" name="lessor_id" required class="form-input">
-                                <option value="">-- اختر مؤجراً --</option>
+                                <option value="">-- اختر مالكاً --</option>
                                 @foreach($lessors as $lessor)
                                     <option value="{{ $lessor->id }}" {{ old('lessor_id')==$lessor->id?'selected':'' }}>{{ $lessor->name }} ({{ $lessor->national_id }})</option>
                                 @endforeach
@@ -33,22 +33,13 @@
                             </select>
                             @error('customer_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <div>
-                            <label for="template_id" class="form-label">قالب العقد</label>
-                            <select id="template_id" name="template_id" required class="form-input">
-                                <option value="">-- اختر قالباً --</option>
-                                @foreach($templates as $template)
-                                    <option value="{{ $template->id }}" {{ old('template_id')==$template->id?'selected':'' }}>{{ $template->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('template_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>
 
                 <!-- Section: Property Details -->
                 <div class="mb-8">
-                    <h3 class="text-white font-bold text-base mb-4 flex items-center gap-2">
+                    <h3 class="text-slate-800 font-bold text-base mb-4 flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-black">2</span>
                         بيانات العقار
                     </h3>
@@ -62,7 +53,7 @@
 
                 <!-- Section: Duration & Payment -->
                 <div class="mb-8">
-                    <h3 class="text-white font-bold text-base mb-4 flex items-center gap-2">
+                    <h3 class="text-slate-800 font-bold text-base mb-4 flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-black">3</span>
                         المدة والمبلغ
                     </h3>
@@ -83,22 +74,21 @@
                             @error('rent_amount') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label for="payment_method" class="form-label">طريقة الدفع</label>
-                            <select id="payment_method" name="payment_method" required class="form-input">
-                                <option value="">-- اختر --</option>
-                                <option value="monthly" {{ old('payment_method')=='monthly'?'selected':'' }}>شهري</option>
-                                <option value="quarterly" {{ old('payment_method')=='quarterly'?'selected':'' }}>ربع سنوي</option>
-                                <option value="semi_annual" {{ old('payment_method')=='semi_annual'?'selected':'' }}>نصف سنوي</option>
-                                <option value="annual" {{ old('payment_method')=='annual'?'selected':'' }}>سنوي</option>
-                            </select>
-                            @error('payment_method') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                            <label for="deposit_amount" class="form-label">مبلغ التأمين (ر.س)</label>
+                            <input type="number" id="deposit_amount" name="deposit_amount" value="{{ old('deposit_amount', 500) }}" required min="0" step="0.01" class="form-input" placeholder="مثال: 500">
+                            @error('deposit_amount') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="tourism_license_number" class="form-label">رقم الرخصة السياحية (اختياري)</label>
+                            <input type="text" id="tourism_license_number" name="tourism_license_number" value="{{ old('tourism_license_number') }}" class="form-input" placeholder="مثال: 123456789">
+                            @error('tourism_license_number') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>
 
                 <!-- Section: Additional Terms -->
                 <div class="mb-8">
-                    <h3 class="text-white font-bold text-base mb-4 flex items-center gap-2">
+                    <h3 class="text-slate-800 font-bold text-base mb-4 flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 text-xs font-black">4</span>
                         شروط إضافية (اختياري)
                     </h3>
@@ -106,7 +96,7 @@
                               placeholder="أي بنود أو شروط إضافية تريد إضافتها للعقد...">{{ old('additional_terms') }}</textarea>
                 </div>
 
-                <div class="flex items-center gap-3 pt-4 border-t border-white/5">
+                <div class="flex items-center gap-3 pt-4 border-t border-slate-200">
                     <button type="submit" class="btn btn-emerald">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         إنشاء العقد وإرساله

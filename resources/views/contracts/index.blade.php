@@ -5,7 +5,7 @@
     <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
         <form method="GET" action="{{ route('contracts.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             <div class="relative">
-                <svg class="w-5 h-5 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg class="w-5 h-5 text-slate-600 absolute right-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="بحث برقم العقد أو اسم العميل..."
                        class="form-input pr-10" style="min-width:280px;">
             </div>
@@ -47,7 +47,7 @@
                     @forelse($contracts as $contract)
                     <tr>
                         <td class="font-mono text-indigo-400 font-bold">{{ $contract->contract_number }}</td>
-                        <td class="text-white font-semibold">{{ $contract->customer->name ?? '—' }}</td>
+                        <td class="text-slate-800 font-semibold">{{ $contract->customer->name ?? '—' }}</td>
                         <td class="text-sm">{{ $contract->start_date?->format('Y/m/d') ?? '—' }}</td>
                         <td class="text-sm">{{ $contract->end_date?->format('Y/m/d') ?? '—' }}</td>
                         <td class="font-semibold text-emerald-400">{{ number_format($contract->rent_amount) }} ر.س</td>
@@ -65,7 +65,7 @@
                     <tr>
                         <td colspan="7" class="text-center py-12">
                             <svg class="w-16 h-16 text-slate-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <p class="text-slate-500 font-semibold">لا توجد عقود</p>
+                            <p class="text-slate-600 font-semibold">لا توجد عقود</p>
                             <a href="{{ route('contracts.create') }}" class="btn btn-indigo btn-sm mt-4 inline-flex">إنشاء أول عقد</a>
                         </td>
                     </tr>

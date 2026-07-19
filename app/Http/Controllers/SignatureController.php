@@ -73,7 +73,7 @@ class SignatureController extends Controller
             } else {
                 // Lessee just signed → waiting for lessor
                 return response()->json([
-                    'message'     => 'تم حفظ توقيعك بنجاح. سيتم إرسال العقد للمؤجر للتوقيع عليه.',
+                    'message'     => 'تم حفظ توقيعك بنجاح. سيتم إرسال العقد للمالك للتوقيع عليه.',
                     'is_complete' => false,
                 ]);
             }

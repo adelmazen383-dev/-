@@ -108,8 +108,8 @@
                 @endphp
                 <div class="result-card">
                     <div style="text-align:center;margin-bottom:20px;">
-                        <span class="status-badge {{ $statusClass[$contract->status] ?? 'status-draft' }}">
-                            {{ $statusLabel[$contract->status] ?? $contract->status }}
+                        <span class="status-badge {{ $statusClass[$contract->status->value] ?? 'status-draft' }}">
+                            {{ $statusLabel[$contract->status->value] ?? $contract->status->value }}
                         </span>
                     </div>
                     <div class="info-row">

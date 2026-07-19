@@ -97,7 +97,7 @@ class ContractService
         // If lessor is viewing (status is signed_by_lessee), just log it
         if ($contract->status === ContractStatus::SIGNED_BY_LESSEE) {
             $contract->logs()->create([
-                'event' => 'تم فتح رابط التوقيع من قبل المؤجر',
+                'event' => 'تم فتح رابط التوقيع من قبل المالك',
             ]);
         }
     }
@@ -150,7 +150,7 @@ class ContractService
                 $contract->update(['signed_pdf_path' => $signedPdfPath]);
 
                 $contract->logs()->create([
-                    'event' => 'تم توقيع العقد من المؤجر — العقد مكتمل ✅',
+                    'event' => 'تم توقيع العقد من المالك — العقد مكتمل ✅',
                     'meta'  => ['ip' => $request->ip()],
                 ]);
 
@@ -174,7 +174,7 @@ class ContractService
                 ]);
 
                 $contract->logs()->create([
-                    'event' => 'تم توقيع العقد من المستأجر — بانتظار توقيع المؤجر',
+                    'event' => 'تم توقيع العقد من المستأجر — بانتظار توقيع المالك',
                     'meta'  => ['ip' => $request->ip()],
                 ]);
 

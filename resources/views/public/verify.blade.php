@@ -23,14 +23,14 @@
 
     <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden">
         
-        <div class="bg-slate-900 p-8 text-center relative overflow-hidden">
+        <div class="bg-slate-50 p-8 text-center relative overflow-hidden">
             <!-- Decorative circle -->
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500 rounded-full opacity-20 blur-xl"></div>
             <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-500 rounded-full opacity-20 blur-xl"></div>
             
             <svg class="w-16 h-16 text-indigo-400 mx-auto mb-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-            <h1 class="text-2xl font-bold text-white relative z-10">التحقق من صحة العقد</h1>
-            <p class="text-slate-400 text-sm mt-2 relative z-10">أدخل رقم العقد للتحقق من حالته وصلاحيته في النظام</p>
+            <h1 class="text-2xl font-bold text-slate-800 relative z-10">التحقق من صحة العقد</h1>
+            <p class="text-slate-600 text-sm mt-2 relative z-10">أدخل رقم العقد للتحقق من حالته وصلاحيته في النظام</p>
         </div>
 
         <div class="p-8">
@@ -40,7 +40,7 @@
                     <input type="text" name="contract_number" placeholder="مثال: CON-2026-001" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition-all text-left" dir="ltr" required value="{{ request('contract_number') }}">
                 </div>
                 
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-md flex justify-center items-center gap-2">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-slate-800 font-bold py-3 px-4 rounded-xl transition-colors shadow-md flex justify-center items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     <span>تحقق الآن</span>
                 </button>

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\ContractStatus;
-use App\Enums\PaymentMethod;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -23,8 +22,9 @@ class Contract extends Model
         'start_date',
         'end_date',
         'rent_amount',
+        'deposit_amount',
         'site_profit',
-        'payment_method',
+        'tourism_license_number',
         'additional_terms',
         'created_by',
         'contract_number',
@@ -49,7 +49,6 @@ class Contract extends Model
         'rent_amount' => 'decimal:2',
         'site_profit' => 'decimal:2',
         'status'      => ContractStatus::class,
-        'payment_method' => PaymentMethod::class,
     ];
 
     protected static function boot()

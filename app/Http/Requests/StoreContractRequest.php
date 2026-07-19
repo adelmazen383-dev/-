@@ -16,15 +16,15 @@ class StoreContractRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id'      => 'required|exists:customers,id',
-            'lessor_id'        => 'required|exists:customers,id',
-            'template_id'      => 'required|exists:contract_templates,id',
-            'property_details' => 'required|string|max:2000',
-            'start_date'       => 'required|date',
-            'end_date'         => 'required|date|after:start_date',
-            'rent_amount'      => 'required|numeric|min:1|max:99999999.99',
-            'payment_method'   => ['required', new Enum(PaymentMethod::class)],
-            'additional_terms' => 'nullable|string|max:5000',
+            'customer_id'            => 'required|exists:customers,id',
+            'lessor_id'              => 'required|exists:customers,id',
+            'property_details'       => 'required|string|max:2000',
+            'start_date'             => 'required|date',
+            'end_date'               => 'required|date|after:start_date',
+            'rent_amount'            => 'required|numeric|min:1|max:99999999.99',
+            'deposit_amount'         => 'required|numeric|min:0|max:99999999.99',
+            'tourism_license_number' => 'nullable|string|max:255',
+            'additional_terms'       => 'nullable|string',
         ];
     }
 
@@ -33,10 +33,8 @@ class StoreContractRequest extends FormRequest
         return [
             'customer_id.required'      => 'يرجى اختيار المستأجر.',
             'customer_id.exists'        => 'المستأجر المحدد غير موجود.',
-            'lessor_id.required'        => 'يرجى اختيار المؤجر.',
-            'lessor_id.exists'          => 'المؤجر المحدد غير موجود.',
-            'template_id.required'      => 'يرجى اختيار نموذج العقد.',
-            'template_id.exists'        => 'نموذج العقد المحدد غير موجود.',
+            'lessor_id.required'        => 'يرجى اختيار المالك.',
+            'lessor_id.exists'          => 'المالك المحدد غير موجود.',
             'property_details.required' => 'وصف العقار مطلوب.',
             'property_details.max'      => 'وصف العقار يجب ألا يتجاوز 2000 حرف.',
             'start_date.required'       => 'تاريخ البداية مطلوب.',
@@ -47,8 +45,7 @@ class StoreContractRequest extends FormRequest
             'rent_amount.numeric'       => 'قيمة الإيجار يجب أن تكون رقماً.',
             'rent_amount.min'           => 'قيمة الإيجار يجب أن تكون أكبر من صفر.',
             'rent_amount.max'           => 'قيمة الإيجار تجاوزت الحد المسموح.',
-            'payment_method.required'   => 'يرجى اختيار طريقة الدفع.',
-            'additional_terms.max'      => 'الشروط الإضافية يجب ألا تتجاوز 5000 حرف.',
+
         ];
     }
 }

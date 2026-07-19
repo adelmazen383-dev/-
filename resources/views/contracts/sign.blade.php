@@ -111,37 +111,17 @@
             </div>
             <h1 style="font-size:22px;font-weight:800;color:white;margin-bottom:4px;">
                 توقيع عقد الإيجار 
-                <span style="font-size:16px; color:#a5b4fc;">({{ $role === 'lessor' ? 'الطرف الأول - المؤجر' : 'الطرف الثاني - المستأجر' }})</span>
+                <span style="font-size:16px; color:#a5b4fc;">({{ $role === 'lessor' ? 'الطرف الأول - المالك' : 'الطرف الثاني - المستأجر' }})</span>
             </h1>
             <p style="color:#64748b;font-size:13px;">يرجى مراجعة تفاصيل العقد ثم التوقيع أدناه</p>
         </div>
 
-        <!-- Contract Info -->
-        <div class="info-card">
-            <div class="info-row">
-                <span class="info-label">رقم العقد</span>
-                <span class="info-value" style="color:#a5b4fc;font-family:monospace;">{{ $contract->contract_number }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">المؤجر</span>
-                <span class="info-value">{{ $contract->lessor->name ?? '—' }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">المستأجر</span>
-                <span class="info-value">{{ $contract->customer->name ?? '—' }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">العقار</span>
-                <span class="info-value" style="font-size:12px;">{{ Str::limit($contract->property_details, 40) }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">قيمة الإيجار</span>
-                <span class="info-value" style="color:#34d399;">{{ number_format($contract->rent_amount) }} ر.س</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">المدة</span>
-                <span class="info-value">{{ $contract->start_date?->format('Y/m/d') }} — {{ $contract->end_date?->format('Y/m/d') }}</span>
-            </div>
+        <!-- Full Contract Viewer -->
+        <p style="color:#94a3b8;font-size:13px;font-weight:700;margin-bottom:8px;">يرجى قراءة العقد بالكامل قبل التوقيع:</p>
+        <div class="info-card" style="padding: 0; height: 450px; overflow: hidden;">
+            <iframe src="{{ asset($contract->pdf_path) }}" width="100%" height="100%" style="border:none; border-radius: 16px; background: white;">
+                <p>متصفحك لا يدعم عرض ملفات الـ PDF مباشرة. <a href="{{ asset($contract->pdf_path) }}" target="_blank">اضغط هنا لتحميل العقد</a></p>
+            </iframe>
         </div>
 
         <!-- Signature Area -->

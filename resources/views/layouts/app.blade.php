@@ -16,12 +16,12 @@
             --sidebar-width: 280px;
             --sidebar-collapsed: 0px;
         }
-        body { background: #0f172a; color: #e2e8f0; overflow-x: hidden; }
+        body { background: #f8fafc; color: #1e293b; overflow-x: hidden; }
 
         /* ===== Sidebar ===== */
         .sidebar {
             width: var(--sidebar-width);
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            background: #254a34; /* Dark green matching the logo */
             border-left: 1px solid rgba(255,255,255,0.06);
             position: fixed;
             top: 0;
@@ -41,17 +41,17 @@
             padding: 10px 20px;
             border-radius: 12px;
             margin: 2px 12px;
-            color: #94a3b8;
+            color: #d1fae5;
             font-size: 14px;
             font-weight: 600;
             transition: all 0.2s ease;
             text-decoration: none;
         }
-        .sidebar-link:hover { background: rgba(99,102,241,0.1); color: #c7d2fe; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.1); color: #ffffff; }
         .sidebar-link.active {
-            background: linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.15) 100%);
-            color: #a5b4fc;
-            border: 1px solid rgba(99,102,241,0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.2);
         }
         .sidebar-link svg { width: 20px; height: 20px; flex-shrink: 0; }
 
@@ -64,9 +64,9 @@
 
         /* ===== Top Bar ===== */
         .topbar {
-            background: rgba(15,23,42,0.8);
+            background: rgba(255,255,255,0.9);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid #e2e8f0;
             position: sticky;
             top: 0;
             z-index: 30;
@@ -74,21 +74,22 @@
 
         /* ===== Cards ===== */
         .card {
-            background: linear-gradient(145deg, #1e293b 0%, #1a2332 100%);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 24px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         .card:hover {
-            border-color: rgba(99,102,241,0.2);
-            box-shadow: 0 0 30px rgba(99,102,241,0.05);
+            border-color: rgba(16,185,129,0.3);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
         }
 
         /* ===== Stats Cards ===== */
         .stat-card {
-            background: linear-gradient(145deg, #1e293b 0%, #1a2332 100%);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 16px;
             padding: 24px;
             position: relative;
@@ -115,25 +116,25 @@
         /* ===== Table ===== */
         .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
         .data-table thead th {
-            background: rgba(99,102,241,0.08);
+            background: #f1f5f9;
             padding: 14px 16px;
             font-size: 13px;
             font-weight: 700;
-            color: #94a3b8;
+            color: #475569;
             text-align: right;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid #e2e8f0;
         }
         .data-table thead th:first-child { border-radius: 0 12px 0 0; }
         .data-table thead th:last-child { border-radius: 12px 0 0 0; }
         .data-table tbody tr {
             transition: all 0.2s ease;
         }
-        .data-table tbody tr:hover { background: rgba(99,102,241,0.05); }
+        .data-table tbody tr:hover { background: #f8fafc; }
         .data-table tbody td {
             padding: 14px 16px;
             font-size: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            color: #cbd5e1;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
         }
 
         /* ===== Buttons ===== */
@@ -151,11 +152,11 @@
             text-decoration: none;
         }
         .btn-indigo {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
         }
-        .btn-indigo:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+        .btn-indigo:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
         .btn-emerald {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -169,11 +170,11 @@
         }
         .btn-rose:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,63,94,0.4); }
         .btn-ghost {
-            background: rgba(255,255,255,0.05);
-            color: #94a3b8;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
-        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+        .btn-ghost:hover { background: #e2e8f0; color: #1e293b; }
         .btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
 
         /* ===== Badges ===== */
@@ -195,10 +196,10 @@
 
         /* ===== Form ===== */
         .form-input {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
             border-radius: 12px;
-            color: #e2e8f0;
+            color: #1e293b;
             padding: 12px 16px;
             width: 100%;
             font-size: 14px;
@@ -206,8 +207,8 @@
         }
         .form-input:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
         }
         .form-input::placeholder { color: #475569; }
         .form-label { display: block; font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; }
@@ -248,18 +249,8 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <!-- Logo -->
-        <div class="px-6 py-6 border-b border-white/5">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-white font-bold text-lg leading-tight">نظام العقود</h2>
-                    <p class="text-slate-500 text-xs">إدارة التأجير</p>
-                </div>
-            </div>
+        <div class="px-6 py-8 border-b border-slate-200 flex items-center justify-center">
+            <img src="{{ asset('images/logo.png') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
         </div>
 
         <!-- Nav Links -->
@@ -295,20 +286,20 @@
         </nav>
 
         <!-- User Info -->
-        <div class="absolute bottom-0 right-0 left-0 p-4 border-t border-white/5 bg-slate-900/50">
+        <div class="absolute bottom-0 right-0 left-0 p-4 border-t border-slate-200 bg-slate-50/50">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                    <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-slate-800 font-bold text-sm">
                         {{ mb_substr(Auth::user()->name ?? 'م', 0, 1) }}
                     </div>
                     <div>
-                        <p class="text-white text-sm font-semibold leading-tight">{{ Auth::user()->name ?? 'مستخدم' }}</p>
-                        <p class="text-slate-500 text-xs">{{ Auth::user()->email ?? '' }}</p>
+                        <p class="text-slate-800 text-sm font-semibold leading-tight">{{ Auth::user()->name ?? 'مستخدم' }}</p>
+                        <p class="text-slate-600 text-xs">{{ Auth::user()->email ?? '' }}</p>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="text-slate-500 hover:text-red-400 transition" title="تسجيل الخروج">
+                    <button type="submit" class="text-slate-600 hover:text-red-400 transition" title="تسجيل الخروج">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     </button>
                 </form>
@@ -322,15 +313,15 @@
         <header class="topbar">
             <div class="flex items-center justify-between px-6 py-4">
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white transition">
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 hover:text-slate-800 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                     </button>
                     <div>
-                        <h1 class="text-xl font-bold text-white">{{ $header ?? 'لوحة التحكم' }}</h1>
+                        <h1 class="text-xl font-bold text-slate-800">{{ $header ?? 'لوحة التحكم' }}</h1>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-xs text-slate-500 hidden sm:inline">{{ now()->locale('ar')->translatedFormat('l j F Y') }}</span>
+                    <span class="text-xs text-slate-600 hidden sm:inline">{{ now()->locale('ar')->translatedFormat('l j F Y') }}</span>
                 </div>
             </div>
         </header>

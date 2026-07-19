@@ -54,8 +54,11 @@ class ContractController extends Controller
      */
     public function store(StoreContractRequest $request)
     {
+        $validated = $request->validated();
+        $validated['template_id'] = 1; // Default to apartment template
+
         $contract = $this->contractService->createContract(
-            $request->validated(),
+            $validated,
             auth()->id()
         );
 
@@ -115,7 +118,10 @@ class ContractController extends Controller
             return back()->with('error', 'لا يمكن تعديل عقد في حالته الحالية.');
         }
 
-        $contract->update($request->validated());
+        $validated = $request->validated();
+        $validated['template_id'] = 1;
+
+        $contract->update($validated);
         $contract->load('customer', 'template');
 
         // Regenerate draft PDF with updated data
