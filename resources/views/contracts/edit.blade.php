@@ -7,14 +7,28 @@
             @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Customer Selection -->
+                <!-- Lessor Selection -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">العميل</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">المؤجر</label>
+                    <select name="lessor_id" class="form-input w-full" required>
+                        <option value="">اختر المؤجر...</option>
+                        @foreach($lessors as $lessor)
+                            <option value="{{ $lessor->id }}" {{ old('lessor_id', $contract->lessor_id) == $lessor->id ? 'selected' : '' }}>
+                                {{ $lessor->name }} ({{ $lessor->national_id }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('lessor_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Lessee Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">المستأجر</label>
                     <select name="customer_id" class="form-input w-full" required>
-                        <option value="">اختر العميل...</option>
-                        @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}" {{ old('customer_id', $contract->customer_id) == $customer->id ? 'selected' : '' }}>
-                                {{ $customer->name }} ({{ $customer->national_id }})
+                        <option value="">اختر المستأجر...</option>
+                        @foreach($lessees as $lessee)
+                            <option value="{{ $lessee->id }}" {{ old('customer_id', $contract->customer_id) == $lessee->id ? 'selected' : '' }}>
+                                {{ $lessee->name }} ({{ $lessee->national_id }})
                             </option>
                         @endforeach
                     </select>

@@ -188,6 +188,7 @@
         .badge-draft { background: rgba(148,163,184,0.15); color: #94a3b8; }
         .badge-sent { background: rgba(99,102,241,0.15); color: #a5b4fc; }
         .badge-viewed { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .badge-lessee-signed { background: rgba(6,182,212,0.15); color: #22d3ee; }
         .badge-signed { background: rgba(16,185,129,0.15); color: #34d399; }
         .badge-rejected { background: rgba(244,63,94,0.15); color: #fb7185; }
         .badge-cancelled { background: rgba(107,114,128,0.15); color: #9ca3af; }
@@ -277,6 +278,13 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 العقود
             </a>
+
+            @can('manageUsers', App\Models\Contract::class)
+            <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                المديرين والموظفين
+            </a>
+            @endcan
 
             <p class="px-5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 mt-8">روابط سريعة</p>
 

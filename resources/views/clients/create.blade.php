@@ -31,6 +31,16 @@
                                class="form-input" placeholder="مثال: 0501234567" dir="ltr">
                         @error('phone') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label for="type" class="form-label">نوع العميل</label>
+                        <select id="type" name="type" required class="form-input">
+                            <option value="lessee" {{ old('type', $client->type ?? '') == 'lessee' ? 'selected' : '' }}>مستأجر</option>
+                            <option value="lessor" {{ old('type', $client->type ?? '') == 'lessor' ? 'selected' : '' }}>مؤجر</option>
+                        </select>
+                        @error('type') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3 mt-8">

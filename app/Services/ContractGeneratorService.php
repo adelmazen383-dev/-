@@ -41,21 +41,38 @@ class ContractGeneratorService
         return 'storage/' . $fileName;
     }
 
-    public function generateSignedPdf(Contract $contract, string $signatureImagePath): string
+    public function generateSignedPdf(Contract $contract): string
     {
         $html = $this->prepareHtml($contract);
 
-        $sigContent = Storage::disk('public')->get(str_replace('storage/', '', $signatureImagePath));
-        $sigData = base64_encode($sigContent);
+        $html .= '<br><hr><table style="width: 100%; margin-top: 30px; text-align: center;"><tr>';
 
-        $html .= '<br><hr><div style="text-align:center; margin-top: 30px;">';
-        $html .= '<h3>توقيع الطرف الثاني (المستأجر)</h3>';
-        $html .= '<img src="data:image/png;base64,' . $sigData . '" style="max-height:150px; border: 1px dashed #ccc; padding: 10px;" />';
+        $lesseeSig = $contract->lesseeSignature;
+        $lessorSig = $contract->lessorSignature;
 
-        $ipAddress = $contract->signature->ip_address ?? 'N/A';
-        $signedAt = $contract->signed_at ? $contract->signed_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s');
-        $html .= '<p style="font-size: 12px; color: #555;">IP: ' . e($ipAddress) . ' | Time: ' . $signedAt . '</p>';
-        $html .= '</div>';
+        if ($lessorSig) {
+            $sigContent = Storage::disk('public')->get(str_replace('storage/', '', $lessorSig->signature_path));
+            $sigData = base64_encode($sigContent);
+            $html .= '<td style="width: 50%; vertical-align: top;">';
+            $html .= '<h3>توقيع الطرف الأول (المؤجر)</h3>';
+            $html .= '<img src="data:image/png;base64,' . $sigData . '" style="max-height:120px; border: 1px dashed #ccc; padding: 10px;" />';
+            $signedAt = $lessorSig->signed_at ? $lessorSig->signed_at->format('Y-m-d H:i:s') : '';
+            $html .= '<p style="font-size: 10px; color: #555;">IP: ' . e($lessorSig->ip_address) . '<br>Time: ' . $signedAt . '</p>';
+            $html .= '</td>';
+        }
+
+        if ($lesseeSig) {
+            $sigContent = Storage::disk('public')->get(str_replace('storage/', '', $lesseeSig->signature_path));
+            $sigData = base64_encode($sigContent);
+            $html .= '<td style="width: 50%; vertical-align: top;">';
+            $html .= '<h3>توقيع الطرف الثاني (المستأجر)</h3>';
+            $html .= '<img src="data:image/png;base64,' . $sigData . '" style="max-height:120px; border: 1px dashed #ccc; padding: 10px;" />';
+            $signedAt = $lesseeSig->signed_at ? $lesseeSig->signed_at->format('Y-m-d H:i:s') : '';
+            $html .= '<p style="font-size: 10px; color: #555;">IP: ' . e($lesseeSig->ip_address) . '<br>Time: ' . $signedAt . '</p>';
+            $html .= '</td>';
+        }
+
+        $html .= '</tr></table>';
 
         $html .= $this->getQrHtml($contract);
 

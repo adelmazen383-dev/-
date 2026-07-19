@@ -14,6 +14,7 @@
                 <option value="draft" {{ request('status')=='draft'?'selected':'' }}>مسودة</option>
                 <option value="sent" {{ request('status')=='sent'?'selected':'' }}>مُرسل</option>
                 <option value="viewed" {{ request('status')=='viewed'?'selected':'' }}>تمت المشاهدة</option>
+                <option value="signed_by_lessee" {{ request('status')=='signed_by_lessee'?'selected':'' }}>موقّع من المستأجر</option>
                 <option value="signed" {{ request('status')=='signed'?'selected':'' }}>موقّع</option>
                 <option value="rejected" {{ request('status')=='rejected'?'selected':'' }}>مرفوض</option>
                 <option value="cancelled" {{ request('status')=='cancelled'?'selected':'' }}>ملغى</option>
@@ -34,7 +35,7 @@
                 <thead>
                     <tr>
                         <th>رقم العقد</th>
-                        <th>العميل</th>
+                        <th>المستأجر</th>
                         <th>بداية العقد</th>
                         <th>نهاية العقد</th>
                         <th>قيمة الإيجار</th>

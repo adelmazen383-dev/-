@@ -42,9 +42,10 @@ class ContractController extends Controller
 
     public function create()
     {
-        $customers = Customer::orderBy('name')->get();
+        $lessors = Customer::where('type', 'lessor')->orderBy('name')->get();
+        $lessees = Customer::where('type', 'lessee')->orderBy('name')->get();
         $templates = ContractTemplate::where('is_active', true)->get();
-        return view('contracts.create', compact('customers', 'templates'));
+        return view('contracts.create', compact('lessors', 'lessees', 'templates'));
     }
 
     /**
@@ -60,13 +61,23 @@ class ContractController extends Controller
 
         return redirect()
             ->route('contracts.show', $contract)
-            ->with('success', 'تم إنشاء العقد بنجاح. يمكنك الآن إرسال رابط التوقيع للعميل.');
+            ->with('success', 'تم إنشاء العقد بنجاح. يمكنك الآن إرسال رابط التوقيع للمستأجر.');
     }
 
     public function show(Contract $contract)
     {
-        $contract->load('customer', 'logs', 'signature', 'creator');
+        $contract->load('customer', 'lessor', 'logs', 'signatures', 'creator');
         return view('contracts.show', compact('contract'));
+    }
+
+    /**
+     * Mark contract as sent — called when admin clicks send/copy link.
+     * Only transitions draft → sent.
+     */
+    public function send(Contract $contract)
+    {
+        $this->contractService->markAsSent($contract);
+        return back()->with('success', 'تم تسجيل إرسال العقد بنجاح.');
     }
 
     public function cancel(Contract $contract)
@@ -88,9 +99,10 @@ class ContractController extends Controller
             return back()->with('error', 'لا يمكن تعديل عقد في حالته الحالية.');
         }
 
-        $customers = Customer::orderBy('name')->get();
+        $lessors = Customer::where('type', 'lessor')->orderBy('name')->get();
+        $lessees = Customer::where('type', 'lessee')->orderBy('name')->get();
         $templates = ContractTemplate::where('is_active', true)->get();
-        return view('contracts.edit', compact('contract', 'customers', 'templates'));
+        return view('contracts.edit', compact('contract', 'lessors', 'lessees', 'templates'));
     }
 
     /**

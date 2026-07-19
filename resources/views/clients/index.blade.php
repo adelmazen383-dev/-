@@ -19,6 +19,7 @@
                         <th>#</th>
                         <th>اسم العميل</th>
                         <th>رقم الهوية</th>
+                        <th>النوع</th>
                         <th>رقم الجوال</th>
                         <th>عدد العقود</th>
                         <th>تاريخ التسجيل</th>
@@ -31,6 +32,13 @@
                         <td class="text-slate-500 font-mono">{{ $client->id }}</td>
                         <td class="text-white font-semibold">{{ $client->name }}</td>
                         <td class="font-mono text-indigo-400">{{ $client->national_id }}</td>
+                        <td>
+                            @if($client->type === 'lessor')
+                                <span class="badge badge-viewed">مؤجر</span>
+                            @else
+                                <span class="badge badge-signed">مستأجر</span>
+                            @endif
+                        </td>
                         <td dir="ltr" class="text-slate-300">{{ $client->phone }}</td>
                         <td>
                             <span class="badge badge-sent">{{ $client->contracts_count ?? $client->contracts()->count() }}</span>

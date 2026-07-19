@@ -38,6 +38,12 @@ class ContractService
             $pdfPath = $this->generator->generateDraftPdf($contract);
             $contract->update(['pdf_path' => $pdfPath]);
 
+            // Log the creation event
+            $contract->logs()->create([
+                'event' => 'تم إنشاء العقد كمسودة',
+                'meta'  => ['user_id' => $userId],
+            ]);
+
             Log::info('Contract created', [
                 'contract_id'     => $contract->id,
                 'contract_number' => $contractNumber,
@@ -49,7 +55,59 @@ class ContractService
     }
 
     /**
-     * Process digital signature submission from customer.
+     * Mark a contract as "sent" — admin clicked the WhatsApp/copy link button.
+     * Transitions: draft → sent
+     */
+    public function markAsSent(Contract $contract): void
+    {
+        if (!in_array($contract->status, [ContractStatus::DRAFT, ContractStatus::VIEWED])) {
+            return; // Already sent or beyond
+        }
+
+        $contract->update([
+            'status'  => ContractStatus::SENT,
+            'sent_at' => now(),
+        ]);
+
+        $contract->logs()->create([
+            'event' => 'تم إرسال رابط التوقيع للمستأجر',
+            'meta'  => ['user_id' => auth()->id()],
+        ]);
+
+        Log::info('Contract marked as sent', ['contract_id' => $contract->id]);
+    }
+
+    /**
+     * Mark contract as viewed when the person opens the sign page.
+     * Works for both lessee (sent→viewed) and lessor (sent_to_lessor is implicit).
+     */
+    public function markAsViewed(Contract $contract): void
+    {
+        if ($contract->status === ContractStatus::SENT) {
+            $contract->update([
+                'status'    => ContractStatus::VIEWED,
+                'viewed_at' => now(),
+            ]);
+
+            $contract->logs()->create([
+                'event' => 'تم فتح رابط التوقيع من قبل المستأجر',
+            ]);
+        }
+
+        // If lessor is viewing (status is signed_by_lessee), just log it
+        if ($contract->status === ContractStatus::SIGNED_BY_LESSEE) {
+            $contract->logs()->create([
+                'event' => 'تم فتح رابط التوقيع من قبل المؤجر',
+            ]);
+        }
+    }
+
+    /**
+     * Process digital signature submission.
+     *
+     * Flow:
+     *   - If lessee is signing: status → signed_by_lessee (no final PDF yet)
+     *   - If lessor is signing: status → signed, generate final PDF
      *
      * Fix #2: Entire flow wrapped in DB::transaction.
      * Fix #6: Base64 signature validated before processing.
@@ -67,32 +125,64 @@ class ContractService
             // Decode and save signature image
             $signaturePath = $this->saveSignatureImage($contract, $signatureData);
 
-            // Create signature record with forensic data
-            $contract->signature()->create([
-                'signature_path' => $signaturePath,
-                'ip_address'     => $request->ip(),
-                'user_agent'     => $request->userAgent(),
-                'signed_at'      => now(),
-            ]);
+            if ($contract->status === ContractStatus::SIGNED_BY_LESSEE) {
+                // ═══ LESSOR IS SIGNING (Step 2) ═══
+                $contract->signatures()->create([
+                    'role'           => 'lessor',
+                    'signature_path' => $signaturePath,
+                    'ip_address'     => $request->ip(),
+                    'user_agent'     => $request->userAgent(),
+                    'signed_at'      => now(),
+                ]);
 
-            // Update contract status
-            $contract->update([
-                'status'    => ContractStatus::SIGNED,
-                'signed_at' => now(),
-            ]);
+                // Update contract status to final SIGNED
+                $contract->update([
+                    'status'      => ContractStatus::SIGNED,
+                    'signed_at'   => now(),
+                    'site_profit' => 40.00,
+                ]);
 
-            // Reload the signature relation for PDF generation
-            $contract->load('signature', 'customer', 'template');
+                // Reload the signature relations for PDF generation
+                $contract->load('signatures', 'customer', 'lessor', 'template');
 
-            // Generate signed PDF with embedded signature + QR
-            $signedPdfPath = $this->generator->generateSignedPdf($contract, $signaturePath);
-            $contract->update(['signed_pdf_path' => $signedPdfPath]);
+                // Generate signed PDF with embedded signatures + QR
+                $signedPdfPath = $this->generator->generateSignedPdf($contract);
+                $contract->update(['signed_pdf_path' => $signedPdfPath]);
 
-            Log::info('Contract signed', [
-                'contract_id' => $contract->id,
-                'ip_address'  => $request->ip(),
-                'user_agent'  => Str::limit($request->userAgent(), 100),
-            ]);
+                $contract->logs()->create([
+                    'event' => 'تم توقيع العقد من المؤجر — العقد مكتمل ✅',
+                    'meta'  => ['ip' => $request->ip()],
+                ]);
+
+                Log::info('Contract signed by lessor (finalized)', [
+                    'contract_id' => $contract->id,
+                    'ip_address'  => $request->ip(),
+                ]);
+            } else {
+                // ═══ LESSEE IS SIGNING (Step 1) ═══
+                $contract->signatures()->create([
+                    'role'           => 'lessee',
+                    'signature_path' => $signaturePath,
+                    'ip_address'     => $request->ip(),
+                    'user_agent'     => $request->userAgent(),
+                    'signed_at'      => now(),
+                ]);
+
+                // Update contract status to SIGNED_BY_LESSEE
+                $contract->update([
+                    'status' => ContractStatus::SIGNED_BY_LESSEE,
+                ]);
+
+                $contract->logs()->create([
+                    'event' => 'تم توقيع العقد من المستأجر — بانتظار توقيع المؤجر',
+                    'meta'  => ['ip' => $request->ip()],
+                ]);
+
+                Log::info('Contract signed by lessee', [
+                    'contract_id' => $contract->id,
+                    'ip_address'  => $request->ip(),
+                ]);
+            }
 
             return $contract;
         });
@@ -112,6 +202,10 @@ class ContractService
             'rejected_at' => now(),
         ]);
 
+        $contract->logs()->create([
+            'event' => 'تم رفض العقد',
+        ]);
+
         Log::info('Contract rejected', ['contract_id' => $contract->id]);
 
         return $contract;
@@ -128,25 +222,17 @@ class ContractService
 
         $contract->update(['status' => ContractStatus::CANCELLED]);
 
+        $contract->logs()->create([
+            'event' => 'تم إلغاء العقد من قبل الإدارة',
+            'meta'  => ['user_id' => auth()->id()],
+        ]);
+
         Log::info('Contract cancelled', [
             'contract_id' => $contract->id,
             'cancelled_by' => auth()->id(),
         ]);
 
         return $contract;
-    }
-
-    /**
-     * Mark contract as viewed when customer opens sign page.
-     */
-    public function markAsViewed(Contract $contract): void
-    {
-        if ($contract->status === ContractStatus::SENT) {
-            $contract->update([
-                'status'    => ContractStatus::VIEWED,
-                'viewed_at' => now(),
-            ]);
-        }
     }
 
     // ─── Private Helpers ────────────────────────────────────

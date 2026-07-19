@@ -9,7 +9,7 @@ class Customer extends Model
 {
     use SoftDeletes;
 
-    protected $fillable = ['name', 'national_id', 'phone', 'email', 'address'];
+    protected $fillable = ['name', 'national_id', 'phone', 'email', 'address', 'type'];
 
     public function contracts()
     {

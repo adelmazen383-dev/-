@@ -17,6 +17,7 @@ class StoreContractRequest extends FormRequest
     {
         return [
             'customer_id'      => 'required|exists:customers,id',
+            'lessor_id'        => 'required|exists:customers,id',
             'template_id'      => 'required|exists:contract_templates,id',
             'property_details' => 'required|string|max:2000',
             'start_date'       => 'required|date',
@@ -30,8 +31,10 @@ class StoreContractRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'customer_id.required'      => 'يرجى اختيار العميل.',
-            'customer_id.exists'        => 'العميل المحدد غير موجود.',
+            'customer_id.required'      => 'يرجى اختيار المستأجر.',
+            'customer_id.exists'        => 'المستأجر المحدد غير موجود.',
+            'lessor_id.required'        => 'يرجى اختيار المؤجر.',
+            'lessor_id.exists'          => 'المؤجر المحدد غير موجود.',
             'template_id.required'      => 'يرجى اختيار نموذج العقد.',
             'template_id.exists'        => 'نموذج العقد المحدد غير موجود.',
             'property_details.required' => 'وصف العقار مطلوب.',

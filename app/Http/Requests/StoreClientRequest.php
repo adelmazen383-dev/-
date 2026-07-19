@@ -18,6 +18,7 @@ class StoreClientRequest extends FormRequest
             'name' => 'required|string|max:255',
             'national_id' => 'required|string|unique:customers,national_id,' . $clientId,
             'phone' => 'required|string|min:10',
+            'type' => 'required|in:lessee,lessor',
         ];
     }
 

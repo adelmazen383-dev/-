@@ -15,11 +15,12 @@ class DashboardController extends Controller
             $contractStats = Contract::query()->selectRaw("
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'signed' THEN 1 ELSE 0 END) as signed,
-                SUM(CASE WHEN status IN ('draft','sent','viewed') THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status IN ('draft','sent','viewed','signed_by_lessee') THEN 1 ELSE 0 END) as pending,
                 SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
                 SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
                 SUM(CASE WHEN status = 'signed' THEN rent_amount ELSE 0 END) as total_rent_signed,
-                SUM(rent_amount) as total_rent_all
+                SUM(rent_amount) as total_rent_all,
+                SUM(site_profit) as total_site_profit
             ")->first();
 
             return [
@@ -30,6 +31,7 @@ class DashboardController extends Controller
                 'cancelledContracts'=> $contractStats->cancelled,
                 'totalRentSigned'  => $contractStats->total_rent_signed ?? 0,
                 'totalRentAll'     => $contractStats->total_rent_all ?? 0,
+                'totalSiteProfit'  => $contractStats->total_site_profit ?? 0,
                 'totalCustomers'   => Customer::count(),
             ];
         });

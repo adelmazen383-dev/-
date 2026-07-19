@@ -14,11 +14,21 @@
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="customer_id" class="form-label">اختر العميل</label>
+                            <label for="lessor_id" class="form-label">اختر المؤجر</label>
+                            <select id="lessor_id" name="lessor_id" required class="form-input">
+                                <option value="">-- اختر مؤجراً --</option>
+                                @foreach($lessors as $lessor)
+                                    <option value="{{ $lessor->id }}" {{ old('lessor_id')==$lessor->id?'selected':'' }}>{{ $lessor->name }} ({{ $lessor->national_id }})</option>
+                                @endforeach
+                            </select>
+                            @error('lessor_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="customer_id" class="form-label">اختر المستأجر</label>
                             <select id="customer_id" name="customer_id" required class="form-input">
-                                <option value="">-- اختر عميلاً --</option>
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ old('customer_id')==$customer->id?'selected':'' }}>{{ $customer->name }} ({{ $customer->national_id }})</option>
+                                <option value="">-- اختر مستأجراً --</option>
+                                @foreach($lessees as $lessee)
+                                    <option value="{{ $lessee->id }}" {{ old('customer_id')==$lessee->id?'selected':'' }}>{{ $lessee->name }} ({{ $lessee->national_id }})</option>
                                 @endforeach
                             </select>
                             @error('customer_id') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror

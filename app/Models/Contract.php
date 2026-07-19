@@ -17,11 +17,13 @@ class Contract extends Model
      */
     protected $fillable = [
         'customer_id',
+        'lessor_id',
         'template_id',
         'property_details',
         'start_date',
         'end_date',
         'rent_amount',
+        'site_profit',
         'payment_method',
         'additional_terms',
         'created_by',
@@ -45,6 +47,7 @@ class Contract extends Model
         'signed_at'   => 'datetime',
         'rejected_at' => 'datetime',
         'rent_amount' => 'decimal:2',
+        'site_profit' => 'decimal:2',
         'status'      => ContractStatus::class,
         'payment_method' => PaymentMethod::class,
     ];
@@ -63,7 +66,12 @@ class Contract extends Model
 
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    public function lessor()
+    {
+        return $this->belongsTo(Customer::class, 'lessor_id');
     }
 
     public function template()
@@ -76,9 +84,19 @@ class Contract extends Model
         return $this->hasMany(ContractLog::class)->orderBy('created_at', 'desc');
     }
 
-    public function signature()
+    public function signatures()
     {
-        return $this->hasOne(ContractSignature::class);
+        return $this->hasMany(ContractSignature::class);
+    }
+
+    public function lesseeSignature()
+    {
+        return $this->hasOne(ContractSignature::class)->where('role', 'lessee');
+    }
+
+    public function lessorSignature()
+    {
+        return $this->hasOne(ContractSignature::class)->where('role', 'lessor');
     }
 
     public function creator()

@@ -63,6 +63,10 @@
                     <span class="text-emerald-400 font-bold text-lg">{{ number_format($totalRentSigned) }} ر.س</span>
                 </div>
                 <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                    <span class="text-slate-400 text-sm">إجمالي ربح الموقع</span>
+                    <span class="text-amber-400 font-bold text-lg">{{ number_format($totalSiteProfit) }} ر.س</span>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-lg bg-white/5">
                     <span class="text-slate-400 text-sm">إجمالي الإيجارات (كل العقود)</span>
                     <span class="text-slate-300 font-bold text-lg">{{ number_format($totalRentAll) }} ر.س</span>
                 </div>
@@ -102,7 +106,7 @@
         </h3>
         <div class="overflow-x-auto">
             <table class="data-table">
-                <thead><tr><th>رقم العقد</th><th>العميل</th><th>تاريخ الانتهاء</th><th>المتبقي</th><th>إجراء</th></tr></thead>
+                <thead><tr><th>رقم العقد</th><th>المستأجر</th><th>تاريخ الانتهاء</th><th>المتبقي</th><th>إجراء</th></tr></thead>
                 <tbody>
                     @foreach($expiringContracts as $exp)
                     <tr>
@@ -130,7 +134,7 @@
                 <thead>
                     <tr>
                         <th>رقم العقد</th>
-                        <th>العميل</th>
+                        <th>المستأجر</th>
                         <th>الحالة</th>
                         <th>قيمة الإيجار</th>
                         <th>التاريخ</th>

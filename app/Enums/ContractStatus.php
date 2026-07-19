@@ -7,6 +7,7 @@ enum ContractStatus: string
     case DRAFT = 'draft';
     case SENT = 'sent';
     case VIEWED = 'viewed';
+    case SIGNED_BY_LESSEE = 'signed_by_lessee';
     case SIGNED = 'signed';
     case REJECTED = 'rejected';
     case CANCELLED = 'cancelled';
@@ -17,7 +18,8 @@ enum ContractStatus: string
             self::DRAFT => 'مسودة',
             self::SENT => 'مُرسل',
             self::VIEWED => 'تمت المشاهدة',
-            self::SIGNED => 'موقّع',
+            self::SIGNED_BY_LESSEE => 'موقّع من المستأجر',
+            self::SIGNED => 'موقّع نهائياً',
             self::REJECTED => 'مرفوض',
             self::CANCELLED => 'ملغى',
         };
@@ -29,6 +31,7 @@ enum ContractStatus: string
             self::DRAFT => 'badge-draft',
             self::SENT => 'badge-sent',
             self::VIEWED => 'badge-viewed',
+            self::SIGNED_BY_LESSEE => 'badge-lessee-signed',
             self::SIGNED => 'badge-signed',
             self::REJECTED => 'badge-rejected',
             self::CANCELLED => 'badge-cancelled',
@@ -48,7 +51,7 @@ enum ContractStatus: string
      */
     public static function pendingStates(): array
     {
-        return [self::DRAFT, self::SENT, self::VIEWED];
+        return [self::DRAFT, self::SENT, self::VIEWED, self::SIGNED_BY_LESSEE];
     }
 
     public function isTerminal(): bool

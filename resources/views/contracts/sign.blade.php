@@ -109,7 +109,10 @@
             <div class="logo">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
-            <h1 style="font-size:22px;font-weight:800;color:white;margin-bottom:4px;">توقيع عقد الإيجار</h1>
+            <h1 style="font-size:22px;font-weight:800;color:white;margin-bottom:4px;">
+                توقيع عقد الإيجار 
+                <span style="font-size:16px; color:#a5b4fc;">({{ $role === 'lessor' ? 'الطرف الأول - المؤجر' : 'الطرف الثاني - المستأجر' }})</span>
+            </h1>
             <p style="color:#64748b;font-size:13px;">يرجى مراجعة تفاصيل العقد ثم التوقيع أدناه</p>
         </div>
 
@@ -118,6 +121,10 @@
             <div class="info-row">
                 <span class="info-label">رقم العقد</span>
                 <span class="info-value" style="color:#a5b4fc;font-family:monospace;">{{ $contract->contract_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">المؤجر</span>
+                <span class="info-value">{{ $contract->lessor->name ?? '—' }}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">المستأجر</span>
@@ -161,8 +168,9 @@
     <div class="sign-container" id="success-screen" style="display:none;">
         <div class="success-screen">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <h2 style="font-size:24px;font-weight:800;color:white;margin-bottom:8px;">تم التوقيع بنجاح ✅</h2>
-            <p style="color:#64748b;font-size:14px;">شكراً لك. تم حفظ توقيعك وسيتم إعداد النسخة النهائية من العقد.</p>
+            <h2 id="success-title" style="font-size:24px;font-weight:800;color:white;margin-bottom:8px;">تم التوقيع بنجاح ✅</h2>
+            <p id="success-message" style="color:#64748b;font-size:14px;"></p>
+            <div id="success-download"></div>
         </div>
     </div>
 
@@ -218,8 +226,17 @@
             .then((response) => {
                 document.getElementById('sign-form').style.display = 'none';
                 document.getElementById('success-screen').style.display = 'block';
-                if(response.data.download_url) {
-                    document.getElementById('success-screen').innerHTML += `<a href="${response.data.download_url}" target="_blank" style="display:inline-block; margin-top:20px; padding:12px 24px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:white; border-radius:12px; font-weight:bold; text-decoration:none; box-shadow:0 4px 15px rgba(99,102,241,0.3);">📄 تحميل نسختك من العقد</a>`;
+
+                const data = response.data;
+                document.getElementById('success-message').innerText = data.message;
+
+                if(data.is_complete && data.download_url) {
+                    // Lessor signed — contract complete, show download
+                    document.getElementById('success-title').innerText = 'العقد مكتمل ✅';
+                    document.getElementById('success-download').innerHTML = `<a href="${data.download_url}" target="_blank" style="display:inline-block; margin-top:20px; padding:12px 24px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:white; border-radius:12px; font-weight:bold; text-decoration:none; box-shadow:0 4px 15px rgba(99,102,241,0.3);">📄 تحميل نسختك من العقد</a>`;
+                } else {
+                    // Lessee signed — waiting for lessor
+                    document.getElementById('success-title').innerText = 'تم حفظ التوقيع ✅';
                 }
             })
             .catch(err => {

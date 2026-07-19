@@ -15,27 +15,33 @@ class SignatureController extends Controller
 
     /**
      * Show the signature page to the customer (public route).
+     * Determines who should sign based on contract status.
      */
     public function show($token)
     {
         $contract = Contract::where('verification_token', $token)
-            ->with('customer')
+            ->with('customer', 'lessor')
             ->firstOrFail();
 
+        // If contract is already fully signed/rejected/cancelled, redirect to verification
         if ($contract->isTerminal()) {
             return redirect('/verify?contract_number=' . $contract->contract_number);
         }
 
+        // Log that the page was viewed
         $this->contractService->markAsViewed($contract);
 
-        return view('contracts.sign', compact('contract'));
+        // Determine whose turn it is to sign
+        $role = $contract->status === ContractStatus::SIGNED_BY_LESSEE ? 'lessor' : 'lessee';
+
+        return view('contracts.sign', compact('contract', 'role'));
     }
 
     /**
      * Process the signature submission (public route).
      *
-     * Fix #2: Transaction handled in ContractService.
-     * Fix #6: Signature validation handled in ContractService.
+     * - Lessee signs first → status becomes signed_by_lessee
+     * - Lessor signs second → status becomes signed + final PDF generated
      */
     public function store(Request $request, $token)
     {
@@ -46,16 +52,31 @@ class SignatureController extends Controller
         ]);
 
         try {
+            $wasSignedByLessee = $contract->status !== ContractStatus::SIGNED_BY_LESSEE;
+
             $contract = $this->contractService->processSignature(
                 $contract,
                 $request->signature,
                 $request
             );
 
-            return response()->json([
-                'message'      => 'تم حفظ التوقيع بنجاح',
-                'download_url' => asset($contract->signed_pdf_path),
-            ]);
+            // Refresh to get latest status
+            $contract->refresh();
+
+            if ($contract->status === ContractStatus::SIGNED) {
+                // Lessor just signed → contract is complete, show download
+                return response()->json([
+                    'message'      => 'تم توقيع العقد بنجاح — العقد مكتمل ✅',
+                    'download_url' => asset($contract->signed_pdf_path),
+                    'is_complete'  => true,
+                ]);
+            } else {
+                // Lessee just signed → waiting for lessor
+                return response()->json([
+                    'message'     => 'تم حفظ توقيعك بنجاح. سيتم إرسال العقد للمؤجر للتوقيع عليه.',
+                    'is_complete' => false,
+                ]);
+            }
         } catch (\DomainException $e) {
             return response()->json(['message' => $e->getMessage()], 403);
         } catch (\InvalidArgumentException $e) {
