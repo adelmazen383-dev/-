@@ -114,10 +114,10 @@ class ContractGeneratorService
         }
         $html = $statusBox . $html;
 
-        $logoPath = public_path('images/logo.jpg');
+        $logoPath = public_path('images/image.png');
         $logoHtml = '';
         if (file_exists($logoPath)) {
-            $logoHtml = '<img src="' . $logoPath . '" style="max-height: 80px;" />';
+            $logoHtml = '<img src="' . $logoPath . '" style="max-height: 140px;" />';
         } else {
             $logoHtml = '<div style="font-size:24px; font-weight:bold; color:#14532d;">شعار الشركة</div>';
         }

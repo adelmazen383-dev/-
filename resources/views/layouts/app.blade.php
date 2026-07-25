@@ -250,7 +250,7 @@
     <aside id="sidebar" class="sidebar">
         <!-- Logo -->
         <div class="px-6 py-8 border-b border-emerald-700/30 flex items-center justify-center">
-            <img src="{{ asset('images/logo.jpg') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
+            <img src="{{ asset('images/image.png') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
         </div>
 
         <!-- Nav Links -->
