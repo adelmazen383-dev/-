@@ -50,6 +50,13 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (! Auth::user()->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'تم تعطيل حسابك من قبل الإدارة. يرجى مراجعة مدير النظام.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

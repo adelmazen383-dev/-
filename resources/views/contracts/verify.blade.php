@@ -107,6 +107,15 @@
                     $statusLabel = ['draft'=>'مسودة','sent'=>'مُرسل','viewed'=>'قيد المراجعة','signed'=>'✅ عقد صالح وموقّع','rejected'=>'مرفوض من العميل','cancelled'=>'ملغى'];
                 @endphp
                 <div class="result-card">
+                    @if(now()->greaterThan($contract->end_date->endOfDay()))
+                        <div style="background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.3); color: #fb7185; padding: 12px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 16px;">
+                            ⚠️ العقد منتهي الصلاحية
+                        </div>
+                    @else
+                        <div style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; padding: 12px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 16px;">
+                            ✅ العقد فعال
+                        </div>
+                    @endif
                     <div style="text-align:center;margin-bottom:20px;">
                         <span class="status-badge {{ $statusClass[$contract->status->value] ?? 'status-draft' }}">
                             {{ $statusLabel[$contract->status->value] ?? $contract->status->value }}

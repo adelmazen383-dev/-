@@ -85,6 +85,7 @@ class ContractController extends Controller
 
     public function cancel(Contract $contract)
     {
+        $this->authorize('cancel', $contract);
         try {
             $this->contractService->cancelContract($contract);
             return back()->with('success', 'تم إلغاء العقد بنجاح.');
@@ -132,5 +133,18 @@ class ContractController extends Controller
         return redirect()
             ->route('contracts.show', $contract)
             ->with('success', 'تم تحديث العقد وإعادة توليد المسودة بنجاح.');
+    }
+
+    /**
+     * Regenerate PDF for an existing contract (useful when status/dates change)
+     */
+    public function regeneratePdf(Contract $contract, \App\Services\ContractGeneratorService $generator)
+    {
+        if ($contract->status === \App\Enums\ContractStatus::SIGNED) {
+            $contract->update(['signed_pdf_path' => $generator->generateSignedPdf($contract)]);
+        } else {
+            $contract->update(['pdf_path' => $generator->generateDraftPdf($contract)]);
+        }
+        return back()->with('success', 'تم تحديث ملف الـ PDF بنجاح ليعكس الحالة الحالية.');
     }
 }

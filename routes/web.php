@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
     Route::post('/contracts/{contract}/cancel', [ContractController::class, 'cancel'])->name('contracts.cancel');
     Route::post('/contracts/{contract}/send', [ContractController::class, 'send'])->name('contracts.send');
+    Route::post('/contracts/{contract}/regenerate-pdf', [ContractController::class, 'regeneratePdf'])->name('contracts.regenerate-pdf');
 
     // User Management (Admin only)
     Route::middleware('can:manageUsers,App\Models\Contract')->group(function () {

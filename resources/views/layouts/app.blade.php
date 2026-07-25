@@ -21,7 +21,7 @@
         /* ===== Sidebar ===== */
         .sidebar {
             width: var(--sidebar-width);
-            background: #254a34; /* Dark green matching the logo */
+            background: #000000; /* Black matching the new logo */
             border-left: 1px solid rgba(255,255,255,0.06);
             position: fixed;
             top: 0;
@@ -249,18 +249,20 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <!-- Logo -->
-        <div class="px-6 py-8 border-b border-slate-200 flex items-center justify-center">
-            <img src="{{ asset('images/logo.png') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
+        <div class="px-6 py-8 border-b border-white/10 flex items-center justify-center">
+            <img src="{{ asset('images/logo.jpg') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
         </div>
 
         <!-- Nav Links -->
         <nav class="mt-6 px-2">
             <p class="px-5 text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">القائمة الرئيسية</p>
 
+            @if(Auth::user()->hasRole('admin'))
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 لوحة التحكم
             </a>
+            @endif
             <a href="{{ route('clients.index') }}" class="sidebar-link {{ request()->routeIs('clients.*') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 العملاء

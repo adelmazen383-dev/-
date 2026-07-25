@@ -4,6 +4,17 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Info -->
         <div class="lg:col-span-2 space-y-6">
+            <!-- Status Box -->
+            @if(now()->greaterThan($contract->end_date->endOfDay()))
+                <div class="bg-rose-500/10 border-2 border-rose-500 p-4 rounded-xl text-center">
+                    <p class="text-rose-600 text-xl font-bold">العقد منتهي</p>
+                </div>
+            @else
+                <div class="bg-emerald-500/10 border-2 border-emerald-500 p-4 rounded-xl text-center">
+                    <p class="text-emerald-600 text-xl font-bold">العقد فعال</p>
+                </div>
+            @endif
+
             <!-- Contract Header Card -->
             <div class="card">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -149,6 +160,14 @@
                         </a>
                     @endif
 
+                    <form method="POST" action="{{ route('contracts.regenerate-pdf', $contract) }}" class="inline">
+                        @csrf
+                        <button type="submit" class="btn btn-ghost btn-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            تحديث ملف الـ PDF
+                        </button>
+                    </form>
+
                     {{-- ═══ Send final contract to both parties ═══ --}}
                     @if($contract->status === \App\Enums\ContractStatus::SIGNED && $contract->signed_pdf_path)
                         @php
@@ -216,7 +235,11 @@
                             elseif (str_starts_with($phone, '01')) $phone = '20' . substr($phone, 1);
                             elseif (str_starts_with($phone, '5')) $phone = '966' . $phone;
                             
-                            $whatsappMessage = "مرحباً " . ($targetPerson->name ?? '') . "،\n\nنرجو مراجعة عقد الإيجار وتوقيعه عبر الرابط التالي:\n" . route('sign.show', $contract->verification_token);
+                            $whatsappMessage = "مرحباً أستاذ/ة " . ($targetPerson->name ?? '') . "،\n\n"
+                                             . "نرجو التكرم بمراجعة عقد الإيجار وقراءته بعناية، ثم توقيعه إلكترونيًا عبر الرابط التالي:\n"
+                                             . route('sign.show', $contract->verification_token) . "\n\n"
+                                             . "ونود إحاطتكم علمًا بأن العقد يُعد ساريًا وملزمًا للطرفين اعتبارًا من وقت توقيعه، لذا نرجو الاطلاع على جميع بنوده قبل إتمام عملية التوقيع.\n\n"
+                                             . "شاكرين لكم تعاونكم.";
                             $whatsappLink = "https://wa.me/" . $phone . "?text=" . urlencode($whatsappMessage);
                         @endphp
                         <a href="{{ $whatsappLink }}" target="_blank"
@@ -235,6 +258,7 @@
                         @endif
 
                         {{-- Cancel --}}
+                        @can('cancel', $contract)
                         <form method="POST" action="{{ route('contracts.cancel', $contract) }}" onsubmit="return confirm('هل أنت متأكد من إلغاء هذا العقد؟')">
                             @csrf
                             <button type="submit" class="btn btn-rose btn-sm">
@@ -242,6 +266,7 @@
                                 إلغاء العقد
                             </button>
                         </form>
+                        @endcan
                     @endif
                 </div>
 

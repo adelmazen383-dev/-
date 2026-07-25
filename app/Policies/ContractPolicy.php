@@ -54,4 +54,12 @@ class ContractPolicy
     {
         return $user->hasRole('admin');
     }
+
+    /**
+     * Only admins can view the dashboard.
+     */
+    public function viewDashboard(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
 }

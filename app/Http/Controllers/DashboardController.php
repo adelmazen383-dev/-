@@ -10,6 +10,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->hasRole('admin')) {
+            return redirect()->route('contracts.index')->with('error', 'ليس لديك صلاحية للوصول إلى لوحة التحكم.');
+        }
+
         // Cache dashboard stats for 5 minutes
         $stats = Cache::remember('dashboard_stats', 300, function () {
             $contractStats = Contract::query()->selectRaw("

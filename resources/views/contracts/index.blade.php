@@ -52,7 +52,14 @@
                         <td class="text-sm">{{ $contract->end_date?->format('Y/m/d') ?? '—' }}</td>
                         <td class="font-semibold text-emerald-400">{{ number_format($contract->rent_amount) }} ر.س</td>
                         <td>
-                            <span class="badge {{ $contract->status->badgeClass() }}">{{ $contract->status->label() }}</span>
+                            <div class="flex flex-col gap-1 items-start">
+                                <span class="badge {{ $contract->status->badgeClass() }}">{{ $contract->status->label() }}</span>
+                                @if($contract->end_date && now()->greaterThan($contract->end_date->endOfDay()))
+                                    <span class="badge bg-rose-500/10 text-rose-500 border border-rose-500/20" style="font-size: 10px;">منتهي</span>
+                                @else
+                                    <span class="badge bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" style="font-size: 10px;">فعال</span>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             <a href="{{ route('contracts.show', $contract) }}" class="btn btn-ghost btn-sm">
