@@ -21,8 +21,8 @@
         /* ===== Sidebar ===== */
         .sidebar {
             width: var(--sidebar-width);
-            background: #000000; /* Black matching the new logo */
-            border-left: 1px solid rgba(255,255,255,0.06);
+            background: #064e3b; /* Dark emerald green */
+            border-left: 1px solid rgba(16,185,129,0.2);
             position: fixed;
             top: 0;
             right: 0;
@@ -49,9 +49,9 @@
         }
         .sidebar-link:hover { background: rgba(255,255,255,0.1); color: #ffffff; }
         .sidebar-link.active {
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            background: linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(16,185,129,0.10) 100%);
             color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(16,185,129,0.4);
         }
         .sidebar-link svg { width: 20px; height: 20px; flex-shrink: 0; }
 
@@ -75,15 +75,15 @@
         /* ===== Cards ===== */
         .card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
+            border: 2px solid #10b981;
             border-radius: 16px;
             padding: 24px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.08), 0 2px 4px -1px rgba(16, 185, 129, 0.04);
         }
         .card:hover {
-            border-color: rgba(16,185,129,0.3);
-            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
+            border-color: #059669;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.15), 0 4px 6px -2px rgba(16, 185, 129, 0.08);
         }
 
         /* ===== Stats Cards ===== */
@@ -249,7 +249,7 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <!-- Logo -->
-        <div class="px-6 py-8 border-b border-white/10 flex items-center justify-center">
+        <div class="px-6 py-8 border-b border-emerald-700/30 flex items-center justify-center">
             <img src="{{ asset('images/logo.jpg') }}" alt="توثيق العقود" class="max-w-[180px] w-full object-contain">
         </div>
 
@@ -288,20 +288,20 @@
         </nav>
 
         <!-- User Info -->
-        <div class="absolute bottom-0 right-0 left-0 p-4 border-t border-slate-200 bg-slate-50/50">
+        <div class="absolute bottom-0 right-0 left-0 p-4 border-t border-emerald-800/30 bg-emerald-900/30">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-slate-800 font-bold text-sm">
+                    <div class="w-9 h-9 rounded-full bg-emerald-400 flex items-center justify-center text-emerald-900 font-bold text-sm">
                         {{ mb_substr(Auth::user()->name ?? 'م', 0, 1) }}
                     </div>
                     <div>
-                        <p class="text-slate-800 text-sm font-semibold leading-tight">{{ Auth::user()->name ?? 'مستخدم' }}</p>
-                        <p class="text-slate-600 text-xs">{{ Auth::user()->email ?? '' }}</p>
+                        <p class="text-white text-sm font-semibold leading-tight">{{ Auth::user()->name ?? 'مستخدم' }}</p>
+                        <p class="text-emerald-200/70 text-xs">{{ Auth::user()->email ?? '' }}</p>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="text-slate-600 hover:text-red-400 transition" title="تسجيل الخروج">
+                    <button type="submit" class="text-emerald-200/70 hover:text-red-400 transition" title="تسجيل الخروج">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     </button>
                 </form>
