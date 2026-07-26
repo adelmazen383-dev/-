@@ -60,12 +60,12 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="start_date" class="form-label">تاريخ بداية العقد</label>
-                            <input type="date" id="start_date" name="start_date" value="{{ old('start_date') }}" required class="form-input">
+                            <input type="datetime-local" id="start_date" name="start_date" value="{{ old('start_date') }}" required class="form-input">
                             @error('start_date') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="end_date" class="form-label">تاريخ نهاية العقد</label>
-                            <input type="date" id="end_date" name="end_date" value="{{ old('end_date') }}" required class="form-input">
+                            <input type="datetime-local" id="end_date" name="end_date" value="{{ old('end_date') }}" required class="form-input">
                             @error('end_date') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>

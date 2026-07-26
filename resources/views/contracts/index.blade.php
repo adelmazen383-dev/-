@@ -48,13 +48,13 @@
                     <tr>
                         <td class="font-mono text-indigo-400 font-bold">{{ $contract->contract_number }}</td>
                         <td class="text-slate-800 font-semibold">{{ $contract->customer->name ?? '—' }}</td>
-                        <td class="text-sm">{{ $contract->start_date?->format('Y/m/d') ?? '—' }}</td>
-                        <td class="text-sm">{{ $contract->end_date?->format('Y/m/d') ?? '—' }}</td>
+                        <td class="text-sm">{{ $contract->start_date?->format('Y/m/d H:i') ?? '—' }}</td>
+                        <td class="text-sm">{{ $contract->end_date?->format('Y/m/d H:i') ?? '—' }}</td>
                         <td class="font-semibold text-emerald-400">{{ number_format($contract->rent_amount) }} ر.س</td>
                         <td>
                             <div class="flex flex-col gap-1 items-start">
                                 <span class="badge {{ $contract->status->badgeClass() }}">{{ $contract->status->label() }}</span>
-                                @if($contract->end_date && now()->greaterThan($contract->end_date->endOfDay()))
+                                @if($contract->end_date && now()->greaterThan($contract->end_date))
                                     <span class="badge bg-rose-500/10 text-rose-500 border border-rose-500/20" style="font-size: 10px;">منتهي</span>
                                 @else
                                     <span class="badge bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" style="font-size: 10px;">فعال</span>

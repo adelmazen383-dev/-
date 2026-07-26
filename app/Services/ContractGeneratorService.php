@@ -107,7 +107,7 @@ class ContractGeneratorService
 
         // Status Box Logic
         $statusBox = '';
-        if ($contract->end_date && now()->greaterThan($contract->end_date->endOfDay())) {
+        if ($contract->end_date && now()->greaterThan($contract->end_date)) {
             $statusBox = '<div style="background-color: #fef2f2; color: #dc2626; border: 2px solid #dc2626; padding: 10px; text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 20px; border-radius: 8px;">حالة العقد: منتهي</div>';
         } else {
             $statusBox = '<div style="background-color: #f0fdf4; color: #16a34a; border: 2px solid #16a34a; padding: 10px; text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 20px; border-radius: 8px;">حالة العقد: فعال</div>';
@@ -163,8 +163,8 @@ class ContractGeneratorService
                 e($contract->customer->national_id),
                 e($contract->property_details),
                 number_format($contract->rent_amount, 2),
-                $contract->start_date->format('Y-m-d'),
-                $contract->end_date->format('Y-m-d'),
+                $contract->start_date->format('Y-m-d H:i'),
+                $contract->end_date->format('Y-m-d H:i'),
                 e($contract->tourism_license_number ?? 'لا يوجد'),
                 nl2br(e($additionalTerms)),
                 $lessorHtml,

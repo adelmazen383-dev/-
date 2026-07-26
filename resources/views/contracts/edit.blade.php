@@ -40,14 +40,14 @@
                 <!-- Start Date -->
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">تاريخ البداية</label>
-                    <input type="date" name="start_date" value="{{ old('start_date', $contract->start_date->format('Y-m-d')) }}" class="form-input w-full" required>
+                    <input type="datetime-local" name="start_date" value="{{ old('start_date', $contract->start_date ? $contract->start_date->format('Y-m-d\TH:i') : '') }}" class="form-input w-full" required>
                     @error('start_date') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- End Date -->
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">تاريخ النهاية</label>
-                    <input type="date" name="end_date" value="{{ old('end_date', $contract->end_date->format('Y-m-d')) }}" class="form-input w-full" required>
+                    <input type="datetime-local" name="end_date" value="{{ old('end_date', $contract->end_date ? $contract->end_date->format('Y-m-d\TH:i') : '') }}" class="form-input w-full" required>
                     @error('end_date') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

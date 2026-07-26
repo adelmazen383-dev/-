@@ -5,7 +5,7 @@
         <!-- Main Info -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Status Box -->
-            @if(now()->greaterThan($contract->end_date->endOfDay()))
+            @if(now()->greaterThan($contract->end_date))
                 <div class="bg-rose-500/10 border-2 border-rose-500 p-4 rounded-xl text-center">
                     <p class="text-rose-600 text-xl font-bold">العقد منتهي</p>
                 </div>
@@ -46,11 +46,11 @@
                     </div>
                     <div>
                         <p class="text-slate-600 text-xs font-bold mb-1">تاريخ البداية</p>
-                        <p class="text-slate-700">{{ $contract->start_date?->format('Y/m/d') ?? '—' }}</p>
+                        <p class="text-slate-700">{{ $contract->start_date?->format('Y/m/d H:i') ?? '—' }}</p>
                     </div>
                     <div>
                         <p class="text-slate-600 text-xs font-bold mb-1">تاريخ النهاية</p>
-                        <p class="text-slate-700">{{ $contract->end_date?->format('Y/m/d') ?? '—' }}</p>
+                        <p class="text-slate-700">{{ $contract->end_date?->format('Y/m/d H:i') ?? '—' }}</p>
                     </div>
                     <div>
                         <p class="text-slate-600 text-xs font-bold mb-1">قيمة الإيجار</p>
