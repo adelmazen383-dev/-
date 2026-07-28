@@ -19,7 +19,7 @@ class ContractGeneratorService
 
             $latest = Contract::lockForUpdate()
                 ->where('contract_number', 'like', "{$prefix}-{$year}-%")
-                ->orderByRaw('CAST(SUBSTR(contract_number, -6) AS INTEGER) DESC')
+                ->orderByRaw('CAST(SUBSTRING(contract_number, -6) AS UNSIGNED) DESC')
                 ->first();
 
             $nextId = $latest ? ((int) substr($latest->contract_number, -6)) + 1 : 1;
