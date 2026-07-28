@@ -31,6 +31,9 @@ return new class extends Migration
             $table->dateTime('start_date')->change();
             $table->dateTime('end_date')->change();
         });
+
+        // 5. Make payment_method nullable (no longer in form)
+        DB::statement("ALTER TABLE contracts MODIFY COLUMN payment_method VARCHAR(255) NULL DEFAULT 'cash'");
     }
 
     public function down(): void
