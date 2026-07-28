@@ -29,7 +29,7 @@
                 <tbody>
                     @forelse($clients as $client)
                     <tr>
-                        <td class="text-slate-600 font-mono">{{ $client->id }}</td>
+                        <td class="text-slate-600 font-mono">{{ $loop->iteration + ($clients->currentPage() - 1) * $clients->perPage() }}</td>
                         <td class="text-slate-800 font-semibold">{{ $client->name }}</td>
                         <td class="font-mono text-indigo-400">{{ $client->national_id }}</td>
                         <td>

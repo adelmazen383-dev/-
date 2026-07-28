@@ -14,6 +14,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>الاسم</th>
                         <th>البريد الإلكتروني</th>
                         <th>الصلاحية</th>
@@ -25,6 +26,7 @@
                 <tbody>
                     @forelse($users as $user)
                     <tr>
+                        <td class="text-slate-600 font-mono">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                         <td class="font-bold text-slate-800">{{ $user->name }}</td>
                         <td class="text-slate-700">{{ $user->email }}</td>
                         <td>
@@ -64,7 +66,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center py-6 text-slate-600">لا يوجد مستخدمين.</td></tr>
+                    <tr><td colspan="7" class="text-center py-6 text-slate-600">لا يوجد مستخدمين.</td></tr>
                     @endforelse
                 </tbody>
             </table>
