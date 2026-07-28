@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('clients', ClientController::class);
 
     // Contracts
-    Route::resource('contracts', ContractController::class)->except(['edit', 'update', 'destroy']);
+    Route::resource('contracts', ContractController::class)->except(['edit', 'update']);
     Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
     Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
     Route::post('/contracts/{contract}/cancel', [ContractController::class, 'cancel'])->name('contracts.cancel');

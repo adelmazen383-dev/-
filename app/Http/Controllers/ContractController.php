@@ -147,4 +147,13 @@ class ContractController extends Controller
         }
         return back()->with('success', 'تم تحديث ملف الـ PDF بنجاح ليعكس الحالة الحالية.');
     }
+
+    /**
+     * Delete contract (Soft Delete).
+     */
+    public function destroy(Contract $contract)
+    {
+        $contract->delete();
+        return redirect()->route('contracts.index')->with('success', 'تم حذف العقد بنجاح.');
+    }
 }
