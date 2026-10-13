@@ -366,7 +366,7 @@
         <nav class="sidebar-nav">
             <p class="sidebar-nav-title">القائمة الرئيسية</p>
 
-            @if(Auth::user()->hasRole('admin'))
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 لوحة التحكم
@@ -407,11 +407,11 @@
         <div class="sidebar-user">
             <div class="flex items-center gap-2.5 overflow-hidden">
                 <div class="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center text-emerald-950 font-bold text-xs shrink-0">
-                    {{ mb_substr(Auth::user()->name ?? 'م', 0, 1) }}
+                    {{ mb_substr(Auth::user()?->name ?? 'م', 0, 1) }}
                 </div>
                 <div class="overflow-hidden">
-                    <p class="text-white text-xs font-bold leading-tight truncate">{{ Auth::user()->name ?? 'مستخدم' }}</p>
-                    <p class="text-emerald-300/70 text-[11px] truncate">{{ Auth::user()->email ?? '' }}</p>
+                    <p class="text-white text-xs font-bold leading-tight truncate">{{ Auth::user()?->name ?? 'مستخدم' }}</p>
+                    <p class="text-emerald-300/70 text-[11px] truncate">{{ Auth::user()?->email ?? '' }}</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}" class="shrink-0">
