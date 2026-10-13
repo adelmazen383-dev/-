@@ -15,9 +15,9 @@ class TelrService
 
     public function __construct()
     {
-        $this->storeId  = config('services.telr.store_id', '');
-        $this->authKey  = config('services.telr.auth_key', '');
-        $this->testMode = config('services.telr.test_mode', '1');
+        $this->storeId  = (string) (config('services.telr.store_id') ?? '');
+        $this->authKey  = (string) (config('services.telr.auth_key') ?? '');
+        $this->testMode = (string) (config('services.telr.test_mode') ?? '1');
     }
 
     /**
