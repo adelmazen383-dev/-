@@ -23,6 +23,8 @@ Route::get('/', function () {
 
 Route::middleware('throttle:20,1')->group(function () {
     Route::get('/verify', [VerificationController::class, 'index'])->name('verify.index');
+    Route::get('/telr/callback', [\App\Http\Controllers\InvoiceController::class, 'telrCallback'])->name('telr.callback');
+    Route::get('/card/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicBookingCard'])->name('booking-card.show');
 });
 
 Route::middleware('throttle:10,1')->group(function () {
@@ -37,6 +39,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Invoices
+    Route::resource('invoices', \App\Http\Controllers\InvoiceController::class)->except(['edit', 'update', 'destroy']);
+    Route::get('/invoices/{invoice}/card', [\App\Http\Controllers\InvoiceController::class, 'bookingCard'])->name('invoices.booking-card');
+    Route::post('/invoices/{invoice}/check-status', [\App\Http\Controllers\InvoiceController::class, 'checkStatus'])->name('invoices.check-status');
+    Route::post('/invoices/{invoice}/retry-telr', [\App\Http\Controllers\InvoiceController::class, 'retryTelr'])->name('invoices.retry-telr');
+    Route::post('/invoices/{invoice}/mark-as-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-as-paid');
 
     // Clients
     Route::resource('clients', ClientController::class);

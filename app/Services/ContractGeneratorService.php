@@ -33,9 +33,9 @@ class ContractGeneratorService
         ini_set('max_execution_time', '120');
         ini_set('pcre.backtrack_limit', '10000000');
 
-        $tempDir = storage_path('app/mpdf-temp');
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
+        $tempDir = storage_path('framework/cache/mpdf-temp');
+        if (!file_exists($tempDir)) {
+            @mkdir($tempDir, 0777, true);
         }
 
         $mpdf = new Mpdf([

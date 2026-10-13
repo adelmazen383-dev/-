@@ -2,55 +2,55 @@
     <x-slot name="header">لوحة التحكم</x-slot>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="stat-card indigo">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-600 text-sm font-semibold">إجمالي العقود</p>
-                    <p class="text-3xl font-black text-slate-800 mt-1">{{ $totalContracts }}</p>
+                    <p class="text-slate-500 text-xs font-bold">إجمالي العقود</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1">{{ $totalContracts }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
         </div>
         <div class="stat-card emerald">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-600 text-sm font-semibold">عقود موقّعة</p>
-                    <p class="text-3xl font-black text-emerald-400 mt-1">{{ $signedContracts }}</p>
+                    <p class="text-slate-500 text-xs font-bold">عقود موقّعة</p>
+                    <p class="text-2xl font-black text-emerald-600 mt-1">{{ $signedContracts }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
         </div>
         <div class="stat-card amber">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-600 text-sm font-semibold">بانتظار التوقيع</p>
-                    <p class="text-3xl font-black text-amber-400 mt-1">{{ $pendingContracts }}</p>
+                    <p class="text-slate-500 text-xs font-bold">بانتظار التوقيع</p>
+                    <p class="text-2xl font-black text-amber-600 mt-1">{{ $pendingContracts }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
         </div>
         <div class="stat-card rose">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-600 text-sm font-semibold">إجمالي العملاء</p>
-                    <p class="text-3xl font-black text-rose-400 mt-1">{{ $totalCustomers }}</p>
+                    <p class="text-slate-500 text-xs font-bold">إجمالي العملاء</p>
+                    <p class="text-2xl font-black text-rose-600 mt-1">{{ $totalCustomers }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center">
-                    <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <div class="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Financial Summary + Chart -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
         <!-- Financial Card -->
         <div class="card">
             <h3 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
