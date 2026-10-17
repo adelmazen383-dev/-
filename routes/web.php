@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Invoices
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class)->except(['edit', 'update', 'destroy']);
     Route::get('/invoices/{invoice}/card', [\App\Http\Controllers\InvoiceController::class, 'bookingCard'])->name('invoices.booking-card');
+    Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'invoicePrint'])->name('invoices.print');
     Route::post('/invoices/{invoice}/check-status', [\App\Http\Controllers\InvoiceController::class, 'checkStatus'])->name('invoices.check-status');
     Route::post('/invoices/{invoice}/retry-telr', [\App\Http\Controllers\InvoiceController::class, 'retryTelr'])->name('invoices.retry-telr');
     Route::post('/invoices/{invoice}/mark-as-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-as-paid');

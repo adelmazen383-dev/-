@@ -121,6 +121,12 @@ class InvoiceController extends Controller
         return view('invoices.booking-card-public', compact('invoice'));
     }
 
+    /* ── Invoice Print (Sindi-style) ── */
+    public function invoicePrint(Invoice $invoice)
+    {
+        return view('invoices.invoice-print', compact('invoice'));
+    }
+
     /* ── Telr return URL (public — customer returns here after payment) ── */
     public function telrCallback(Request $request)
     {
