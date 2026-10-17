@@ -39,6 +39,20 @@
                 @error('role') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">قالب الفاتورة المخصص لهذا الحساب</label>
+                <select name="invoice_template" class="form-input w-full">
+                    <option value="taotheeq" {{ old('invoice_template', 'taotheeq') == 'taotheeq' ? 'selected' : '' }}>
+                        🏛️ قالب منصة توثيق العقود (الافتراضي للمنصة)
+                    </option>
+                    <option value="sindi" {{ old('invoice_template') == 'sindi' ? 'selected' : '' }}>
+                        ✨ قالب Sindi Residence - برج داماك الجوهرة (لوجو وتصميم خاص)
+                    </option>
+                </select>
+                <p class="text-xs text-slate-500 mt-1">يحدد هذا الخيار التصميم واللوجو الذي يظهر في فواتير الحجز الصادرة عن هذا الحساب.</p>
+                @error('invoice_template') <p class="text-rose-400 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
             <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
                 <a href="{{ route('users.index') }}" class="btn btn-ghost">إلغاء</a>
                 <button type="submit" class="btn btn-indigo">حفظ الموظف</button>

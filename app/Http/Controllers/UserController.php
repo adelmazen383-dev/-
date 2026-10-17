@@ -27,6 +27,7 @@ class UserController extends Controller
             'email'    => 'required|email|unique:users,email',
             'password' => ['required', 'confirmed', Password::min(8)],
             'role'     => 'required|in:admin,employee',
+            'invoice_template' => 'nullable|string|in:taotheeq,sindi',
         ], [
             'name.required'      => 'الاسم مطلوب.',
             'email.required'     => 'البريد الإلكتروني مطلوب.',
@@ -38,14 +39,24 @@ class UserController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'name'             => $validated['name'],
+            'email'            => $validated['email'],
+            'password'         => Hash::make($validated['password']),
+            'invoice_template' => $validated['invoice_template'] ?? 'taotheeq',
         ]);
 
         $user->assignRole($validated['role']);
 
         return redirect()->route('users.index')->with('success', 'تم إنشاء حساب المستخدم بنجاح.');
+    }
+
+    public function toggleTemplate(User $user)
+    {
+        $newTemplate = ($user->invoice_template === 'sindi') ? 'taotheeq' : 'sindi';
+        $user->update(['invoice_template' => $newTemplate]);
+        $name = ($newTemplate === 'sindi') ? 'Sindi Residence (داماك الجوهرة)' : 'توثيق العقود';
+
+        return back()->with('success', "تم تحويل قالب فاتورة المستخدم {$user->name} إلى: {$name}.");
     }
 
     public function toggleActive(User $user)

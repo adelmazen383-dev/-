@@ -11,6 +11,8 @@ class Invoice extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
+        'template',
         'invoice_number',
         'customer_name',
         'phone',
@@ -31,6 +33,16 @@ class Invoice extends Model
         'notes',
         'paid_at',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function isSindi(): bool
+    {
+        return $this->template === 'sindi' || ($this->user && $this->user->isSindi());
+    }
 
     protected $casts = [
         'amount'           => 'decimal:2',

@@ -23,7 +23,18 @@ class User extends Authenticatable
         'email',
         'password',
         'is_active',
+        'invoice_template',
     ];
+
+    public function isSindi(): bool
+    {
+        return $this->invoice_template === 'sindi';
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

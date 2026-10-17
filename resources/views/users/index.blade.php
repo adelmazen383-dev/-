@@ -18,6 +18,7 @@
                         <th>الاسم</th>
                         <th>البريد الإلكتروني</th>
                         <th>الصلاحية</th>
+                        <th>قالب الفاتورة</th>
                         <th>الحالة</th>
                         <th>تاريخ الإضافة</th>
                         <th>إجراءات</th>
@@ -35,6 +36,20 @@
                             @else
                                 <span class="badge badge-viewed">موظف عام</span>
                             @endif
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ route('users.toggle-template', $user) }}" class="inline">
+                                @csrf
+                                @if($user->invoice_template === 'sindi')
+                                    <button type="submit" class="badge text-xs font-bold cursor-pointer hover:opacity-80 transition" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;" title="انقر للتحويل لقالب توثيق العقود">
+                                        ✨ Sindi Residence
+                                    </button>
+                                @else
+                                    <button type="submit" class="badge text-xs font-bold cursor-pointer hover:opacity-80 transition" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;" title="انقر للتحويل لقالب Sindi Residence">
+                                        🏛️ توثيق العقود
+                                    </button>
+                                @endif
+                            </form>
                         </td>
                         <td>
                             @if($user->is_active)

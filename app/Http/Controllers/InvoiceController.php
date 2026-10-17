@@ -82,6 +82,9 @@ class InvoiceController extends Controller
         $validated['remaining_amount'] = max(0, $agreedAmount - $amountPaid);
         $validated['deposit_amount']   = $validated['deposit_amount'] ?? 500;
 
+        $validated['user_id']  = auth()->id();
+        $validated['template'] = auth()->user()?->invoice_template ?? 'taotheeq';
+
         $invoice = Invoice::create($validated);
 
         // Call Telr API to get the payment URL
@@ -121,9 +124,13 @@ class InvoiceController extends Controller
         return view('invoices.booking-card-public', compact('invoice'));
     }
 
-    /* ── Invoice Print (Sindi-style) ── */
+    /* ── Invoice Print (Taotheeq / Sindi dynamic) ── */
     public function invoicePrint(Invoice $invoice)
     {
+        $design = request('design');
+        if ($design === 'sindi' || (!$design && $invoice->isSindi())) {
+            return view('invoices.sindi-print', compact('invoice'));
+        }
         return view('invoices.invoice-print', compact('invoice'));
     }
 
