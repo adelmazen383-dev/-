@@ -119,6 +119,36 @@
                        placeholder="أي شروط خاصة أو ملاحظات تظهر في الكارت">
                 @error('notes') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
+
+            <!-- Property / Building Contact Details (Customizable) -->
+            <div class="md:col-span-3 border-t border-slate-200 pt-4 mt-2">
+                <h4 class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                    <span>🏢 بيانات المنشأة في الفاتورة (قابلة للتعديل حسب رغبتك)</span>
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">اسم العقار / المنشأة</label>
+                        <input type="text" name="property_name" value="{{ old('property_name', auth()->user()?->isSindi() ? 'برج داماك الجوهرة | Sindi Residence' : 'توثيق العقود') }}"
+                               class="form-input @error('property_name') border-rose-500 @enderror"
+                               placeholder="مثال: برج داماك الجوهرة | Sindi Residence">
+                        @error('property_name') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">المدينة والموقع</label>
+                        <input type="text" name="property_location" value="{{ old('property_location', 'جدة - المملكة العربية السعودية') }}"
+                               class="form-input @error('property_location') border-rose-500 @enderror"
+                               placeholder="مثال: جدة - المملكة العربية السعودية">
+                        @error('property_location') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">رقم هاتف المنشأة للتواصل</label>
+                        <input type="text" name="property_phone" dir="ltr" value="{{ old('property_phone', '+966 59 235 8118') }}"
+                               class="form-input @error('property_phone') border-rose-500 @enderror"
+                               placeholder="+966 59 235 8118">
+                        @error('property_phone') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Policy Reminder Box -->

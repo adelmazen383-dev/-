@@ -36,9 +36,9 @@ class TelrService
             'ivp_authkey'  => $this->authKey,
             'ivp_cart'     => $invoice->invoice_number,
             'ivp_test'     => $this->testMode,
-            'ivp_amount'   => number_format($invoice->amount, 2, '.', ''),
+            'ivp_amount'   => number_format($invoice->amount + ($invoice->deposit_amount ?? 500), 2, '.', ''),
             'ivp_currency' => 'SAR',
-            'ivp_desc'     => 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number) . ' — توثيق العقود',
+            'ivp_desc'     => 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number) . ' (إيجار + تأمين) — توثيق العقود',
 
             // Return URLs — Telr redirects the customer here after payment
             'return_auth'  => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'success']),

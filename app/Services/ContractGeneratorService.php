@@ -39,15 +39,18 @@ class ContractGeneratorService
         }
 
         $mpdf = new Mpdf([
-            'mode'          => 'utf-8',
-            'format'        => 'A4',
-            'direction'     => 'rtl',
-            'default_font'  => 'xbriyaz',
-            'tempDir'       => $tempDir,
-            'margin_top'    => 15,
-            'margin_bottom' => 15,
-            'margin_left'   => 15,
-            'margin_right'  => 15,
+            'mode'              => 'utf-8',
+            'format'            => 'A4',
+            'direction'         => 'rtl',
+            'default_font'      => 'xbriyaz',
+            'tempDir'           => $tempDir,
+            'margin_top'        => 15,
+            'margin_bottom'     => 15,
+            'margin_left'       => 15,
+            'margin_right'      => 15,
+            'autoArabic'        => true,
+            'autoScriptToLang'  => true,
+            'autoLangToFont'    => true,
         ]);
 
         // Speed up rendering

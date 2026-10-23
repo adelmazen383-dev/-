@@ -58,6 +58,9 @@ class InvoiceController extends Controller
             'agreed_amount'    => ['nullable', 'numeric', 'min:0'],
             'amount_paid'      => ['nullable', 'numeric', 'min:0'],
             'deposit_amount'   => ['nullable', 'numeric', 'min:0'],
+            'property_name'     => ['nullable', 'string', 'max:255'],
+            'property_location' => ['nullable', 'string', 'max:255'],
+            'property_phone'    => ['nullable', 'string', 'max:50'],
             'notes'            => ['nullable', 'string', 'max:1000'],
         ], [
             'phone.regex'      => 'رقم الهاتف غير صحيح.',

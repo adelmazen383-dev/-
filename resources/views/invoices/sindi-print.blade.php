@@ -808,11 +808,11 @@
             $ratePerNight = $invoice->agreed_amount ?? $invoice->amount;
         }
 
-        // VAT (15%) calculation
+        // No VAT — total = agreed amount minus discount
         $totalBeforeVat = $invoice->agreed_amount ?? $invoice->amount;
         $discount = 0;
-        $vatAmount = round($totalBeforeVat * 0.15, 2);
-        $grandTotal = $totalBeforeVat + $vatAmount;
+        $vatAmount = 0;
+        $grandTotal = $totalBeforeVat - $discount;
 
         // Clean phone for whatsapp
         $cleanPhone = preg_replace('/[^0-9]/', '', $invoice->phone);
@@ -939,21 +939,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                     <div>
-                        <div class="contact-title">برج داماك الجوهرة | Sindi Residence</div>
-                        <div class="contact-sub">جدة - المملكة العربية السعودية</div>
+                        <div class="contact-title" contenteditable="true">{{ $invoice->property_name ?: 'برج داماك الجوهرة | Sindi Residence' }}</div>
+                        <div class="contact-sub" contenteditable="true">{{ $invoice->property_location ?: 'جدة - المملكة العربية السعودية' }}</div>
                     </div>
                 </div>
                 <div class="contact-item">
                     <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                     </svg>
-                    <div class="contact-ltr">+966 59 235 8118</div>
-                </div>
-                <div class="contact-item">
-                    <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                    </svg>
-                    <div class="contact-ltr" style="font-size:10px;">sindiresidence@damac.com</div>
+                    <div class="contact-ltr" contenteditable="true">{{ $invoice->property_phone ?: '+966 59 235 8118' }}</div>
                 </div>
             </div>
         </div>
@@ -1100,13 +1094,6 @@
                         </div>
                         <span class="amt">{{ number_format($discount, 0) }} SAR</span>
                     </div>
-                    <div class="fin-row" style="border-top:1px dashed #ebe5da; margin-top:2px; padding-top:4px;">
-                        <div class="lbl-grp">
-                            <span class="ar">الضريبة (15%)</span>
-                            <span class="en">VAT (15%)</span>
-                        </div>
-                        <span class="amt">{{ number_format($vatAmount, 0) }} SAR</span>
-                    </div>
                 </div>
 
                 <div class="grand-total-bar">
@@ -1219,7 +1206,6 @@
                     <li>في حال الدفع عند الوصول، يرجى الوصول قبل موعد تسجيل الدخول بساعة.</li>
                     <li>في حال خصم التأمين كاش يتم استرجاعه كاش.</li>
                     <li>في حال خصم التأمين عن طريق التحويل البنكي قد يستغرق الاسترداد حتى 24 ساعة.</li>
-                    <li>لا يشمل السعر ضريبة القيمة المضافة (15%) ويتم إضافتها حسب النظام.</li>
                     <li>يرجى الالتزام بمواعيد الدخول والخروج.</li>
                     @if($invoice->notes)
                         <li style="color:#8c734b; font-weight:800;">{{ $invoice->notes }}</li>

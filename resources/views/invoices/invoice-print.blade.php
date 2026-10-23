@@ -125,7 +125,7 @@
             font-weight: 900;
             color: #8b6914;
             margin-bottom: 2px;
-            letter-spacing: 0.5px;
+            letter-spacing: 0;
         }
 
         .header-brand-sub {
@@ -141,7 +141,7 @@
             font-size: 11px;
             font-weight: 600;
             color: #b89e6e;
-            letter-spacing: 1px;
+            letter-spacing: 0;
         }
 
         /* ===== Title Strip ===== */
@@ -691,11 +691,11 @@
                     $ratePerNight = $nightsCount > 0 ? ($invoice->agreed_amount ?? $invoice->amount) / $nightsCount : 0;
                 }
 
-                // VAT calculation (15%)
+                // No VAT — total = agreed amount minus discount
                 $totalBeforeVat = $invoice->agreed_amount ?? $invoice->amount;
                 $discount = 0;
-                $vatAmount = round($totalBeforeVat * 0.15, 2);
-                $grandTotal = $totalBeforeVat + $vatAmount;
+                $vatAmount = 0;
+                $grandTotal = $totalBeforeVat - $discount;
 
                 // Suite type label
                 $suiteType = 'شقة مفروشة';
@@ -746,18 +746,14 @@
                     </div>
                 </div>
                 <div class="company-info">
-                    <div class="company-name-ar" style="text-align:left; direction:ltr;">توثيق العقود | Taotheeq Al-Oqood</div>
+                    <div class="company-name-ar" style="text-align:left; direction:ltr;" contenteditable="true">{{ $invoice->property_name ?: 'توثيق العقود | Taotheeq Al-Oqood' }}</div>
                     <div class="company-detail" style="margin-top:4px;">
                         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        جدة - المملكة العربية السعودية
+                        <span contenteditable="true">{{ $invoice->property_location ?: 'جدة - المملكة العربية السعودية' }}</span>
                     </div>
                     <div class="company-detail">
                         <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                        +966 XX XXX XXXX
-                    </div>
-                    <div class="company-detail">
-                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                        info@taotheeq.com
+                        <span contenteditable="true">{{ $invoice->property_phone ?: '+966 XX XXX XXXX' }}</span>
                     </div>
                 </div>
             </div>
@@ -883,10 +879,6 @@
                         <div class="f-value">{{ number_format($invoice->amount_paid ?? 0, 0) }} SAR</div>
                     </div>
                     <div class="finance-row">
-                        <div class="f-label">الضريبة (15%) <span class="en">VAT (15%)</span></div>
-                        <div class="f-value">{{ number_format($vatAmount, 0) }} SAR</div>
-                    </div>
-                    <div class="finance-row">
                         <div class="f-label">المتبقي <span class="en">Remaining Amount</span></div>
                         <div class="f-value" style="color: #dc2626;">{{ number_format($invoice->remaining_amount ?? 0, 0) }} SAR</div>
                     </div>
@@ -970,7 +962,6 @@
                             <li>دفع التأمين القابل للاسترداد ({{ number_format($invoice->deposit_amount ?? 500, 0) }} ريال) عند تسليم الوحدة.</li>
                             <li>التأمين المدفوع نقداً يُسترد نقداً، والمدفوع إلكترونياً يُسترد خلال ٢٤ ساعة.</li>
                             <li>يتم إلغاء الحجز في حال عدم استكمال الدفع قبل 24 ساعة.</li>
-                            <li>الأسعار تشمل الضريبة (15%) حسب نظام هيئة الزكاة.</li>
                             @if($invoice->notes)
                                 <li style="color: #8b6914; font-weight: 700;">{{ $invoice->notes }}</li>
                             @endif
