@@ -402,17 +402,18 @@
                 elseif (str_starts_with($cleanPhone, '01')) $cleanPhone = '20' . substr($cleanPhone, 1);
                 elseif (str_starts_with($cleanPhone, '5')) $cleanPhone = '966' . $cleanPhone;
 
-                $cardLink = route('booking-card.show', $invoice->booking_card_token);
+                $invoiceLink = route('invoices.print', $invoice);
                 $payLink  = $invoice->telr_transaction_url;
 
+                $brandTitle = $invoice->isSindi() ? 'Sindi Residence - برج داماك الجوهرة 🏢' : 'منصة توثيق العقود 📑';
                 $msg = "مرحباً أستاذ/ة " . $invoice->customer_name . "،\n"
-                     . "يسعدنا تأكيد حجزكم عبر *منصة توثيق العقود* 📑\n\n"
-                     . "🪪 *كارت تفاصيل الحجز الذكي:*\n" . $cardLink . "\n\n";
+                     . "يسعدنا تأكيد حجزكم في *" . $brandTitle . "*\n\n"
+                     . "🧾 *فاتورة وتفاصيل الحجز:*\n" . $invoiceLink . "\n\n";
 
                 if ($invoice->isPending() && $payLink) {
                     $msg .= "💳 *رابط الدفع الإلكتروني المباشر:*\n" . $payLink . "\n\n";
                 }
-                $msg .= "شكراً لاختياركم منصتنا.";
+                $msg .= "شكراً لاختياركم سكننا.";
                 $waUrl = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($msg);
             @endphp
             <a href="{{ $waUrl }}" target="_blank" class="btn-act whatsapp">
@@ -420,8 +421,8 @@
                 واتساب
             </a>
 
-            <button onclick="navigator.clipboard.writeText('{{ $cardLink }}').then(() => alert('✅ تم نسخ رابط الكارت!'))" class="btn-act copy">
-                نسخ الرابط
+            <button onclick="navigator.clipboard.writeText('{{ $invoiceLink }}').then(() => alert('✅ تم نسخ رابط الفاتورة!'))" class="btn-act copy">
+                نسخ رابط الفاتورة
             </button>
 
             <a href="{{ route('invoices.show', $invoice) }}" class="btn-act back">

@@ -21,10 +21,12 @@ Route::get('/', function () {
 
 // ─── Public Routes (with Rate Limiting) ────────────────────
 
-Route::middleware('throttle:20,1')->group(function () {
+Route::middleware('throttle:30,1')->group(function () {
     Route::get('/verify', [VerificationController::class, 'index'])->name('verify.index');
     Route::get('/telr/callback', [\App\Http\Controllers\InvoiceController::class, 'telrCallback'])->name('telr.callback');
     Route::get('/card/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicBookingCard'])->name('booking-card.show');
+    Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'invoicePrint'])->name('invoices.print');
+    Route::get('/invoice/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicInvoice'])->name('invoices.public');
 });
 
 Route::middleware('throttle:10,1')->group(function () {
@@ -43,7 +45,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Invoices
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class)->except(['edit', 'update', 'destroy']);
     Route::get('/invoices/{invoice}/card', [\App\Http\Controllers\InvoiceController::class, 'bookingCard'])->name('invoices.booking-card');
-    Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'invoicePrint'])->name('invoices.print');
     Route::post('/invoices/{invoice}/check-status', [\App\Http\Controllers\InvoiceController::class, 'checkStatus'])->name('invoices.check-status');
     Route::post('/invoices/{invoice}/retry-telr', [\App\Http\Controllers\InvoiceController::class, 'retryTelr'])->name('invoices.retry-telr');
     Route::post('/invoices/{invoice}/mark-as-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-as-paid');

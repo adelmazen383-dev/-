@@ -48,17 +48,18 @@
                 elseif (str_starts_with($cleanPhone, '01')) $cleanPhone = '20' . substr($cleanPhone, 1);
                 elseif (str_starts_with($cleanPhone, '5')) $cleanPhone = '966' . $cleanPhone;
 
-                $cardLink = route('booking-card.show', $invoice->booking_card_token);
+                $invoiceLink = route('invoices.print', $invoice);
                 $payLink  = $invoice->telr_transaction_url;
 
+                $brandTitle = $invoice->isSindi() ? 'Sindi Residence - برج داماك الجوهرة 🏢' : 'منصة توثيق العقود 📑';
                 $whatsappMessage = "مرحباً أستاذ/ة " . $invoice->customer_name . "،\n"
-                                 . "يسعدنا تأكيد حجزكم عبر *منصة توثيق العقود* 📑\n\n"
-                                 . "🪪 *كارت تفاصيل الحجز الذكي:*\n" . $cardLink . "\n\n";
+                                 . "يسعدنا تأكيد حجزكم في *" . $brandTitle . "*\n\n"
+                                 . "🧾 *فاتورة وتفاصيل الحجز:*\n" . $invoiceLink . "\n\n";
 
                 if ($invoice->isPending() && $payLink) {
                     $whatsappMessage .= "💳 *رابط الدفع الإلكتروني المباشر:*\n" . $payLink . "\n\n";
                 }
-                $whatsappMessage .= "شكراً لاختياركم منصتنا.";
+                $whatsappMessage .= "شكراً لاختياركم سكننا.";
                 $whatsappLink = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($whatsappMessage);
             @endphp
 
@@ -68,9 +69,9 @@
                 واتساب
             </a>
 
-            <button type="button" onclick="navigator.clipboard.writeText('{{ $cardLink }}').then(() => alert('تم نسخ رابط الكارت الذكي!'))" class="btn btn-ghost btn-sm">
+            <button type="button" onclick="navigator.clipboard.writeText('{{ $invoiceLink }}').then(() => alert('تم نسخ رابط الفاتورة!'))" class="btn btn-ghost btn-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                نسخ الرابط
+                نسخ رابط الفاتورة
             </button>
         </div>
     </div>

@@ -43,17 +43,17 @@
             50% { transform: translate(30px, -30px); }
         }
         .glass-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.88);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
         .input-field {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             border-radius: 12px;
-            color: #e2e8f0;
+            color: #ffffff !important;
             padding: 12px 16px;
             width: 100%;
             transition: all 0.3s ease;
@@ -61,11 +61,19 @@
         }
         .input-field:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
-            background: rgba(255, 255, 255, 0.1);
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
         }
-        .input-field::placeholder { color: #64748b; }
+        .input-field::placeholder { color: #94a3b8; }
+        .input-field:-webkit-autofill,
+        .input-field:-webkit-autofill:hover, 
+        .input-field:-webkit-autofill:focus {
+            -webkit-text-fill-color: #ffffff !important;
+            -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
@@ -102,12 +110,12 @@
         <!-- Logo -->
         <div class="mb-8 text-center">
             <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
-                <svg class="w-10 h-10 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
             </div>
-            <h1 class="text-3xl font-black text-slate-800">نظام العقود</h1>
-            <p class="text-slate-600 mt-1 text-sm">إدارة عقود التأجير الإلكترونية</p>
+            <h1 class="text-3xl font-black text-white">نظام العقود</h1>
+            <p class="text-slate-300 mt-1 text-sm">إدارة عقود التأجير الإلكترونية</p>
         </div>
 
         <!-- Card -->
@@ -115,7 +123,7 @@
             {{ $slot }}
         </div>
 
-        <p class="text-slate-600 text-xs mt-8">&copy; {{ date('Y') }} نظام العقود. جميع الحقوق محفوظة.</p>
+        <p class="text-slate-400 text-xs mt-8">&copy; {{ date('Y') }} نظام العقود. جميع الحقوق محفوظة.</p>
     </div>
 </body>
 </html>

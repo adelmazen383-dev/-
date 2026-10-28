@@ -137,6 +137,17 @@ class InvoiceController extends Controller
         return view('invoices.invoice-print', compact('invoice'));
     }
 
+    /* ── Public Invoice via Token ── */
+    public function publicInvoice(string $token)
+    {
+        $invoice = Invoice::where('booking_card_token', $token)->firstOrFail();
+        $design = request('design');
+        if ($design === 'sindi' || (!$design && $invoice->isSindi())) {
+            return view('invoices.sindi-print', compact('invoice'));
+        }
+        return view('invoices.invoice-print', compact('invoice'));
+    }
+
     /* ── Telr return URL (public — customer returns here after payment) ── */
     public function telrCallback(Request $request)
     {

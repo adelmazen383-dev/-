@@ -1227,7 +1227,7 @@
     <!-- ===== QR Code & PNG Generation Scripts ===== -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const qrUrl = '{{ $invoice->telr_transaction_url ?: route("booking-card.show", $invoice->booking_card_token) }}';
+            const qrUrl = '{{ $invoice->telr_transaction_url ?: route("invoices.print", $invoice) }}';
             if (typeof QRCode !== 'undefined') {
                 new QRCode(document.getElementById('qrcode'), {
                     text: qrUrl,
