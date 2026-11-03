@@ -30,8 +30,14 @@ class Invoice extends Model
         'remaining_amount',
         'deposit_amount',
         'status',
+        'payment_method',
+        'fee_percentage',
+        'fee_amount',
+        'total_payable',
         'telr_order_ref',
         'telr_transaction_url',
+        'tabby_url',
+        'tamara_url',
         'booking_card_token',
         'notes',
         'paid_at',
@@ -53,6 +59,9 @@ class Invoice extends Model
         'amount_paid'      => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'deposit_amount'   => 'decimal:2',
+        'fee_percentage'   => 'decimal:2',
+        'fee_amount'       => 'decimal:2',
+        'total_payable'    => 'decimal:2',
         'check_in_date'    => 'date',
         'check_out_date'   => 'date',
         'paid_at'          => 'datetime',
@@ -112,7 +121,47 @@ class Invoice extends Model
         };
     }
 
-    /* ── Computed ── */
+    /* ── Computed & Payment Helpers ── */
+
+    public function getBaseAmountAttribute(): float
+    {
+        return (float) ($this->amount ?? 0) + (float) ($this->deposit_amount ?? 0);
+    }
+
+    public function getCalculatedFee(?string $method = null): float
+    {
+        $m = $method ?? $this->payment_method ?? 'all';
+        if (in_array($m, ['tabby', 'tamara'])) {
+            return round($this->base_amount * 0.15, 2);
+        }
+        return 0.00;
+    }
+
+    public function getCalculatedTotal(?string $method = null): float
+    {
+        return $this->base_amount + $this->getCalculatedFee($method);
+    }
+
+    public function getInstallmentAmount(?string $method = null, int $installments = 4): float
+    {
+        return round($this->getCalculatedTotal($method) / $installments, 2);
+    }
+
+    public function getEffectiveTotalPayableAttribute(): float
+    {
+        return $this->total_payable > 0 ? (float) $this->total_payable : $this->getCalculatedTotal($this->payment_method);
+    }
+
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return match ($this->payment_method) {
+            'tabby'     => 'تابي (Tabby - رسوم 15%)',
+            'tamara'    => 'تمارا (Tamara - رسوم 15%)',
+            'apple_pay' => 'Apple Pay / مدى / بطاقة ائتمانية',
+            'standard'  => 'مدى / فيزا / ماستركارد',
+            default     => 'الكل (خيار العميل: Apple Pay / تابي / تمارا)',
+        };
+    }
 
     public function getNightsCountAttribute(): int
     {

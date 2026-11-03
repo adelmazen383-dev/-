@@ -154,7 +154,25 @@
                         <p class="text-slate-500 text-xs font-bold mb-1">التأمين المسترد</p>
                         <p class="text-amber-600 font-bold">{{ number_format($invoice->deposit_amount ?? 0, 2) }} ر.س</p>
                     </div>
-                    <div class="sm:col-span-2">
+
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold mb-1">طريقة الدفع المحددة</p>
+                        <p class="text-indigo-600 font-bold text-sm">{{ $invoice->payment_method_label }}</p>
+                    </div>
+
+                    @if(($invoice->fee_amount ?? 0) > 0)
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold mb-1">رسوم الخدمة والتقسيط (+{{ $invoice->fee_percentage }}%)</p>
+                        <p class="text-amber-700 font-bold text-sm">+{{ number_format($invoice->fee_amount, 2) }} ر.س</p>
+                    </div>
+                    @endif
+
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold mb-1">إجمالي رابط بوابة الدفع</p>
+                        <p class="text-indigo-700 font-black text-lg font-mono">{{ number_format($invoice->effective_total_payable, 2) }} ر.س</p>
+                    </div>
+
+                    <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">تاريخ إنشاء الفاتورة</p>
                         <p class="text-slate-700 text-sm">{{ $invoice->created_at->format('Y/m/d H:i') }}</p>
                     </div>
@@ -276,20 +294,38 @@
                     <div class="pt-3 border-t border-slate-100">
                         <button type="button" onclick="document.getElementById('manual-link-form').classList.toggle('hidden')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            {{ $invoice->telr_transaction_url ? 'تعديل رابط الدفع يدوياً' : 'إدخال رابط دفع يدوياً' }}
+                            {{ $invoice->telr_transaction_url ? 'تعديل روابط وإعدادات الدفع يدوياً' : 'إدخال روابط دفع يدوياً' }}
                         </button>
                         <form id="manual-link-form" method="POST" action="{{ route('invoices.update-payment-link', $invoice) }}" class="hidden mt-3 space-y-2">
                             @csrf
                             <div>
-                                <label class="text-[11px] text-slate-500 block mb-1">رابط الدفع (URL):</label>
-                                <input type="url" name="telr_transaction_url" value="{{ old('telr_transaction_url', $invoice->telr_transaction_url) }}" placeholder="https://..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <label class="text-[11px] text-slate-500 block mb-1">طريقة الدفع للفاتورة:</label>
+                                <select name="payment_method" class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="all" {{ $invoice->payment_method === 'all' ? 'selected' : '' }}>مرن (العميل يختار في الكارت)</option>
+                                    <option value="apple_pay" {{ $invoice->payment_method === 'apple_pay' ? 'selected' : '' }}>Apple Pay / مدى (0% رسوم)</option>
+                                    <option value="standard" {{ $invoice->payment_method === 'standard' ? 'selected' : '' }}>مدى / بطاقات (0% رسوم)</option>
+                                    <option value="tabby" {{ $invoice->payment_method === 'tabby' ? 'selected' : '' }}>تابي Tabby (+15% رسوم تقسيط)</option>
+                                    <option value="tamara" {{ $invoice->payment_method === 'tamara' ? 'selected' : '' }}>تمارا Tamara (+15% رسوم تقسيط)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500 block mb-1">رابط الدفع الرئيسي (Telr / بوابة الدفع):</label>
+                                <input type="url" name="telr_transaction_url" value="{{ old('telr_transaction_url', $invoice->telr_transaction_url) }}" placeholder="https://..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500 block mb-1">رابط تابي المباشر (اختياري):</label>
+                                <input type="url" name="tabby_url" value="{{ old('tabby_url', $invoice->tabby_url) }}" placeholder="https://..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500 block mb-1">رابط تمارا المباشر (اختياري):</label>
+                                <input type="url" name="tamara_url" value="{{ old('tamara_url', $invoice->tamara_url) }}" placeholder="https://..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
                             <div>
                                 <label class="text-[11px] text-slate-500 block mb-1">الرقم المرجعي (اختياري):</label>
                                 <input type="text" name="telr_order_ref" value="{{ old('telr_order_ref', $invoice->telr_order_ref) }}" placeholder="Ref #..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
-                            <div class="flex gap-2">
-                                <button type="submit" class="btn btn-indigo btn-sm text-xs py-1 px-3">حفظ الرابط</button>
+                            <div class="flex gap-2 pt-1">
+                                <button type="submit" class="btn btn-indigo btn-sm text-xs py-1 px-3">حفظ الإعدادات والروابط</button>
                                 <button type="button" onclick="document.getElementById('manual-link-form').classList.add('hidden')" class="btn btn-ghost btn-sm text-xs py-1 px-2">إلغاء</button>
                             </div>
                         </form>

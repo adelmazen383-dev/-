@@ -23,28 +23,41 @@ class TelrService
     /**
      * Create a payment order on Telr and return the transaction URL.
      */
-    public function createOrder(Invoice $invoice): array
+    public function createOrder(Invoice $invoice, ?string $method = null): array
     {
         if (empty($this->storeId) || empty($this->authKey)) {
             Log::error('Telr credentials missing — check TELR_STORE_ID and TELR_AUTH_KEY in .env');
             return ['success' => false, 'error' => 'Telr credentials not configured.'];
         }
 
+        $chosenMethod  = $method ?? $invoice->payment_method ?? 'all';
         $rentAmount    = (float) ($invoice->amount ?? 0);
         $depositAmount = (float) ($invoice->deposit_amount ?? 0);
-        $totalAmount   = $rentAmount + $depositAmount;
+        $baseAmount    = $rentAmount + $depositAmount;
+
+        $feeAmount = 0.00;
+        $feeDesc   = '';
+        if (in_array($chosenMethod, ['tabby', 'tamara'])) {
+            $feeAmount = round($baseAmount * 0.15, 2);
+            $methodName = $chosenMethod === 'tabby' ? 'تابي Tabby' : 'تمارا Tamara';
+            $feeDesc   = " (شامل رسوم تقسيط {$methodName} 15%: " . number_format($feeAmount, 2) . " ر.س)";
+        } elseif ($chosenMethod === 'apple_pay') {
+            $feeDesc = ' (Apple Pay)';
+        }
+
+        $totalAmount = $baseAmount + $feeAmount;
 
         $desc = 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number);
         if ($depositAmount > 0) {
             $desc .= ' (إيجار: ' . number_format($rentAmount, 2) . ' + تأمين: ' . number_format($depositAmount, 2) . ')';
         }
-        $desc .= ' — توثيق العقود';
+        $desc .= $feeDesc . ' — توثيق العقود';
 
         $payload = [
             'ivp_method'   => 'create',
             'ivp_store'    => $this->storeId,
             'ivp_authkey'  => $this->authKey,
-            'ivp_cart'     => $invoice->invoice_number,
+            'ivp_cart'     => $invoice->invoice_number . ($chosenMethod !== 'all' ? '-' . strtoupper($chosenMethod) : ''),
             'ivp_test'     => $this->testMode,
             'ivp_amount'   => number_format($totalAmount, 2, '.', ''),
             'ivp_currency' => 'SAR',

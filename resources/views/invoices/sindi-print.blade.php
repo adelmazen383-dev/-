@@ -1185,7 +1185,7 @@
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 12px; font-weight: 800; color: #ffffff;">رابط السداد الإلكتروني مفعّل لهذا الحجز</div>
-                    <div style="font-size: 9.5px; color: #c59b63; font-weight: 600;">ادفع بأمان وسرعة عبر مدى، فيزا، ماستركارد، أو Apple Pay</div>
+                    <div style="font-size: 9.5px; color: #c59b63; font-weight: 600;">ادفع بأمان عبر Apple Pay، مدى، فيزا، أو بالتقسيط على 4 دفعات عبر تابي و تمارا</div>
                 </div>
             </div>
             <a href="{{ $payLink }}" target="_blank" style="background: linear-gradient(135deg, #c59b63 0%, #a87e46 100%); color: #ffffff; padding: 7px 16px; border-radius: 6px; font-size: 11.5px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(197,155,99,0.35); white-space: nowrap; border: 1px solid #e0be8b;">

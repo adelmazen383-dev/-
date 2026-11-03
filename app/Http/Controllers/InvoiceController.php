@@ -58,6 +58,7 @@ class InvoiceController extends Controller
             'agreed_amount'    => ['nullable', 'numeric', 'min:0'],
             'amount_paid'      => ['nullable', 'numeric', 'min:0'],
             'deposit_amount'   => ['nullable', 'numeric', 'min:0'],
+            'payment_method'   => ['nullable', 'string', 'in:all,standard,apple_pay,tabby,tamara'],
             'property_name'     => ['nullable', 'string', 'max:255'],
             'property_location' => ['nullable', 'string', 'max:255'],
             'property_phone'    => ['nullable', 'string', 'max:50'],
@@ -85,19 +86,45 @@ class InvoiceController extends Controller
         $validated['remaining_amount'] = max(0, $agreedAmount - $amountPaid);
         $validated['deposit_amount']   = (isset($validated['deposit_amount']) && $validated['deposit_amount'] !== '') ? (float)$validated['deposit_amount'] : 0.00;
 
+        // Payment method & Tabby / Tamara 15% fee calculation
+        $paymentMethod = $validated['payment_method'] ?? 'all';
+        $baseAmount    = (float)$validated['amount'] + (float)$validated['deposit_amount'];
+
+        if (in_array($paymentMethod, ['tabby', 'tamara'])) {
+            $feePercentage = 15.00;
+            $feeAmount     = round($baseAmount * 0.15, 2);
+            $totalPayable  = $baseAmount + $feeAmount;
+        } else {
+            $feePercentage = 0.00;
+            $feeAmount     = 0.00;
+            $totalPayable  = $baseAmount;
+        }
+
+        $validated['payment_method'] = $paymentMethod;
+        $validated['fee_percentage'] = $feePercentage;
+        $validated['fee_amount']     = $feeAmount;
+        $validated['total_payable']  = $totalPayable;
+
         $validated['user_id']  = auth()->id();
         $validated['template'] = auth()->user()?->invoice_template ?? 'taotheeq';
 
         $invoice = Invoice::create($validated);
 
         // Call Telr API to get the payment URL
-        $telrResponse = $this->telrService->createOrder($invoice);
+        $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod);
 
         if ($telrResponse['success']) {
-            $invoice->update([
+            $updateData = [
                 'telr_transaction_url' => $telrResponse['url'],
                 'telr_order_ref'       => $telrResponse['ref'],
-            ]);
+            ];
+            if ($paymentMethod === 'tabby') {
+                $updateData['tabby_url'] = $telrResponse['url'];
+            } elseif ($paymentMethod === 'tamara') {
+                $updateData['tamara_url'] = $telrResponse['url'];
+            }
+            $invoice->update($updateData);
+
             return redirect()
                 ->route('invoices.show', $invoice)
                 ->with('success', 'تم إنشاء الفاتورة وكارت الحجز ورابط الدفع بنجاح.');
@@ -235,17 +262,109 @@ class InvoiceController extends Controller
     {
         $validated = $request->validate([
             'telr_transaction_url' => ['nullable', 'url', 'max:1000'],
+            'tabby_url'            => ['nullable', 'url', 'max:1000'],
+            'tamara_url'           => ['nullable', 'url', 'max:1000'],
             'telr_order_ref'       => ['nullable', 'string', 'max:100'],
+            'payment_method'       => ['nullable', 'string', 'in:all,standard,apple_pay,tabby,tamara'],
         ], [
             'telr_transaction_url.url' => 'رابط الدفع يجب أن يكون رابطاً صحيحاً يبدأ بـ http:// أو https://',
+            'tabby_url.url'            => 'رابط تابي يجب أن يكون رابطاً صحيحاً يبدأ بـ http:// أو https://',
+            'tamara_url.url'           => 'رابط تمارا يجب أن يكون رابطاً صحيحاً يبدأ بـ http:// أو https://',
         ]);
+
+        $updateData = [
+            'telr_transaction_url' => $validated['telr_transaction_url'] ?? $invoice->telr_transaction_url,
+            'tabby_url'            => $validated['tabby_url'] ?? $invoice->tabby_url,
+            'tamara_url'           => $validated['tamara_url'] ?? $invoice->tamara_url,
+            'telr_order_ref'       => $validated['telr_order_ref'] ?: $invoice->telr_order_ref,
+        ];
+
+        if (!empty($validated['payment_method'])) {
+            $method        = $validated['payment_method'];
+            $baseAmount    = $invoice->base_amount;
+            $feePercentage = in_array($method, ['tabby', 'tamara']) ? 15.00 : 0.00;
+            $feeAmount     = in_array($method, ['tabby', 'tamara']) ? round($baseAmount * 0.15, 2) : 0.00;
+            $totalPayable  = $baseAmount + $feeAmount;
+
+            $updateData['payment_method'] = $method;
+            $updateData['fee_percentage'] = $feePercentage;
+            $updateData['fee_amount']     = $feeAmount;
+            $updateData['total_payable']  = $totalPayable;
+        }
+
+        $invoice->update($updateData);
+
+        return back()->with('success', 'تم حفظ وتحديث إعدادات وروابط الدفع للفاتورة بنجاح.');
+    }
+
+    /* ── Customer selects payment method on public card (Apple Pay / Tabby / Tamara) ── */
+    public function selectPaymentMethod(Request $request, string $token)
+    {
+        $invoice = Invoice::where('booking_card_token', $token)->firstOrFail();
+
+        $validated = $request->validate([
+            'method' => ['required', 'string', 'in:all,standard,apple_pay,tabby,tamara'],
+        ]);
+
+        $method = $validated['method'];
+
+        if ($invoice->isPaid()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => 'الفاتورة مسجلة كمدفوعة بالفعل.']);
+            }
+            return redirect()->route('booking-card.show', $token)->with('error', 'الفاتورة مسجلة كمدفوعة بالفعل.');
+        }
+
+        $baseAmount    = $invoice->base_amount;
+        $feePercentage = in_array($method, ['tabby', 'tamara']) ? 15.00 : 0.00;
+        $feeAmount     = in_array($method, ['tabby', 'tamara']) ? round($baseAmount * 0.15, 2) : 0.00;
+        $totalPayable  = $baseAmount + $feeAmount;
 
         $invoice->update([
-            'telr_transaction_url' => $validated['telr_transaction_url'],
-            'telr_order_ref'       => $validated['telr_order_ref'] ?: $invoice->telr_order_ref,
+            'payment_method' => $method,
+            'fee_percentage' => $feePercentage,
+            'fee_amount'     => $feeAmount,
+            'total_payable'  => $totalPayable,
         ]);
 
-        return back()->with('success', 'تم حفظ رابط الدفع للفاتورة بنجاح وتفعيله داخل الفاتورة.');
+        // Generate or fetch gateway session with method & 15% fee if applicable
+        $telrResponse = $this->telrService->createOrder($invoice, $method);
+
+        if ($telrResponse['success']) {
+            $updateData = [
+                'telr_transaction_url' => $telrResponse['url'],
+                'telr_order_ref'       => $telrResponse['ref'],
+            ];
+            if ($method === 'tabby') {
+                $updateData['tabby_url'] = $telrResponse['url'];
+            } elseif ($method === 'tamara') {
+                $updateData['tamara_url'] = $telrResponse['url'];
+            }
+            $invoice->update($updateData);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'            => true,
+                    'url'                => $telrResponse['url'],
+                    'method'             => $method,
+                    'base_amount'        => $baseAmount,
+                    'fee_amount'         => $feeAmount,
+                    'total_payable'      => $totalPayable,
+                    'installment_amount' => round($totalPayable / 4, 2),
+                ]);
+            }
+
+            return redirect()->away($telrResponse['url']);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'error'   => $telrResponse['error'] ?? 'تعذر توليد رابط الدفع، يرجى المحاولة لاحقاً.',
+            ], 422);
+        }
+
+        return redirect()->route('booking-card.show', $token)->with('error', 'تعذر توليد رابط الدفع: ' . ($telrResponse['error'] ?? 'خطأ غير معروف'));
     }
 
     /* ── Mark as paid manually (cash / bank transfer / testing) ── */

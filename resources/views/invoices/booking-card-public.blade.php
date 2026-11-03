@@ -343,48 +343,150 @@
             z-index: 2;
         }
 
-        /* ===== Pay CTA ===== */
-        .online-pay-cta {
+        /* ===== Pay CTA & Interactive Payment Portal ===== */
+        .pay-portal-wrapper {
             width: 100%;
             max-width: 720px;
-            margin-top: 14px;
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            margin-top: 18px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        .pay-portal-header h3 {
+            font-size: 17px;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        .pay-portal-header p {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+        .pay-portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 680px) {
+            .pay-portal-grid { grid-template-columns: 1fr; }
+        }
+        .pay-option-card {
+            border: 2px solid #e5e7eb;
             border-radius: 12px;
-            padding: 16px 24px;
+            padding: 12px;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: #fafafa;
+        }
+        .pay-option-card:hover {
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+        .pay-option-card.selected {
+            border-color: #059669;
+            background: #f0fdf4;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.15);
+        }
+        .pay-option-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-            text-align: center;
-            flex-wrap: wrap;
+            margin-bottom: 8px;
         }
-        .online-pay-cta .cta-text h3 {
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 900;
-            margin-bottom: 2px;
+        .pay-option-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
         }
-        .online-pay-cta .cta-text p {
-            color: #d1fae5;
-            font-size: 12px;
-            font-weight: 600;
+        .badge-free { background: #dcfce7; color: #15803d; }
+        .badge-tabby { background: #3effbf; color: #064e3b; }
+        .badge-tamara { background: #ffe4d6; color: #9a3412; }
+        .pay-option-radio {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            position: relative;
         }
-        .online-pay-cta .cta-btn {
+        .pay-option-card.selected .pay-option-radio {
+            border-color: #059669;
+            background: #059669;
+        }
+        .pay-option-card.selected .pay-option-radio::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
             background: #ffffff;
-            color: #065f46;
-            font-size: 14px;
-            font-weight: 900;
-            padding: 10px 28px;
-            border-radius: 10px;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
-        .online-pay-cta .cta-btn:hover {
+        .pay-option-title {
+            font-size: 13px;
+            color: #1f2937;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .brand-tabby {
+            background: #3effbf;
+            color: #111827;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .brand-tamara {
+            background: #fed7aa;
+            color: #7c2d12;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .pay-option-price {
+            font-size: 18px;
+            font-weight: 900;
+            color: #065f46;
+            margin-bottom: 4px;
+            font-family: monospace, sans-serif;
+        }
+        .pay-option-price small {
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pay-option-sub {
+            font-size: 11px;
+            color: #4b5563;
+            line-height: 1.4;
+        }
+        .pay-action-btn {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 900;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+            transition: all 0.2s ease;
+        }
+        .pay-action-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
         }
 
         /* Responsive */
@@ -548,18 +650,103 @@
         </div>
     </div>
 
-    <!-- ===== Pay CTA ===== -->
-    @if($invoice->isPending() && $invoice->telr_transaction_url)
-    <div class="online-pay-cta">
-        <div class="cta-text">
-            <h3>سداد الفاتورة إلكترونياً بأمان</h3>
-            <p>المبلغ: {{ number_format($invoice->amount + ($invoice->deposit_amount ?? 0), 0) }} ريال سعودي@if(($invoice->deposit_amount ?? 0) > 0) شامل التأمين المسترد@endif (مدى / Apple Pay / فيزا)</p>
+    <!-- ===== Interactive Payment Gateway Selector & Pay CTA ===== -->
+    @if($invoice->isPending())
+    @php
+        $base = $invoice->base_amount;
+        $tabbyTotal = round($base * 1.15, 2);
+        $tabbyInstallment = round($tabbyTotal / 4, 2);
+        $tamaraTotal = round($base * 1.15, 2);
+        $tamaraInstallment = round($tamaraTotal / 4, 2);
+        $activeMethod = in_array($invoice->payment_method, ['tabby', 'tamara', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
+    @endphp
+    <div class="pay-portal-wrapper">
+        <div class="pay-portal-header">
+            <h3>اختر وسيلة الدفع لإتمام الحجز فوراً</h3>
+            <p>سداد إلكتروني معتمد ومشفّر بأعلى معايير الأمان البنكي</p>
         </div>
-        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="cta-btn">
-            💳 ادفع الآن
-        </a>
+
+        <div class="pay-portal-grid">
+            <!-- 1. Apple Pay / Mada / Visa -->
+            <div class="pay-option-card {{ $activeMethod === 'apple_pay' || $activeMethod === 'standard' ? 'selected' : '' }}" onclick="selectMethod('apple_pay', 'Apple Pay / مدى', '{{ number_format($base, 2) }}')" id="method-card-apple_pay">
+                <div class="pay-option-top">
+                    <div class="pay-option-badge badge-free">0% رسوم إضافية</div>
+                    <div class="pay-option-radio"></div>
+                </div>
+                <div class="pay-option-title flex-title">
+                    <svg style="width: 15px; height: 15px; display:inline-block; vertical-align:middle; fill:#000;" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.62-.75 1.04-1.8 0.92-2.84-.9.04-1.98.6-2.62 1.34-.57.65-1.06 1.71-.93 2.73 1 .08 2.01-.48 2.63-1.23z"/></svg>
+                    <strong>Apple Pay / مدى / بطاقات</strong>
+                </div>
+                <div class="pay-option-price">{{ number_format($base, 2) }} <small>ر.س</small></div>
+                <div class="pay-option-sub">سداد فوري للمبلغ بالكامل</div>
+            </div>
+
+            <!-- 2. Tabby -->
+            <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (4 أقساط)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby">
+                <div class="pay-option-top">
+                    <div class="pay-option-badge badge-tabby">قسمها على 4 دفعات</div>
+                    <div class="pay-option-radio"></div>
+                </div>
+                <div class="pay-option-title">
+                    <span class="brand-tabby">tabby</span> <strong>تابي</strong>
+                </div>
+                <div class="pay-option-price">{{ number_format($tabbyTotal, 2) }} <small>ر.س</small></div>
+                <div class="pay-option-sub">
+                    <strong>{{ number_format($tabbyInstallment, 2) }} ر.س</strong> / شهرياً (4 دفعات)<br>
+                    <span style="font-size:10px; color:#065f46; font-weight:700;">(شامل 15% رسوم تابي: +{{ number_format($base * 0.15, 2) }} ر.س)</span>
+                </div>
+            </div>
+
+            <!-- 3. Tamara -->
+            <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (4 أقساط)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara">
+                <div class="pay-option-top">
+                    <div class="pay-option-badge badge-tamara">قسمها على 4 دفعات</div>
+                    <div class="pay-option-radio"></div>
+                </div>
+                <div class="pay-option-title">
+                    <span class="brand-tamara">تمارا</span> <strong>تمارا</strong>
+                </div>
+                <div class="pay-option-price">{{ number_format($tamaraTotal, 2) }} <small>ر.س</small></div>
+                <div class="pay-option-sub">
+                    <strong>{{ number_format($tamaraInstallment, 2) }} ر.س</strong> / شهرياً (4 دفعات)<br>
+                    <span style="font-size:10px; color:#9a3412; font-weight:700;">(شامل 15% رسوم تمارا: +{{ number_format($base * 0.15, 2) }} ر.س)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pay-portal-action">
+            <button type="button" id="pay-submit-btn" onclick="proceedPayment()" class="pay-action-btn">
+                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'tabby' ? 'تابي (4 أقساط)' : ($activeMethod === 'tamara' ? 'تمارا (4 أقساط)' : 'Apple Pay / مدى') }}</span> (<span id="selected-method-amount">{{ number_format($activeMethod === 'tabby' ? $tabbyTotal : ($activeMethod === 'tamara' ? $tamaraTotal : $base), 2) }}</span> ر.س)
+            </button>
+        </div>
     </div>
     @endif
+
+    <script>
+        let currentMethod = '{{ $activeMethod }}';
+
+        function selectMethod(method, label, amount) {
+            currentMethod = method;
+            document.querySelectorAll('.pay-option-card').forEach(c => c.classList.remove('selected'));
+            const selectedCard = document.getElementById('method-card-' + method);
+            if (selectedCard) selectedCard.classList.add('selected');
+
+            const labelEl = document.getElementById('selected-method-label');
+            const amountEl = document.getElementById('selected-method-amount');
+            if (labelEl) labelEl.textContent = label;
+            if (amountEl) amountEl.textContent = amount;
+        }
+
+        function proceedPayment() {
+            const btn = document.getElementById('pay-submit-btn');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '⏳ جارٍ الانتقال لبوابة الدفع الآمنة...';
+            btn.disabled = true;
+
+            const url = '{{ route("booking-card.pay", $invoice->booking_card_token) }}';
+            window.location.href = url + '?method=' + encodeURIComponent(currentMethod);
+        }
+    </script>
 
     <!-- Download Script -->
     <script>

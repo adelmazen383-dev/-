@@ -25,6 +25,7 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('/verify', [VerificationController::class, 'index'])->name('verify.index');
     Route::get('/telr/callback', [\App\Http\Controllers\InvoiceController::class, 'telrCallback'])->name('telr.callback');
     Route::get('/card/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicBookingCard'])->name('booking-card.show');
+    Route::match(['get', 'post'], '/card/{token}/pay', [\App\Http\Controllers\InvoiceController::class, 'selectPaymentMethod'])->name('booking-card.pay');
     Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'invoicePrint'])->name('invoices.print');
     Route::get('/invoice/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicInvoice'])->name('invoices.public');
 });

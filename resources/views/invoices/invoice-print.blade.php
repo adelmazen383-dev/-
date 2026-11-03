@@ -938,7 +938,7 @@
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 11.5px; font-weight: 800; color: #065f46;">رابط الدفع الإلكتروني مفعّل لهذه الفاتورة</div>
-                            <div style="font-size: 9.5px; color: #047857; font-weight: 600;">ادفع بأمان عبر مدى، فيزا، ماستركارد، أو Apple Pay</div>
+                            <div style="font-size: 9.5px; color: #047857; font-weight: 600;">ادفع بأمان عبر Apple Pay، مدى، فيزا، أو بالتقسيط على 4 دفعات عبر تابي و تمارا</div>
                         </div>
                     </div>
                     <a href="{{ $payLink }}" target="_blank" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 3px 8px rgba(5,150,105,0.25); white-space: nowrap;">
