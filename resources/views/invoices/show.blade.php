@@ -152,7 +152,7 @@
 
                     <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">التأمين المسترد</p>
-                        <p class="text-amber-600 font-bold">{{ number_format($invoice->deposit_amount ?? 500, 2) }} ر.س</p>
+                        <p class="text-amber-600 font-bold">{{ number_format($invoice->deposit_amount ?? 0, 2) }} ر.س</p>
                     </div>
                     <div class="sm:col-span-2">
                         <p class="text-slate-500 text-xs font-bold mb-1">تاريخ إنشاء الفاتورة</p>
@@ -219,9 +219,9 @@
                     @endif
 
                     @if($invoice->isPaid())
-                        <a href="{{ route('contracts.create') }}" class="btn btn-indigo btn-sm">
+                        <a href="{{ route('contracts.create', ['invoice_id' => $invoice->id]) }}" class="btn btn-sm" style="background:#059669; color:white;">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            إنشاء عقد إيجار لهذا العميل
+                            إنشاء عقد إيجار لهذا العميل (تعبئة تلقائية)
                         </a>
                     @endif
                 </div>

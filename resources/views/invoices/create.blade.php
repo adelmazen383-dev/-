@@ -104,11 +104,23 @@
             <!-- Deposit Amount -->
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-2">مبلغ التأمين المسترد (ر.س)</label>
-                <input type="number" step="0.01" name="deposit_amount" value="{{ old('deposit_amount', 500) }}"
+                <input type="number" step="0.01" name="deposit_amount" id="deposit_amount" value="{{ old('deposit_amount') }}"
                        class="form-input @error('deposit_amount') border-rose-500 @enderror"
-                       placeholder="500">
-                <span class="text-[11px] text-slate-500">المبلغ الافتراضي: 500 ريال مسترد عند المغادرة</span>
+                       placeholder="مثال: 500 أو 0" oninput="calculateRemaining()">
+                <span class="text-[11px] text-slate-500">يُضاف إلى رابط الدفع ويُسترد للعميل عند المغادرة</span>
                 @error('deposit_amount') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <!-- Gateway Total Indicator (Rent + Deposit) -->
+            <div class="md:col-span-3 p-3.5 rounded-xl bg-indigo-50 border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span class="text-xs font-bold text-indigo-950">إجمالي مبلغ رابط الدفع بالبوابة (شامل التأمين):</span>
+                    <span id="total_gateway_breakdown" class="text-xs text-indigo-700 font-medium">(المطلوب: 0.00 ر.س + التأمين: 0.00 ر.س)</span>
+                </div>
+                <div class="text-left">
+                    <span id="total_gateway_display" class="text-base font-black text-indigo-700 font-mono">0.00 ر.س</span>
+                </div>
             </div>
 
             <!-- Notes -->
@@ -129,22 +141,22 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">اسم العقار / المنشأة</label>
                         <input type="text" name="property_name" value="{{ old('property_name', auth()->user()?->isSindi() ? 'برج داماك الجوهرة | Sindi Residence' : 'توثيق العقود') }}"
-                               class="form-input @error('property_name') border-rose-500 @enderror"
-                               placeholder="مثال: برج داماك الجوهرة | Sindi Residence">
+                                class="form-input @error('property_name') border-rose-500 @enderror"
+                                placeholder="مثال: برج داماك الجوهرة | Sindi Residence">
                         @error('property_name') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">المدينة والموقع</label>
                         <input type="text" name="property_location" value="{{ old('property_location', 'جدة - المملكة العربية السعودية') }}"
-                               class="form-input @error('property_location') border-rose-500 @enderror"
-                               placeholder="مثال: جدة - المملكة العربية السعودية">
+                                class="form-input @error('property_location') border-rose-500 @enderror"
+                                placeholder="مثال: جدة - المملكة العربية السعودية">
                         @error('property_location') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">رقم هاتف المنشأة للتواصل</label>
                         <input type="text" name="property_phone" dir="ltr" value="{{ old('property_phone', '+966 59 235 8118') }}"
-                               class="form-input @error('property_phone') border-rose-500 @enderror"
-                               placeholder="+966 59 235 8118">
+                                class="form-input @error('property_phone') border-rose-500 @enderror"
+                                placeholder="+966 59 235 8118">
                         @error('property_phone') <p class="text-rose-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -155,7 +167,7 @@
         <div class="mt-5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
             <p class="font-bold text-amber-950">✨ يظهر تلقائياً في كارت العميل:</p>
             <p class="text-[11.5px]">• مواعيد الدخول: 4:00 مساءً | مواعيد الخروج: 1:00 ظهراً</p>
-            <p class="text-[11.5px]">• التأمين: 500 ريال مسترد عند تسليم الوحدة</p>
+            <p class="text-[11.5px]">• التأمين: مسترد عند تسليم الوحدة بحالتها الأصلية</p>
         </div>
 
         <div class="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
@@ -171,11 +183,28 @@
         function calculateRemaining() {
             const agreed = parseFloat(document.getElementById('agreed_amount').value) || 0;
             const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const deposit = parseFloat(document.getElementById('deposit_amount').value) || 0;
+
             const remaining = Math.max(0, agreed - amount);
             document.getElementById('remaining_display').value = remaining.toFixed(2) + ' ر.س';
 
+            const totalGateway = (amount + deposit).toFixed(2);
+            const gatewayDisplay = document.getElementById('total_gateway_display');
+            if (gatewayDisplay) {
+                gatewayDisplay.textContent = totalGateway + ' ر.س';
+            }
+
+            const gatewayBreakdown = document.getElementById('total_gateway_breakdown');
+            if (gatewayBreakdown) {
+                gatewayBreakdown.textContent = `(المطلوب: ${amount.toFixed(2)} ر.س + التأمين: ${deposit.toFixed(2)} ر.س)`;
+            }
+
             // Sync suite number with apartment number
-            document.getElementById('suite_number').value = document.getElementById('apartment_number').value;
+            const aptEl = document.getElementById('apartment_number');
+            const suiteEl = document.getElementById('suite_number');
+            if (aptEl && suiteEl && aptEl.value) {
+                suiteEl.value = aptEl.value;
+            }
         }
 
         document.getElementById('apartment_number').addEventListener('input', function() {

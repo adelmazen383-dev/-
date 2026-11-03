@@ -83,7 +83,7 @@ class InvoiceController extends Controller
         $amountPaid   = $validated['amount_paid'] ?? 0;
         $validated['agreed_amount']    = $agreedAmount;
         $validated['remaining_amount'] = max(0, $agreedAmount - $amountPaid);
-        $validated['deposit_amount']   = $validated['deposit_amount'] ?? 500;
+        $validated['deposit_amount']   = (isset($validated['deposit_amount']) && $validated['deposit_amount'] !== '') ? (float)$validated['deposit_amount'] : 0.00;
 
         $validated['user_id']  = auth()->id();
         $validated['template'] = auth()->user()?->invoice_template ?? 'taotheeq';
@@ -170,7 +170,7 @@ class InvoiceController extends Controller
             }
         }
 
-        return view('invoices.callback', compact('status'));
+        return view('invoices.callback', compact('status', 'invoice'));
     }
 
     /* ── Manual "Check Status" button for admin ── */
@@ -195,7 +195,9 @@ class InvoiceController extends Controller
                 'amount_paid'      => $invoice->amount,
                 'remaining_amount' => max(0, ($invoice->agreed_amount ?? $invoice->amount) - $invoice->amount),
             ]);
-            return back()->with('success', '✅ تم التحقق — الفاتورة مدفوعة! يمكنك الآن إنشاء العقد.');
+            return redirect()
+                ->route('contracts.create', ['invoice_id' => $invoice->id])
+                ->with('success', '✅ تم التحقق من سداد الفاتورة بنجاح! تم توجيهك لإنشاء العقد وتعبئة كافة البيانات تلقائياً.');
         }
 
         if ($code == 2) {
@@ -260,6 +262,8 @@ class InvoiceController extends Controller
             'remaining_amount' => max(0, ($invoice->agreed_amount ?? $invoice->amount) - $invoice->amount),
         ]);
 
-        return back()->with('success', '✅ تم تسجيل الفاتورة كمدفوعة بنجاح وتحديث المبلغ المتبقي.');
+        return redirect()
+            ->route('contracts.create', ['invoice_id' => $invoice->id])
+            ->with('success', '✅ تم تسجيل الفاتورة كمدفوعة بنجاح! تم توجيهك لإنشاء العقد وتعبئة بيانات المستأجر والوحدة تلقائياً.');
     }
 }

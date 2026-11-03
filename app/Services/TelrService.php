@@ -30,15 +30,25 @@ class TelrService
             return ['success' => false, 'error' => 'Telr credentials not configured.'];
         }
 
+        $rentAmount    = (float) ($invoice->amount ?? 0);
+        $depositAmount = (float) ($invoice->deposit_amount ?? 0);
+        $totalAmount   = $rentAmount + $depositAmount;
+
+        $desc = 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number);
+        if ($depositAmount > 0) {
+            $desc .= ' (إيجار: ' . number_format($rentAmount, 2) . ' + تأمين: ' . number_format($depositAmount, 2) . ')';
+        }
+        $desc .= ' — توثيق العقود';
+
         $payload = [
             'ivp_method'   => 'create',
             'ivp_store'    => $this->storeId,
             'ivp_authkey'  => $this->authKey,
             'ivp_cart'     => $invoice->invoice_number,
             'ivp_test'     => $this->testMode,
-            'ivp_amount'   => number_format($invoice->amount + ($invoice->deposit_amount ?? 500), 2, '.', ''),
+            'ivp_amount'   => number_format($totalAmount, 2, '.', ''),
             'ivp_currency' => 'SAR',
-            'ivp_desc'     => 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number) . ' (إيجار + تأمين) — توثيق العقود',
+            'ivp_desc'     => $desc,
 
             // Return URLs — Telr redirects the customer here after payment
             'return_auth'  => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'success']),

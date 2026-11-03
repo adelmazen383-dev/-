@@ -524,7 +524,11 @@
                             ملاحظة بخصوص التأمين:
                         </div>
                         <ul class="info-box-list">
-                            <li>يوجد تأمين مسترد بقيمة {{ number_format($invoice->deposit_amount ?? 500, 0) }} ريال، يجب دفعه عند الاستلام.</li>
+                            @if(($invoice->deposit_amount ?? 0) > 0)
+                                <li>يوجد تأمين مسترد بقيمة {{ number_format($invoice->deposit_amount, 0) }} ريال، مسترد عند المغادرة.</li>
+                            @else
+                                <li>لا يوجد تأمين إضافي مطلوب.</li>
+                            @endif
                             <li>• في حال دفع التأمين نقدًا، يتم استرجاعه نقدًا عند تسليم الوحدة.</li>
                             <li>• في حال دفع التأمين إلكترونيًا، يتم استرجاعه خلال ٢٤ ساعة من فحص وتسليم الوحدة.</li>
                         </ul>
@@ -549,7 +553,7 @@
     <div class="online-pay-cta">
         <div class="cta-text">
             <h3>سداد الفاتورة إلكترونياً بأمان</h3>
-            <p>المبلغ: {{ number_format($invoice->amount + ($invoice->deposit_amount ?? 500), 0) }} ريال سعودي شامل التأمين المسترد (مدى / Apple Pay / فيزا)</p>
+            <p>المبلغ: {{ number_format($invoice->amount + ($invoice->deposit_amount ?? 0), 0) }} ريال سعودي@if(($invoice->deposit_amount ?? 0) > 0) شامل التأمين المسترد@endif (مدى / Apple Pay / فيزا)</p>
         </div>
         <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="cta-btn">
             💳 ادفع الآن

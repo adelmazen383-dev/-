@@ -174,7 +174,7 @@ class ContractGeneratorService
                 $lesseeHtml,
                 e($contract->lessor->name ?? 'إدارة الأملاك'),
                 e($contract->lessor->national_id ?? 'غير متوفر'),
-                number_format($contract->deposit_amount ?? 500, 2),
+                number_format((float) ($contract->deposit_amount ?? 0), 2),
             ],
             $html
         );

@@ -6,6 +6,7 @@ use App\Enums\ContractStatus;
 use App\Models\Contract;
 use App\Models\Customer;
 use App\Models\ContractTemplate;
+use App\Models\Invoice;
 use App\Http\Requests\StoreContractRequest;
 use App\Services\ContractService;
 use Illuminate\Http\Request;
@@ -40,12 +41,63 @@ class ContractController extends Controller
         return view('contracts.index', compact('contracts'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $lessors = Customer::where('type', 'lessor')->orderBy('name')->get();
         $lessees = Customer::where('type', 'lessee')->orderBy('name')->get();
         $templates = ContractTemplate::where('is_active', true)->get();
-        return view('contracts.create', compact('lessors', 'lessees', 'templates'));
+
+        $prefill = [];
+        $invoice = null;
+
+        if ($request->filled('invoice_id')) {
+            $invoice = Invoice::findOrFail((int) $request->invoice_id);
+
+            // Find or create customer (lessee) from invoice details
+            $lesseeCustomer = null;
+            if (!empty($invoice->national_id)) {
+                $lesseeCustomer = Customer::where('national_id', $invoice->national_id)->first();
+            }
+            if (!$lesseeCustomer && !empty($invoice->phone)) {
+                $lesseeCustomer = Customer::where('phone', $invoice->phone)->first();
+            }
+            if (!$lesseeCustomer) {
+                $lesseeCustomer = Customer::create([
+                    'name'        => $invoice->customer_name,
+                    'national_id' => $invoice->national_id ?: ('10' . str_pad((string)mt_rand(1, 99999999), 8, '0', STR_PAD_LEFT)),
+                    'phone'       => $invoice->phone,
+                    'type'        => 'lessee',
+                ]);
+            }
+
+            // Ensure the newly found or created customer is in $lessees collection
+            if (!$lessees->contains('id', $lesseeCustomer->id)) {
+                $lessees->push($lesseeCustomer);
+            }
+
+            $propertyParts = [];
+            if ($invoice->property_name) {
+                $propertyParts[] = 'منشأة / عقار: ' . $invoice->property_name;
+            }
+            if ($invoice->suite_number || $invoice->apartment_number) {
+                $propertyParts[] = 'وحدة / جناح رقم ' . ($invoice->suite_number ?: $invoice->apartment_number);
+            }
+            if ($invoice->property_location) {
+                $propertyParts[] = 'الموقع: ' . $invoice->property_location;
+            }
+
+            $prefill = [
+                'customer_id'      => $lesseeCustomer->id,
+                'rent_amount'      => (float) ($invoice->agreed_amount ?: $invoice->amount),
+                'deposit_amount'   => (float) ($invoice->deposit_amount ?? 0),
+                'start_date'       => $invoice->check_in_date ? $invoice->check_in_date->format('Y-m-d\TH:i') : null,
+                'end_date'         => $invoice->check_out_date ? $invoice->check_out_date->format('Y-m-d\TH:i') : null,
+                'property_details' => count($propertyParts) > 0 ? implode(' — ', $propertyParts) : ('وحدة سكنية رقم ' . ($invoice->suite_number ?: $invoice->apartment_number)),
+                'additional_terms' => $invoice->notes,
+            ];
+        }
+
+        return view('contracts.create', compact('lessors', 'lessees', 'templates', 'prefill', 'invoice'));
     }
 
     /**
