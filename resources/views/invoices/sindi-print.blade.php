@@ -820,7 +820,7 @@
         elseif (str_starts_with($cleanPhone, '01')) $cleanPhone = '20' . substr($cleanPhone, 1);
         elseif (str_starts_with($cleanPhone, '5')) $cleanPhone = '966' . $cleanPhone;
 
-        $payLink = $invoice->telr_transaction_url;
+        $payLink = route('booking-card.show', $invoice->booking_card_token);
         $bookingNo = '#SR-' . ($invoice->check_in_date ? $invoice->check_in_date->format('Ymd') : '20261002') . '-' . ($invoice->suite_number ?: $invoice->apartment_number);
         $sindiInvoiceNo = '#SR-' . ($invoice->check_in_date ? $invoice->check_in_date->format('my') : '1026') . '-' . str_pad($invoice->id, 4, '0', STR_PAD_LEFT);
 
@@ -839,8 +839,8 @@
         $msg = "مرحباً أستاذ/ة " . $invoice->customer_name . "،\n"
              . "يسعدنا تأكيد حجزكم في *Sindi Residence - برج داماك الجوهرة* 🏢\n\n"
              . "🧾 *فاتورة وتفاصيل الحجز:*\n" . url()->current() . "\n\n";
-        if ($invoice->isPending() && $payLink) {
-            $msg .= "💳 *رابط الدفع الإلكتروني المباشر:*\n" . $payLink . "\n\n";
+        if ($invoice->isPending()) {
+            $msg .= "💳 *رابط السداد واختيار وسيلة الدفع (Apple Pay / مدى / تابي / تمارا):*\n" . $payLink . "\n\n";
         }
         $msg .= "شكراً لاختياركم سكننا.";
         $waUrl = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($msg);
@@ -1176,22 +1176,70 @@
             </div>
         </div>
 
-        @if($invoice->isPending() && $payLink)
-        <!-- Online Payment Banner -->
-        <div style="margin: 10px 32px 14px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); border: 1.5px solid #c59b63; border-radius: 8px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #c59b63 0%, #d4af7a 100%); color: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        @if($invoice->isPending())
+        @php
+            $base = $invoice->base_amount;
+            $tabbyTotal = round($base * 1.15, 2);
+            $tabbyInst = round($tabbyTotal / 4, 2);
+            $tamaraTotal = round($base * 1.15, 2);
+            $tamaraInst = round($tamaraTotal / 4, 2);
+            $portalUrl = route('booking-card.show', $invoice->booking_card_token);
+            $applePayUrl = route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'apple_pay']);
+            $tabbyUrl = $invoice->tabby_url ?: route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'tabby']);
+            $tamaraUrl = $invoice->tamara_url ?: route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'tamara']);
+        @endphp
+        <!-- Online Payment Banner with 3 Method Cards -->
+        <div style="margin: 10px 32px 14px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); border: 1.5px solid #c59b63; border-radius: 10px; padding: 14px 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.18);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px dashed rgba(197,155,99,0.3); padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #c59b63 0%, #d4af7a 100%); color: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; font-weight: 800; color: #ffffff;">اختر وسيلة السداد الإلكتروني المناسبة لحجزك:</div>
+                        <div style="font-size: 10px; color: #c59b63;">ادفع بأمان عبر Apple Pay، مدى، فيزا، أو قسّط على 4 دفعات عبر تابي وتمارا</div>
+                    </div>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 12px; font-weight: 800; color: #ffffff;">رابط السداد الإلكتروني مفعّل لهذا الحجز</div>
-                    <div style="font-size: 9.5px; color: #c59b63; font-weight: 600;">ادفع بأمان عبر Apple Pay، مدى، فيزا، أو بالتقسيط على 4 دفعات عبر تابي و تمارا</div>
-                </div>
+                <a href="{{ $portalUrl }}" target="_blank" style="font-size: 11px; color: #e0be8b; text-decoration: underline; font-weight: 700;">صفحة الدفع الذكية ↗</a>
             </div>
-            <a href="{{ $payLink }}" target="_blank" style="background: linear-gradient(135deg, #c59b63 0%, #a87e46 100%); color: #ffffff; padding: 7px 16px; border-radius: 6px; font-size: 11.5px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(197,155,99,0.35); white-space: nowrap; border: 1px solid #e0be8b;">
-                <span>💳 اضغط للسداد الآن</span>
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            </a>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <!-- 1. Apple Pay / Cards -->
+                <a href="{{ $applePayUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#27272a; border:1px solid #52525b; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;"> Apple Pay / مدى</span>
+                        <span style="font-size:9px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; padding:1px 6px; border-radius:4px;">0% رسوم</span>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <span style="font-size:15px; font-weight:900; color:#c59b63; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                    </div>
+                    <div style="font-size:9.5px; color:#a1a1aa; margin-top:2px;">سداد فوري مباشر</div>
+                </a>
+
+                <!-- 2. Tabby -->
+                <a href="{{ $tabbyUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#1c2e28; border:1px solid #059669; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#3effbf; color:#000; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:900;">tabby</span> تابي</span>
+                        <span style="font-size:9px; background:rgba(62,254,186,0.2); color:#3effbf; font-weight:700; padding:1px 6px; border-radius:4px;">4 دفعات</span>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <span style="font-size:15px; font-weight:900; color:#3effbf; font-family:monospace;">{{ number_format($tabbyTotal, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                    </div>
+                    <div style="font-size:9.5px; color:#a7f3d0; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س / شهرياً (+15%)</div>
+                </a>
+
+                <!-- 3. Tamara -->
+                <a href="{{ $tamaraUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#2e1f18; border:1px solid #ea580c; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#fed7aa; color:#7c2d12; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:900;">تمارا</span> تمارا</span>
+                        <span style="font-size:9px; background:rgba(254,215,170,0.2); color:#fdba74; font-weight:700; padding:1px 6px; border-radius:4px;">4 دفعات</span>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <span style="font-size:15px; font-weight:900; color:#fdba74; font-family:monospace;">{{ number_format($tamaraTotal, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                    </div>
+                    <div style="font-size:9.5px; color:#fed7aa; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س / شهرياً (+15%)</div>
+                </a>
+            </div>
         </div>
         @endif
 

@@ -49,15 +49,15 @@
                 elseif (str_starts_with($cleanPhone, '5')) $cleanPhone = '966' . $cleanPhone;
 
                 $invoiceLink = route('invoices.print', $invoice);
-                $payLink  = $invoice->telr_transaction_url;
+                $portalPayLink = route('booking-card.show', $invoice->booking_card_token);
 
                 $brandTitle = $invoice->isSindi() ? 'Sindi Residence - برج داماك الجوهرة 🏢' : 'منصة توثيق العقود 📑';
                 $whatsappMessage = "مرحباً أستاذ/ة " . $invoice->customer_name . "،\n"
                                  . "يسعدنا تأكيد حجزكم في *" . $brandTitle . "*\n\n"
                                  . "🧾 *فاتورة وتفاصيل الحجز:*\n" . $invoiceLink . "\n\n";
 
-                if ($invoice->isPending() && $payLink) {
-                    $whatsappMessage .= "💳 *رابط الدفع الإلكتروني المباشر:*\n" . $payLink . "\n\n";
+                if ($invoice->isPending()) {
+                    $whatsappMessage .= "💳 *رابط السداد واختيار وسيلة الدفع (Apple Pay / مدى / تابي / تمارا):*\n" . $portalPayLink . "\n\n";
                 }
                 $whatsappMessage .= "شكراً لاختياركم سكننا.";
                 $whatsappLink = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($whatsappMessage);
@@ -68,6 +68,11 @@
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.613.613l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.352 0-4.55-.758-6.336-2.065l-.442-.332-3.262 1.093 1.093-3.262-.332-.442A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
                 واتساب
             </a>
+
+            <button type="button" onclick="navigator.clipboard.writeText('{{ $portalPayLink }}').then(() => alert('تم نسخ رابط بوابة السداد للعميل!'))" class="btn btn-emerald btn-sm" style="background:#059669; color:white;">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                نسخ رابط الدفع للعميل
+            </button>
 
             <button type="button" onclick="navigator.clipboard.writeText('{{ $invoiceLink }}').then(() => alert('تم نسخ رابط الفاتورة!'))" class="btn btn-ghost btn-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
@@ -191,10 +196,22 @@
                 <h3 class="text-slate-800 font-bold mb-4">إجراءات الدفع والبوابة</h3>
                 <div class="flex flex-wrap gap-3">
 
-                    @if($invoice->isPending() && $invoice->telr_transaction_url)
-                        <button type="button" onclick="navigator.clipboard.writeText('{{ $invoice->telr_transaction_url }}').then(() => alert('تم نسخ رابط الدفع!'))" class="btn btn-ghost btn-sm">
+                    @if($invoice->isPending())
+                        <a href="{{ route('booking-card.show', $invoice->booking_card_token) }}" target="_blank" class="btn btn-emerald btn-sm" style="background:#059669; color:white;">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            فتح صفحة السداد الذكية (Apple Pay / تابي / تمارا)
+                        </a>
+
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('booking-card.show', $invoice->booking_card_token) }}').then(() => alert('تم نسخ رابط بوابة السداد الذكية للعميل!'))" class="btn btn-ghost btn-sm">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                            نسخ رابط بوابة Telr
+                            نسخ رابط السداد للعميل
+                        </button>
+                    @endif
+
+                    @if($invoice->isPending() && $invoice->telr_transaction_url)
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ $invoice->telr_transaction_url }}').then(() => alert('تم نسخ رابط بطاقة الفيزا المباشر!'))" class="btn btn-ghost btn-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            نسخ رابط فيزا المباشر (Telr)
                         </button>
 
                         <form method="POST" action="{{ route('invoices.check-status', $invoice) }}" class="inline">
