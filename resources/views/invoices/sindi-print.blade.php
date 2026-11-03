@@ -1185,10 +1185,11 @@
             $tamaraInst = round($tamaraTotal / 4, 2);
             $portalUrl = route('booking-card.show', $invoice->booking_card_token);
             $applePayUrl = route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'apple_pay']);
+            $cardUrl     = route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'standard']);
             $tabbyUrl = $invoice->tabby_url ?: route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'tabby']);
             $tamaraUrl = $invoice->tamara_url ?: route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'tamara']);
         @endphp
-        <!-- Online Payment Banner with 3 Method Cards -->
+        <!-- Online Payment Banner with 4 Method Cards -->
         <div style="margin: 10px 32px 14px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); border: 1.5px solid #c59b63; border-radius: 10px; padding: 14px 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.18);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px dashed rgba(197,155,99,0.3); padding-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -1203,41 +1204,53 @@
                 <a href="{{ $portalUrl }}" target="_blank" style="font-size: 11px; color: #e0be8b; text-decoration: underline; font-weight: 700;">صفحة الدفع الذكية ↗</a>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <!-- 1. Apple Pay / Cards -->
-                <a href="{{ $applePayUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#27272a; border:1px solid #52525b; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                <!-- 1. Apple Pay -->
+                <a href="{{ $applePayUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#18181b; border:1.5px solid #ffffff; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:11px; font-weight:800; color:#ffffff;"> Apple Pay / مدى</span>
-                        <span style="font-size:9px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; padding:1px 6px; border-radius:4px;">0% رسوم</span>
+                        <span style="font-size:11px; font-weight:900; color:#ffffff;"> Apple Pay</span>
+                        <span style="font-size:8.5px; background:#ffffff; color:#000000; font-weight:800; padding:1px 5px; border-radius:3px;">فوري</span>
                     </div>
                     <div style="margin-top:6px;">
-                        <span style="font-size:15px; font-weight:900; color:#c59b63; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                        <span style="font-size:14px; font-weight:900; color:#e0be8b; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
-                    <div style="font-size:9.5px; color:#a1a1aa; margin-top:2px;">سداد فوري مباشر</div>
+                    <div style="font-size:9px; color:#a1a1aa; margin-top:2px;">محفظة Apple</div>
                 </a>
 
-                <!-- 2. Tabby -->
-                <a href="{{ $tabbyUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#1c2e28; border:1px solid #059669; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+                <!-- 2. Bank Cards (Mada / Visa) -->
+                <a href="{{ $cardUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#27272a; border:1px solid #52525b; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#3effbf; color:#000; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:900;">tabby</span> تابي</span>
-                        <span style="font-size:9px; background:rgba(62,254,186,0.2); color:#3effbf; font-weight:700; padding:1px 6px; border-radius:4px;">4 دفعات</span>
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;">💳 مدى / فيزا</span>
+                        <span style="font-size:8.5px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; padding:1px 5px; border-radius:3px;">0%</span>
                     </div>
                     <div style="margin-top:6px;">
-                        <span style="font-size:15px; font-weight:900; color:#3effbf; font-family:monospace;">{{ number_format($tabbyTotal, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                        <span style="font-size:14px; font-weight:900; color:#c59b63; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
-                    <div style="font-size:9.5px; color:#a7f3d0; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س / شهرياً (+15%)</div>
+                    <div style="font-size:9px; color:#a1a1aa; margin-top:2px;">بطاقات بنكية</div>
                 </a>
 
-                <!-- 3. Tamara -->
-                <a href="{{ $tamaraUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#2e1f18; border:1px solid #ea580c; border-radius:8px; padding:10px; text-align:right; transition:all 0.2s;">
+                <!-- 3. Tabby -->
+                <a href="{{ $tabbyUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#1c2e28; border:1px solid #059669; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#fed7aa; color:#7c2d12; padding:1px 5px; border-radius:3px; font-size:9px; font-weight:900;">تمارا</span> تمارا</span>
-                        <span style="font-size:9px; background:rgba(254,215,170,0.2); color:#fdba74; font-weight:700; padding:1px 6px; border-radius:4px;">4 دفعات</span>
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#3effbf; color:#000; padding:1px 4px; border-radius:3px; font-size:8.5px; font-weight:900;">tabby</span> تابي</span>
+                        <span style="font-size:8.5px; background:rgba(62,254,186,0.2); color:#3effbf; font-weight:700; padding:1px 5px; border-radius:3px;">4 أقساط</span>
                     </div>
                     <div style="margin-top:6px;">
-                        <span style="font-size:15px; font-weight:900; color:#fdba74; font-family:monospace;">{{ number_format($tamaraTotal, 2) }}</span> <small style="font-size:10px; color:#d4d4d8;">ر.س</small>
+                        <span style="font-size:14px; font-weight:900; color:#3effbf; font-family:monospace;">{{ number_format($tabbyTotal, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
-                    <div style="font-size:9.5px; color:#fed7aa; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س / شهرياً (+15%)</div>
+                    <div style="font-size:9px; color:#a7f3d0; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س/ش (+15%)</div>
+                </a>
+
+                <!-- 4. Tamara -->
+                <a href="{{ $tamaraUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#2e1f18; border:1px solid #ea580c; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:800; color:#ffffff;"><span style="background:#fed7aa; color:#7c2d12; padding:1px 4px; border-radius:3px; font-size:8.5px; font-weight:900;">تمارا</span> تمارا</span>
+                        <span style="font-size:8.5px; background:rgba(254,215,170,0.2); color:#fdba74; font-weight:700; padding:1px 5px; border-radius:3px;">4 أقساط</span>
+                    </div>
+                    <div style="margin-top:6px;">
+                        <span style="font-size:14px; font-weight:900; color:#fdba74; font-family:monospace;">{{ number_format($tamaraTotal, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
+                    </div>
+                    <div style="font-size:9px; color:#fed7aa; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س/ش (+15%)</div>
                 </a>
             </div>
         </div>

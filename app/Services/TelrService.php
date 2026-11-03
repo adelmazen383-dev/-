@@ -66,7 +66,7 @@ class TelrService
             'ivp_method'   => 'create',
             'ivp_store'    => $this->storeId,
             'ivp_authkey'  => $this->authKey,
-            'ivp_cart'     => $invoice->invoice_number . ($chosenMethod !== 'all' ? '-' . strtoupper($chosenMethod) : ''),
+            'ivp_cart'     => $invoice->invoice_number . ($chosenMethod !== 'all' ? '-' . strtoupper($chosenMethod) : '') . '-' . time(),
             'ivp_test'     => $this->testMode,
             'ivp_amount'   => number_format($totalAmount, 2, '.', ''),
             'ivp_currency' => 'SAR',
