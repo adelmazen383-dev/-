@@ -549,7 +549,7 @@
     <div class="online-pay-cta">
         <div class="cta-text">
             <h3>سداد الفاتورة إلكترونياً بأمان</h3>
-            <p>المبلغ: {{ number_format($invoice->amount, 0) }} ريال سعودي (مدى / Apple Pay / فيزا)</p>
+            <p>المبلغ: {{ number_format($invoice->amount + ($invoice->deposit_amount ?? 500), 0) }} ريال سعودي شامل التأمين المسترد (مدى / Apple Pay / فيزا)</p>
         </div>
         <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="cta-btn">
             💳 ادفع الآن

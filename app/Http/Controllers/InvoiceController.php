@@ -105,7 +105,7 @@ class InvoiceController extends Controller
 
         return redirect()
             ->route('invoices.show', $invoice)
-            ->with('error', 'تم إنشاء الفاتورة لكن فشل الاتصال ببوابة Telr. يمكنك إعادة المحاولة لاحقاً.');
+            ->with('error', 'تم إنشاء الفاتورة، لكن تعذر الاتصال ببوابة Telr: ' . ($telrResponse['error'] ?? 'خطأ غير معروف') . '. يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً.');
     }
 
     /* ── Show invoice details ── */
@@ -225,7 +225,25 @@ class InvoiceController extends Controller
             return back()->with('success', 'تم تجديد رابط الدفع بنجاح.');
         }
 
-        return back()->with('error', 'فشل الاتصال ببوابة Telr. تحقق من البيانات وحاول مرة أخرى.');
+        return back()->with('error', 'فشل الاتصال ببوابة Telr: ' . ($telrResponse['error'] ?? 'خطأ غير معروف'));
+    }
+
+    /* ── Manually update / enter payment link ── */
+    public function updatePaymentLink(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'telr_transaction_url' => ['nullable', 'url', 'max:1000'],
+            'telr_order_ref'       => ['nullable', 'string', 'max:100'],
+        ], [
+            'telr_transaction_url.url' => 'رابط الدفع يجب أن يكون رابطاً صحيحاً يبدأ بـ http:// أو https://',
+        ]);
+
+        $invoice->update([
+            'telr_transaction_url' => $validated['telr_transaction_url'],
+            'telr_order_ref'       => $validated['telr_order_ref'] ?: $invoice->telr_order_ref,
+        ]);
+
+        return back()->with('success', 'تم حفظ رابط الدفع للفاتورة بنجاح وتفعيله داخل الفاتورة.');
     }
 
     /* ── Mark as paid manually (cash / bank transfer / testing) ── */

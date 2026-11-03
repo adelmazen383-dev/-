@@ -264,12 +264,35 @@
                     @if($invoice->telr_transaction_url)
                     <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">رابط الدفع المباشر</p>
-                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-indigo-600 text-xs underline break-all">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
+                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-indigo-600 text-xs underline break-all font-semibold">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
                     </div>
                     @endif
                     <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">رمز الكارت الذكي (Token)</p>
                         <p class="text-slate-500 font-mono text-[11px] break-all">{{ $invoice->booking_card_token }}</p>
+                    </div>
+
+                    <!-- Manual link update form -->
+                    <div class="pt-3 border-t border-slate-100">
+                        <button type="button" onclick="document.getElementById('manual-link-form').classList.toggle('hidden')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            {{ $invoice->telr_transaction_url ? 'تعديل رابط الدفع يدوياً' : 'إدخال رابط دفع يدوياً' }}
+                        </button>
+                        <form id="manual-link-form" method="POST" action="{{ route('invoices.update-payment-link', $invoice) }}" class="hidden mt-3 space-y-2">
+                            @csrf
+                            <div>
+                                <label class="text-[11px] text-slate-500 block mb-1">رابط الدفع (URL):</label>
+                                <input type="url" name="telr_transaction_url" value="{{ old('telr_transaction_url', $invoice->telr_transaction_url) }}" placeholder="https://..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-500 block mb-1">الرقم المرجعي (اختياري):</label>
+                                <input type="text" name="telr_order_ref" value="{{ old('telr_order_ref', $invoice->telr_order_ref) }}" placeholder="Ref #..." class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn btn-indigo btn-sm text-xs py-1 px-3">حفظ الرابط</button>
+                                <button type="button" onclick="document.getElementById('manual-link-form').classList.add('hidden')" class="btn btn-ghost btn-sm text-xs py-1 px-2">إلغاء</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

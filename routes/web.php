@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/invoices/{invoice}/card', [\App\Http\Controllers\InvoiceController::class, 'bookingCard'])->name('invoices.booking-card');
     Route::post('/invoices/{invoice}/check-status', [\App\Http\Controllers\InvoiceController::class, 'checkStatus'])->name('invoices.check-status');
     Route::post('/invoices/{invoice}/retry-telr', [\App\Http\Controllers\InvoiceController::class, 'retryTelr'])->name('invoices.retry-telr');
+    Route::post('/invoices/{invoice}/update-payment-link', [\App\Http\Controllers\InvoiceController::class, 'updatePaymentLink'])->name('invoices.update-payment-link');
     Route::post('/invoices/{invoice}/mark-as-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-as-paid');
 
     // Clients

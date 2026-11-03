@@ -709,9 +709,18 @@
                 واتساب
             </a>
 
+            @if($invoice->isPending() && $payLink)
+            <a href="{{ $payLink }}" target="_blank" class="btn-act pay" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; font-weight:800; border:1px solid #34d399; box-shadow: 0 4px 12px rgba(16,185,129,0.35); text-decoration:none;">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                💳 سداد الفاتورة إلكترونياً (ادفع الآن)
+            </a>
+            @endif
+
+            @auth
             <a href="{{ route('invoices.show', $invoice) }}" class="btn-act back">
                 ← الرجوع
             </a>
+            @endauth
         </div>
     </div>
 
@@ -897,10 +906,17 @@
                         </div>
                         <span class="status-badge-label">Payment Completed</span>
                     @elseif($invoice->isPending())
-                        <div class="status-badge pending">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            بانتظار الدفع
-                        </div>
+                        @if($payLink)
+                            <a href="{{ $payLink }}" target="_blank" class="status-badge pending" style="text-decoration:none; cursor:pointer;" title="انقر لسداد الفاتورة إلكترونياً">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                بانتظار الدفع (اضغط للسداد 💳)
+                            </a>
+                        @else
+                            <div class="status-badge pending">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                بانتظار الدفع
+                            </div>
+                        @endif
                         <span class="status-badge-label">Payment Pending</span>
                     @else
                         <div class="status-badge failed">
@@ -914,6 +930,24 @@
 
             <!-- Payment Methods -->
             <div class="payment-methods-section">
+                @if($invoice->isPending() && $payLink)
+                <div class="pay-cta-box" style="margin-bottom: 12px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #10b981; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 11.5px; font-weight: 800; color: #065f46;">رابط الدفع الإلكتروني مفعّل لهذه الفاتورة</div>
+                            <div style="font-size: 9.5px; color: #047857; font-weight: 600;">ادفع بأمان عبر مدى، فيزا، ماستركارد، أو Apple Pay</div>
+                        </div>
+                    </div>
+                    <a href="{{ $payLink }}" target="_blank" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 3px 8px rgba(5,150,105,0.25); white-space: nowrap;">
+                        <span>💳 اضغط للسداد الآن</span>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    </a>
+                </div>
+                @endif
+
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div></div>
                     <div class="pm-title">
@@ -945,12 +979,20 @@
             <div class="footer-section">
                 <div class="footer-grid">
                     <div class="qr-block">
-                        <div id="qrcode"></div>
-                        <p class="qr-label">
-                            امسح الرمز للدفع أو التحقق من حجزك
-                            <br>
-                            <span style="font-size:8px;">Scan the QR code to pay or verify your booking</span>
-                        </p>
+                        <a href="{{ $payLink ?: route('invoices.print', $invoice) }}" target="_blank" style="text-decoration:none; color:inherit; display:block;" title="{{ $payLink ? 'انقر للدفع مباشرة أو امسح الرمز بالجوال' : 'امسح الرمز للتحقق من الحجز' }}">
+                            <div id="qrcode"></div>
+                            <p class="qr-label">
+                                @if($invoice->isPending() && $payLink)
+                                    <span style="color:#059669; font-weight:800;">اضغط أو امسح للدفع</span>
+                                    <br>
+                                    <span style="font-size:8px;">Click or scan to pay</span>
+                                @else
+                                    امسح الرمز للدفع أو التحقق من حجزك
+                                    <br>
+                                    <span style="font-size:8px;">Scan to pay or verify</span>
+                                @endif
+                            </p>
+                        </a>
                     </div>
                     <div class="notes-block">
                         <div class="notes-title">

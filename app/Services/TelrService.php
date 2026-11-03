@@ -63,7 +63,14 @@ class TelrService
                 ];
             }
 
-            $errorMsg = $response['error']['message'] ?? ($response['error']['note'] ?? 'Unexpected Telr response.');
+            $errArr = $response['error'] ?? [];
+            $errorMsg = $errArr['message'] ?? ($errArr['note'] ?? 'استجابة غير متوقعة من Telr.');
+            if (!empty($errArr['note']) && !empty($errArr['message'])) {
+                $errorMsg .= ' - ' . $errArr['note'];
+            }
+            if (!empty($errArr['details'])) {
+                $errorMsg .= ' (' . $errArr['details'] . ')';
+            }
 
             Log::error('Telr Create Order — unexpected response', [
                 'status'   => $response->status(),

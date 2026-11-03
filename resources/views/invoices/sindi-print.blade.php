@@ -879,9 +879,18 @@
                 واتساب
             </a>
 
+            @if($invoice->isPending() && $payLink)
+            <a href="{{ $payLink }}" target="_blank" class="btn-act pay" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:#ffffff; font-weight:800; border:1px solid #34d399; box-shadow: 0 4px 12px rgba(16,185,129,0.35); text-decoration:none;">
+                <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                💳 سداد الفاتورة إلكترونياً (ادفع الآن)
+            </a>
+            @endif
+
+            @auth
             <a href="{{ route('invoices.show', $invoice) }}" class="btn-act back">
                 ← الرجوع
             </a>
+            @endauth
         </div>
     </div>
 
@@ -1146,6 +1155,15 @@
                         </div>
                     </div>
                 @else
+                    @if($payLink)
+                    <a href="{{ $payLink }}" target="_blank" class="status-badge-pill pending" style="text-decoration:none; cursor:pointer;" title="انقر لسداد الفاتورة إلكترونياً">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <div class="status-badge-text">
+                            <span class="top-txt">بانتظار الدفع (اضغط للسداد 💳)</span>
+                            <span class="sub-txt">Click to Pay Online</span>
+                        </div>
+                    </a>
+                    @else
                     <div class="status-badge-pill pending">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <div class="status-badge-text">
@@ -1153,9 +1171,29 @@
                             <span class="sub-txt">Payment Pending</span>
                         </div>
                     </div>
+                    @endif
                 @endif
             </div>
         </div>
+
+        @if($invoice->isPending() && $payLink)
+        <!-- Online Payment Banner -->
+        <div style="margin: 10px 32px 14px; background: linear-gradient(135deg, #18181b 0%, #27272a 100%); border: 1.5px solid #c59b63; border-radius: 8px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.12);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #c59b63 0%, #d4af7a 100%); color: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; font-weight: 800; color: #ffffff;">رابط السداد الإلكتروني مفعّل لهذا الحجز</div>
+                    <div style="font-size: 9.5px; color: #c59b63; font-weight: 600;">ادفع بأمان وسرعة عبر مدى، فيزا، ماستركارد، أو Apple Pay</div>
+                </div>
+            </div>
+            <a href="{{ $payLink }}" target="_blank" style="background: linear-gradient(135deg, #c59b63 0%, #a87e46 100%); color: #ffffff; padding: 7px 16px; border-radius: 6px; font-size: 11.5px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(197,155,99,0.35); white-space: nowrap; border: 1px solid #e0be8b;">
+                <span>💳 اضغط للسداد الآن</span>
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </a>
+        </div>
+        @endif
 
         <!-- Payment Methods Strip -->
         <div class="payment-methods-strip">
@@ -1187,11 +1225,18 @@
         <div class="footer-grid">
             <!-- Left: QR Code -->
             <div class="qr-box">
-                <div id="qrcode"></div>
-                <div class="qr-subtext">
-                    امسح الرمز للدفع أو للتحقق من الحجز<br>
-                    <span style="font-size:7.5px; color:#888;">Scan the QR code to pay or verify your booking</span>
-                </div>
+                <a href="{{ $payLink ?: route('invoices.print', $invoice) }}" target="_blank" style="text-decoration:none; color:inherit; display:block;" title="{{ $payLink ? 'انقر للدفع مباشرة أو امسح الرمز بالجوال' : 'امسح الرمز للتحقق من الحجز' }}">
+                    <div id="qrcode"></div>
+                    <div class="qr-subtext">
+                        @if($invoice->isPending() && $payLink)
+                            <span style="color:#c59b63; font-weight:800;">اضغط أو امسح للدفع</span><br>
+                            <span style="font-size:7.5px; color:#888;">Click or scan to pay</span>
+                        @else
+                            امسح الرمز للدفع أو للتحقق من الحجز<br>
+                            <span style="font-size:7.5px; color:#888;">Scan the QR code to pay or verify your booking</span>
+                        @endif
+                    </div>
+                </a>
             </div>
 
             <!-- Right: Notes -->
