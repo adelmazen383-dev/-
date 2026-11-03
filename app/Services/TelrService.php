@@ -53,6 +53,15 @@ class TelrService
         }
         $desc .= $feeDesc . ' — توثيق العقود';
 
+        // Determine which panels (payment methods) to show on Telr checkout
+        $panels = match ($chosenMethod) {
+            'apple_pay' => 'card,applepay',          // Apple Pay + Mada/Visa/MC
+            'tabby'     => 'tabby',                  // Tabby only
+            'tamara'    => 'tamara',                 // Tamara only
+            'standard'  => 'card',                  // Cards only (Mada/Visa/MC)
+            default     => 'card,applepay,tabby,tamara', // ALL available methods
+        };
+
         $payload = [
             'ivp_method'   => 'create',
             'ivp_store'    => $this->storeId,
@@ -62,6 +71,9 @@ class TelrService
             'ivp_amount'   => number_format($totalAmount, 2, '.', ''),
             'ivp_currency' => 'SAR',
             'ivp_desc'     => $desc,
+
+            // Show only the selected payment panel(s) on Telr's checkout page
+            'ivp_panels'   => $panels,
 
             // Return URLs — Telr redirects the customer here after payment
             'return_auth'  => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'success']),

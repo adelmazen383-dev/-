@@ -367,6 +367,259 @@
                 width: 100%;
                 max-width: 100%;
             }
+        /* Payment Portal Wrapper */
+        .pay-portal-wrapper {
+            max-width: 650px;
+            margin: 20px auto 40px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1.5px solid #10b981;
+            direction: rtl;
+            text-align: right;
+        }
+        .pay-portal-header {
+            margin-bottom: 16px;
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 12px;
+        }
+        .pay-portal-header h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #065f46;
+            margin: 0 0 4px 0;
+        }
+        .pay-portal-header p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0;
+        }
+        .pay-portal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 680px) {
+            .pay-portal-grid { grid-template-columns: 1fr; }
+        }
+        .pay-option-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: #fafafa;
+        }
+        .pay-option-card:hover {
+            border-color: #10b981;
+            transform: translateY(-2px);
+        }
+        .pay-option-card.selected {
+            border-color: #059669;
+            background: #f0fdf4;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.15);
+        }
+        .pay-option-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .pay-option-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .badge-free { background: #dcfce7; color: #15803d; }
+        .badge-tabby { background: #3effbf; color: #064e3b; }
+        .badge-tamara { background: #ffe4d6; color: #9a3412; }
+        .pay-option-radio {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #d1d5db;
+            position: relative;
+        }
+        .pay-option-card.selected .pay-option-radio {
+            border-color: #059669;
+            background: #059669;
+        }
+        .pay-option-card.selected .pay-option-radio::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .pay-option-title {
+            font-size: 13px;
+            color: #1f2937;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .brand-tabby {
+            background: #3effbf;
+            color: #111827;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .brand-tamara {
+            background: #fed7aa;
+            color: #7c2d12;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+        .pay-option-price {
+            font-size: 18px;
+            font-weight: 900;
+            color: #065f46;
+            margin-bottom: 4px;
+            font-family: monospace, sans-serif;
+        }
+        .pay-option-price small {
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .pay-option-sub {
+            font-size: 11px;
+            color: #4b5563;
+            line-height: 1.4;
+        }
+        .pay-action-btn {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 900;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+            transition: all 0.2s ease;
+        }
+        .pay-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+        }
+
+        /* BNPL Modal Overlay & Content */
+        .bnpl-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .bnpl-modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: bnplFadeIn 0.25s ease;
+            text-align: right;
+            direction: rtl;
+        }
+        @keyframes bnplFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .bnpl-modal-header {
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .tabby-hdr { background: #3effbf; color: #064e3b; }
+        .tamara-hdr { background: #fed7aa; color: #7c2d12; }
+        .bnpl-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            color: inherit;
+        }
+        .bnpl-modal-body {
+            padding: 18px 20px;
+        }
+        .bnpl-summary-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+        .bnpl-summary-box.tamara-summary {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+        .bnpl-schedule {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .bnpl-step {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .bnpl-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #4b5563;
+            font-size: 11px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+        }
+        .bnpl-dot.active {
+            background: #10b981;
+            color: #ffffff;
+        }
+        .bnpl-dot.tamara-dot.active {
+            background: #ea580c;
+            color: #ffffff;
+        }
+        .step-title {
+            font-size: 9.5px;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .step-amount {
+            font-size: 11px;
+            font-weight: 800;
+            color: #111827;
+            font-family: monospace;
         }
     </style>
 </head>
@@ -403,15 +656,15 @@
                 elseif (str_starts_with($cleanPhone, '5')) $cleanPhone = '966' . $cleanPhone;
 
                 $invoiceLink = route('invoices.print', $invoice);
-                $payLink  = $invoice->telr_transaction_url;
+                $payLink  = route('booking-card.show', $invoice->booking_card_token);
 
                 $brandTitle = $invoice->isSindi() ? 'Sindi Residence - برج داماك الجوهرة 🏢' : 'منصة توثيق العقود 📑';
                 $msg = "مرحباً أستاذ/ة " . $invoice->customer_name . "،\n"
                      . "يسعدنا تأكيد حجزكم في *" . $brandTitle . "*\n\n"
                      . "🧾 *فاتورة وتفاصيل الحجز:*\n" . $invoiceLink . "\n\n";
 
-                if ($invoice->isPending() && $payLink) {
-                    $msg .= "💳 *رابط الدفع الإلكتروني المباشر:*\n" . $payLink . "\n\n";
+                if ($invoice->isPending()) {
+                    $msg .= "💳 *رابط اختيار وسيلة السداد (Apple Pay / تابي / تمارا):*\n" . $payLink . "\n\n";
                 }
                 $msg .= "شكراً لاختياركم سكننا.";
                 $waUrl = "https://wa.me/" . $cleanPhone . "?text=" . urlencode($msg);

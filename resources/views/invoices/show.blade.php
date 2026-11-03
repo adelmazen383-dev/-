@@ -292,14 +292,25 @@
                     بيانات بوابة الدفع (Telr)
                 </h3>
                 <div class="space-y-4 text-sm">
+                    <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                        <p class="text-emerald-800 text-xs font-bold mb-1 flex items-center justify-between">
+                            <span>🌐 رابط بوابة سداد العميل (الذكي)</span>
+                            <span class="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded font-bold">Apple Pay / تابي / تمارا</span>
+                        </p>
+                        <a href="{{ route('booking-card.show', $invoice->booking_card_token) }}" target="_blank" class="text-emerald-700 text-xs underline break-all font-bold block mb-2">{{ route('booking-card.show', $invoice->booking_card_token) }}</a>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ route('booking-card.show', $invoice->booking_card_token) }}').then(() => alert('✅ تم نسخ رابط بوابة السداد للعميل!'))" class="btn btn-sm w-full" style="background:#059669; color:white; font-size:11px;">
+                            📋 نسخ رابط السداد لإرساله للعميل
+                        </button>
+                    </div>
+
                     <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">الرقم المرجعي (Telr Order Ref)</p>
                         <p class="text-slate-700 font-mono text-xs break-all">{{ $invoice->telr_order_ref ?? 'لم يتم التوليد بعد' }}</p>
                     </div>
                     @if($invoice->telr_transaction_url)
                     <div>
-                        <p class="text-slate-500 text-xs font-bold mb-1">رابط الدفع المباشر</p>
-                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-indigo-600 text-xs underline break-all font-semibold">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
+                        <p class="text-slate-500 text-xs font-bold mb-1">رابط بطاقة الفيزا المباشر (Telr)</p>
+                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-slate-500 text-xs underline break-all">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
                     </div>
                     @endif
                     <div>

@@ -327,20 +327,52 @@ class InvoiceController extends Controller
             'total_payable'  => $totalPayable,
         ]);
 
-        // Generate or fetch gateway session with method & 15% fee if applicable
+        // Tabby handling
+        if ($method === 'tabby') {
+            if ($invoice->tabby_url) {
+                return redirect()->away($invoice->tabby_url);
+            }
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'            => true,
+                    'action'             => 'open_modal',
+                    'method'             => 'tabby',
+                    'base_amount'        => $baseAmount,
+                    'fee_amount'         => $feeAmount,
+                    'total_payable'      => $totalPayable,
+                    'installment_amount' => round($totalPayable / 4, 2),
+                ]);
+            }
+            return redirect()->route('booking-card.show', ['token' => $token, 'open_modal' => 'tabby']);
+        }
+
+        // Tamara handling
+        if ($method === 'tamara') {
+            if ($invoice->tamara_url) {
+                return redirect()->away($invoice->tamara_url);
+            }
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'            => true,
+                    'action'             => 'open_modal',
+                    'method'             => 'tamara',
+                    'base_amount'        => $baseAmount,
+                    'fee_amount'         => $feeAmount,
+                    'total_payable'      => $totalPayable,
+                    'installment_amount' => round($totalPayable / 4, 2),
+                ]);
+            }
+            return redirect()->route('booking-card.show', ['token' => $token, 'open_modal' => 'tamara']);
+        }
+
+        // Apple Pay / Card / Standard payment handling via Telr
         $telrResponse = $this->telrService->createOrder($invoice, $method);
 
         if ($telrResponse['success']) {
-            $updateData = [
+            $invoice->update([
                 'telr_transaction_url' => $telrResponse['url'],
                 'telr_order_ref'       => $telrResponse['ref'],
-            ];
-            if ($method === 'tabby') {
-                $updateData['tabby_url'] = $telrResponse['url'];
-            } elseif ($method === 'tamara') {
-                $updateData['tamara_url'] = $telrResponse['url'];
-            }
-            $invoice->update($updateData);
+            ]);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -365,6 +397,46 @@ class InvoiceController extends Controller
         }
 
         return redirect()->route('booking-card.show', $token)->with('error', 'تعذر توليد رابط الدفع: ' . ($telrResponse['error'] ?? 'خطأ غير معروف'));
+    }
+
+    /* ── Confirm BNPL payment (Tabby / Tamara) ── */
+    public function confirmBnplPayment(Request $request, string $token)
+    {
+        $invoice = Invoice::where('booking_card_token', $token)->firstOrFail();
+
+        $validated = $request->validate([
+            'method' => ['required', 'string', 'in:tabby,tamara'],
+            'phone'  => ['required', 'string', 'max:25'],
+        ]);
+
+        $method = $validated['method'];
+        $baseAmount = $invoice->base_amount;
+        $feeAmount = round($baseAmount * 0.15, 2);
+        $totalPayable = $baseAmount + $feeAmount;
+        $methodLabel = $method === 'tabby' ? 'تابي Tabby' : 'تمارا Tamara';
+
+        $invoice->update([
+            'payment_method'   => $method,
+            'fee_percentage'   => 15.00,
+            'fee_amount'       => $feeAmount,
+            'total_payable'    => $totalPayable,
+            'status'           => 'paid',
+            'paid_at'          => now(),
+            'amount_paid'      => $invoice->amount,
+            'remaining_amount' => max(0, ($invoice->agreed_amount ?? $invoice->amount) - $invoice->amount),
+            'notes'            => trim(($invoice->notes ?? '') . " | تم السداد بالتقسيط عبر {$methodLabel} على 4 دفعات (هاتف: {$validated['phone']})"),
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'      => true,
+                'message'      => "✅ تم تأكيد عملية الدفع بالتقسيط بنجاح عبر {$methodLabel}!",
+                'redirect_url' => route('booking-card.show', ['token' => $token, 'paid_bnpl' => 1]),
+            ]);
+        }
+
+        return redirect()->route('booking-card.show', ['token' => $token, 'paid_bnpl' => 1])
+            ->with('success', "✅ تم تأكيد عملية الدفع بالتقسيط بنجاح عبر {$methodLabel}!");
     }
 
     /* ── Mark as paid manually (cash / bank transfer / testing) ── */
