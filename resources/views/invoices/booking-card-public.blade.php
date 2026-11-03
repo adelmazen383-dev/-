@@ -754,8 +754,6 @@
         </div>
     </div>
 
-    <!-- ===== Interactive Payment Gateway Selector & Pay CTA ===== -->
-    @if($invoice->isPending())
     @php
         $base = $invoice->base_amount;
         $tabbyTotal = round($base * 1.15, 2);
@@ -764,6 +762,9 @@
         $tamaraInstallment = round($tamaraTotal / 4, 2);
         $activeMethod = in_array($invoice->payment_method, ['tabby', 'tamara', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
     @endphp
+
+    <!-- ===== Interactive Payment Gateway Selector & Pay CTA ===== -->
+    @if($invoice->isPending())
     <div class="pay-portal-wrapper">
         <div class="pay-portal-header">
             <h3>اختر وسيلة الدفع لإتمام الحجز فوراً</h3>
@@ -826,8 +827,33 @@
     </div>
     @endif
 
+    {{-- ===== PAID SUCCESS BANNER ===== --}}
+    @if($invoice->isPaid())
+    <div style="width:100%; max-width:720px; margin-top:18px; background:#f0fdf4; border:2px solid #10b981; border-radius:16px; padding:24px 28px; text-align:center; box-shadow:0 10px 30px rgba(16,185,129,0.15);">
+        <div style="font-size:48px; margin-bottom:10px;">✅</div>
+        <h2 style="font-size:20px; font-weight:900; color:#065f46; margin-bottom:6px;">تم سداد الفاتورة بنجاح!</h2>
+        <p style="font-size:13px; color:#047857; font-weight:600; margin-bottom:4px;">
+            تم تسجيل دفعتك
+            @if($invoice->payment_method)
+                عبر <strong>{{ $invoice->payment_method_label }}</strong>
+            @endif
+            بتاريخ {{ $invoice->paid_at ? $invoice->paid_at->format('Y-m-d') : now()->format('Y-m-d') }}
+        </p>
+        <p style="font-size:12px; color:#6b7280; margin-bottom:18px;">شكراً لثقتك! سيتواصل معك فريق توثيق العقود قريباً لإتمام إجراءات العقد.</p>
+
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <a href="{{ route('invoices.print', $invoice) }}" target="_blank"
+               style="display:inline-flex; align-items:center; gap:6px; background:#059669; color:#fff; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none;">
+                📄 عرض الفاتورة
+            </a>
+        </div>
+    </div>
+    @endif
+
+
     <script>
         let currentMethod = '{{ $activeMethod }}';
+
 
         function selectMethod(method, label, amount) {
             currentMethod = method;
