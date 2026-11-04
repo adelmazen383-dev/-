@@ -26,7 +26,14 @@
                     </svg>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">تم رفض العملية</h2>
-                <p class="text-slate-600 mb-6">عذراً، تم رفض الدفع من قبل البنك أو البطاقة.</p>
+                <p class="text-slate-600 mb-6">عذراً، تم رفض الدفع من قبل البنك أو البطاقة المصدرة.</p>
+                @if(isset($invoice) && $invoice->booking_card_token)
+                    <div class="mt-4 pt-4 border-t border-slate-200 flex flex-col gap-2">
+                        <a href="{{ route('booking-card.show', $invoice->booking_card_token) }}" class="btn btn-primary w-full inline-flex items-center justify-center gap-2" style="background:#064e3b; color:#fff; padding:10px 16px; border-radius:8px; font-weight:700; text-decoration:none;">
+                            🔄 العودة لاختيار وسيلة دفع أخرى أو إعادة المحاولة
+                        </a>
+                    </div>
+                @endif
             @else
                 <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-6">
                     <svg class="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,6 +42,13 @@
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">تم إلغاء العملية</h2>
                 <p class="text-slate-600 mb-6">لقد قمت بإلغاء عملية الدفع.</p>
+                @if(isset($invoice) && $invoice->booking_card_token)
+                    <div class="mt-4 pt-4 border-t border-slate-200">
+                        <a href="{{ route('booking-card.show', $invoice->booking_card_token) }}" class="btn btn-primary w-full inline-flex items-center justify-center gap-2" style="background:#064e3b; color:#fff; padding:10px 16px; border-radius:8px; font-weight:700; text-decoration:none;">
+                            🔄 العودة لكارت الحجز
+                        </a>
+                    </div>
+                @endif
             @endif
         </div>
     </div>
