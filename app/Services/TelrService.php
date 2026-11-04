@@ -55,7 +55,7 @@ class TelrService
 
         // Determine which panels (payment methods) to show on Telr checkout
         $panels = match ($chosenMethod) {
-            'apple_pay' => 'card,applepay',          // Apple Pay + Mada/Visa/MC
+            'apple_pay' => 'applepay',                // Apple Pay only
             'tabby'     => 'tabby',                  // Tabby only
             'tamara'    => 'tamara',                 // Tamara only
             'standard'  => 'card',                  // Cards only (Mada/Visa/MC)
