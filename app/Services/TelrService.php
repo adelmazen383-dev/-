@@ -47,18 +47,14 @@ class TelrService
 
         $totalAmount = $baseAmount + $feeAmount;
 
-        $desc = 'حجز وحدة سكنية — رقم ' . ($invoice->suite_number ?: $invoice->apartment_number);
-        if ($depositAmount > 0) {
-            $desc .= ' (إيجار: ' . number_format($rentAmount, 2) . ' + تأمين: ' . number_format($depositAmount, 2) . ')';
-        }
-        $desc .= $feeDesc . ' — توثيق العقود';
+        $desc = 'Unit Reservation No ' . ($invoice->suite_number ?: ($invoice->apartment_number ?: $invoice->invoice_number));
 
         // Determine which panels (payment methods) to show on Telr checkout
         $panels = match ($chosenMethod) {
-            'apple_pay' => 'applepay',                // Apple Pay only
-            'tabby'     => 'tabby',                  // Tabby only
-            'tamara'    => 'tamara',                 // Tamara only
-            'standard'  => 'card',                  // Cards only (Mada/Visa/MC)
+            'apple_pay' => 'card,applepay',              // Cards + Apple Pay (never isolate applepay)
+            'tabby'     => 'tabby',                      // Tabby only
+            'tamara'    => 'tamara',                     // Tamara only
+            'standard'  => 'card',                       // Cards only (Mada/Visa/MC)
             default     => 'card,applepay,tabby,tamara', // ALL available methods
         };
 
@@ -73,6 +69,7 @@ class TelrService
             'ivp_amount'   => number_format($totalAmount, 2, '.', ''),
             'ivp_currency' => 'SAR',
             'ivp_desc'     => $desc,
+            'ivp_framed'   => 0, // Explicitly enforce full-screen redirection (not an iFrame)
 
             // Show only the selected payment panel(s) on Telr's checkout page
             'ivp_panels'   => $panels,
@@ -168,51 +165,53 @@ class TelrService
      */
     private function buildBillingDetails(Invoice $invoice): array
     {
-        // 1. Customer Name (Split into Forename and Surname)
+        // 1. Customer Name (Transliterate to Latin ASCII for Visa/MC/3DS ISO 8583 compliance)
         $rawName = trim((string) ($invoice->customer_name ?? ''));
-        $nameParts = preg_split('/\s+/', $rawName);
-        $firstName = !empty($nameParts[0]) ? $nameParts[0] : 'العميل';
-        $surname   = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : $firstName;
+        $latinName = $this->transliterateArabic($rawName);
+        $nameParts = preg_split('/\s+/', $latinName);
+
+        $firstName = !empty($nameParts[0]) ? $nameParts[0] : 'Client';
+        $surname   = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : 'Customer';
 
         // Ensure length constraints (Telr min 2 chars)
-        if (mb_strlen($firstName) < 2) {
-            $firstName = 'العميل';
+        if (strlen($firstName) < 2) {
+            $firstName = 'Client';
         }
-        if (mb_strlen($surname) < 2) {
-            $surname = $firstName;
+        if (strlen($surname) < 2) {
+            $surname = 'Customer';
         }
 
-        // 2. City, Region & Postal Code mapping (Saudi Arabia)
+        // 2. City, Region & Postal Code mapping (Saudi Arabia in standard English/Latin)
         $location = trim((string) ($invoice->property_location ?? ''));
         $propertyName = trim((string) ($invoice->property_name ?? ''));
         $searchContext = $location . ' ' . $propertyName;
 
-        $city       = 'الرياض';
-        $region     = 'منطقة الرياض';
+        $city       = 'Riyadh';
+        $region     = 'Riyadh';
         $postalCode = '12271';
 
         $saudiCities = [
-            'جدة'         => ['city' => 'جدة', 'region' => 'منطقة مكة المكرمة', 'zip' => '21589'],
-            'مكة'         => ['city' => 'مكة المكرمة', 'region' => 'منطقة مكة المكرمة', 'zip' => '24231'],
-            'المدينة'     => ['city' => 'المدينة المنورة', 'region' => 'منطقة المدينة المنورة', 'zip' => '42311'],
-            'الدمام'      => ['city' => 'الدمام', 'region' => 'المنطقة الشرقية', 'zip' => '31411'],
-            'الخبر'       => ['city' => 'الخبر', 'region' => 'المنطقة الشرقية', 'zip' => '31952'],
-            'الظهران'     => ['city' => 'الظهران', 'region' => 'المنطقة الشرقية', 'zip' => '31261'],
-            'الأحساء'     => ['city' => 'الهفوف', 'region' => 'المنطقة الشرقية', 'zip' => '31982'],
-            'الهفوف'      => ['city' => 'الهفوف', 'region' => 'المنطقة الشرقية', 'zip' => '31982'],
-            'الجبيل'      => ['city' => 'الجبيل', 'region' => 'المنطقة الشرقية', 'zip' => '31951'],
-            'الطائف'      => ['city' => 'الطائف', 'region' => 'منطقة مكة المكرمة', 'zip' => '26513'],
-            'القصيم'      => ['city' => 'بريدة', 'region' => 'منطقة القصيم', 'zip' => '51411'],
-            'بريدة'       => ['city' => 'بريدة', 'region' => 'منطقة القصيم', 'zip' => '51411'],
-            'عنيزة'       => ['city' => 'عنيزة', 'region' => 'منطقة القصيم', 'zip' => '51911'],
-            'حائل'        => ['city' => 'حائل', 'region' => 'منطقة حائل', 'zip' => '55421'],
-            'تبوك'        => ['city' => 'تبوك', 'region' => 'منطقة تبوك', 'zip' => '71411'],
-            'أبها'        => ['city' => 'أبها', 'region' => 'منطقة عسير', 'zip' => '62521'],
-            'خميس مشيط'   => ['city' => 'خميس مشيط', 'region' => 'منطقة عسير', 'zip' => '62431'],
-            'جازان'       => ['city' => 'جازان', 'region' => 'منطقة جازان', 'zip' => '82711'],
-            'نجران'       => ['city' => 'نجران', 'region' => 'منطقة نجران', 'zip' => '75211'],
-            'ينبع'        => ['city' => 'ينبع', 'region' => 'منطقة المدينة المنورة', 'zip' => '46421'],
-            'الرياض'      => ['city' => 'الرياض', 'region' => 'منطقة الرياض', 'zip' => '12271'],
+            'جدة'         => ['city' => 'Jeddah', 'region' => 'Makkah', 'zip' => '21589'],
+            'مكة'         => ['city' => 'Mecca', 'region' => 'Makkah', 'zip' => '24231'],
+            'المدينة'     => ['city' => 'Medina', 'region' => 'Medina', 'zip' => '42311'],
+            'الدمام'      => ['city' => 'Dammam', 'region' => 'Eastern Province', 'zip' => '31411'],
+            'الخبر'       => ['city' => 'Khobar', 'region' => 'Eastern Province', 'zip' => '31952'],
+            'الظهران'     => ['city' => 'Dhahran', 'region' => 'Eastern Province', 'zip' => '31261'],
+            'الأحساء'     => ['city' => 'Al Ahsa', 'region' => 'Eastern Province', 'zip' => '31982'],
+            'الهفوف'      => ['city' => 'Hofuf', 'region' => 'Eastern Province', 'zip' => '31982'],
+            'الجبيل'      => ['city' => 'Jubail', 'region' => 'Eastern Province', 'zip' => '31951'],
+            'الطائف'      => ['city' => 'Taif', 'region' => 'Makkah', 'zip' => '26513'],
+            'القصيم'      => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411'],
+            'بريدة'       => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411'],
+            'عنيزة'       => ['city' => 'Unaizah', 'region' => 'Al Qassim', 'zip' => '51911'],
+            'حائل'        => ['city' => 'Hail', 'region' => 'Hail', 'zip' => '55421'],
+            'تبوك'        => ['city' => 'Tabuk', 'region' => 'Tabuk', 'zip' => '71411'],
+            'أبها'        => ['city' => 'Abha', 'region' => 'Asir', 'zip' => '62521'],
+            'خميس مشيط'   => ['city' => 'Khamis Mushait', 'region' => 'Asir', 'zip' => '62431'],
+            'جازان'       => ['city' => 'Jazan', 'region' => 'Jazan', 'zip' => '82711'],
+            'نجران'       => ['city' => 'Najran', 'region' => 'Najran', 'zip' => '75211'],
+            'ينبع'        => ['city' => 'Yanbu', 'region' => 'Medina', 'zip' => '46421'],
+            'الرياض'      => ['city' => 'Riyadh', 'region' => 'Riyadh', 'zip' => '12271'],
         ];
 
         foreach ($saudiCities as $keyword => $data) {
@@ -224,23 +223,9 @@ class TelrService
             }
         }
 
-        // 3. Address line 1 & line 2 (min 2, max 110 chars)
-        $address1 = !empty($location) ? $location : 'طريق الملك فهد';
-        if (mb_strlen($address1) < 4) {
-            $address1 = 'طريق الملك فهد - ' . $city;
-        }
-        if (mb_strlen($address1) > 100) {
-            $address1 = mb_substr($address1, 0, 100);
-        }
-
-        $unitNumber = trim((string) ($invoice->suite_number ?: $invoice->apartment_number ?: ''));
-        $address2 = '';
-        if (!empty($propertyName) || !empty($unitNumber)) {
-            $address2 = trim(($propertyName ? $propertyName . ' ' : '') . ($unitNumber ? 'وحدة ' . $unitNumber : ''));
-            if (mb_strlen($address2) > 100) {
-                $address2 = mb_substr($address2, 0, 100);
-            }
-        }
+        // 3. Address line 1 & line 2 (pure Latin ASCII)
+        $address1 = 'King Fahd Road';
+        $address2 = 'District ' . $city;
 
         // 4. Email address
         $userEmail = $invoice->user?->email;
@@ -266,5 +251,28 @@ class TelrService
             'bill_email'   => $email,
             'bill_phone'   => $cleanPhone,
         ];
+    }
+
+    /**
+     * Helper to transliterate Arabic text to standard English Latin characters.
+     */
+    private function transliterateArabic(string $text): string
+    {
+        $map = [
+            'أ' => 'A', 'إ' => 'E', 'آ' => 'A', 'ا' => 'A',
+            'ب' => 'B', 'ت' => 'T', 'ث' => 'Th', 'ج' => 'J',
+            'ح' => 'H', 'خ' => 'Kh', 'د' => 'D', 'ذ' => 'Dh',
+            'ر' => 'R', 'ز' => 'Z', 'س' => 'S', 'ش' => 'Sh',
+            'ص' => 'S', 'ض' => 'D', 'ط' => 'T', 'ظ' => 'Z',
+            'ع' => 'A', 'غ' => 'Gh', 'ف' => 'F', 'ق' => 'Q',
+            'ك' => 'K', 'ل' => 'L', 'م' => 'M', 'ن' => 'N',
+            'ه' => 'H', 'و' => 'W', 'ي' => 'Y', 'ى' => 'A',
+            'ة' => 'h', 'ء' => '', 'ئ' => 'Y', 'ؤ' => 'W',
+            'لا' => 'La',
+        ];
+
+        $transliterated = strtr($text, $map);
+        $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $transliterated);
+        return trim($clean);
     }
 }

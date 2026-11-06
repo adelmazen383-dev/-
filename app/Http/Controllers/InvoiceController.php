@@ -184,12 +184,17 @@ class InvoiceController extends Controller
         // Try to auto-check the invoice if we can identify it
         if ($invoiceNumber) {
             $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
-            if ($invoice && $invoice->isPending() && $invoice->telr_order_ref) {
+            if ($invoice && $invoice->telr_order_ref) {
                 $check = $this->telrService->checkOrder($invoice->telr_order_ref);
-                if (isset($check['success']) && $check['success'] && ($check['code'] ?? 0) == 3) {
+                \Illuminate\Support\Facades\Log::info("Telr Callback for invoice: {$invoiceNumber}", [
+                    'query_status' => $status,
+                    'check_result' => $check,
+                ]);
+
+                if ($invoice->isPending() && isset($check['success']) && $check['success'] && ($check['code'] ?? 0) == 3) {
                     $invoice->update([
-                        'status'  => 'paid',
-                        'paid_at' => now(),
+                        'status'           => 'paid',
+                        'paid_at'          => now(),
                         'amount_paid'      => $invoice->amount,
                         'remaining_amount' => max(0, ($invoice->agreed_amount ?? $invoice->amount) - $invoice->amount),
                     ]);
