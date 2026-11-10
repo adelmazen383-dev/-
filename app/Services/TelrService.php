@@ -233,7 +233,7 @@ class TelrService
         // 5. Phone number (clean non-digits, keep leading + if present, ensure 7-15 digits)
         $cleanPhone = preg_replace('/[^0-9+]/', '', (string) $invoice->phone);
         if (empty($cleanPhone) || strlen($cleanPhone) < 7) {
-            $cleanPhone = '0500000000';
+            $cleanPhone = '0597819851';
         }
 
         return [

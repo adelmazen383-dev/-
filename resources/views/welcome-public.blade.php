@@ -487,8 +487,9 @@
             </div>
             <div>
                 <h4>تواصل معنا</h4>
-                <p>📧 info@thiqa.me</p>
-                <p>📞 +966 50 000 0000</p>
+                <p>📧 <a href="mailto:info@thiqa.me" style="color: inherit; text-decoration: none;">info@thiqa.me</a></p>
+                <p>📞 <a href="tel:+966597819851" style="color: #34d399; text-decoration: none; font-weight: 700;">+966 59 781 9851</a></p>
+                <p>💬 <a href="https://wa.me/966597819851" target="_blank" style="color: #34d399; text-decoration: none;">مراسلة عبر واتساب</a></p>
                 <p>📍 المملكة العربية السعودية</p>
                 <p style="margin-top: 16px;">
                     <a href="https://thiqa.me" style="color: #34d399;">🌐 thiqa.me</a>
