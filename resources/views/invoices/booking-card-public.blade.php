@@ -809,10 +809,10 @@
                 </div>
             </div>
 
-            <!-- 3. Tabby -->
-            <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (4 أقساط)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby">
+            <!-- 3. Tabby (قيد التفعيل) -->
+            <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (4 أقساط)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby" style="opacity:0.55; position:relative;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-tabby">قسمها على 4</div>
+                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد التفعيل</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
@@ -825,10 +825,10 @@
                 </div>
             </div>
 
-            <!-- 4. Tamara -->
-            <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (4 أقساط)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara">
+            <!-- 4. Tamara (قيد التفعيل) -->
+            <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (4 أقساط)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara" style="opacity:0.55; position:relative;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-tamara">قسمها على 4</div>
+                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد التفعيل</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
@@ -891,234 +891,36 @@
         }
 
         function proceedPayment() {
-            if (currentMethod === 'tabby') {
-                @if($invoice->tabby_url)
-                    window.location.href = '{{ $invoice->tabby_url }}';
-                    return;
-                @else
-                    openTabbyModal();
-                    return;
-                @endif
-            }
-            if (currentMethod === 'tamara') {
-                @if($invoice->tamara_url)
-                    window.location.href = '{{ $invoice->tamara_url }}';
-                    return;
-                @else
-                    openTamaraModal();
-                    return;
-                @endif
-            }
-
             const btn = document.getElementById('pay-submit-btn');
             btn.innerHTML = '⏳ جارٍ الانتقال لبوابة الدفع الآمنة...';
             btn.disabled = true;
 
+            // ALL payment methods go through Telr gateway — creates fresh session every time
             const url = '{{ route("booking-card.pay", $invoice->booking_card_token) }}';
             window.location.href = url + '?method=' + encodeURIComponent(currentMethod);
         }
 
-        function openTabbyModal() {
-            document.getElementById('tabby-modal').style.display = 'flex';
-        }
-        function openTamaraModal() {
-            document.getElementById('tamara-modal').style.display = 'flex';
-        }
-        function closeBnplModals() {
-            document.getElementById('tabby-modal').style.display = 'none';
-            document.getElementById('tamara-modal').style.display = 'none';
-        }
-
-        function submitBnpl(method) {
-            const phoneInput = document.getElementById(method + '-phone');
-            const errorEl = document.getElementById(method + '-error');
-            const btn = document.getElementById(method + '-confirm-btn');
-
-            const phone = phoneInput ? phoneInput.value.trim() : '';
-            if (!phone || phone.length < 9) {
-                if (errorEl) {
-                    errorEl.textContent = 'يرجى إدخال رقم جوال صحيح (+966)';
-                    errorEl.style.display = 'block';
-                }
-                return;
-            }
-            if (errorEl) errorEl.style.display = 'none';
-
-            btn.disabled = true;
-            btn.innerHTML = '⏳ جارٍ معالجة وتأكيد الدفع عبر ' + (method === 'tabby' ? 'تابي' : 'تمارا') + '...';
-
-            fetch('{{ route("booking-card.confirm-bnpl", $invoice->booking_card_token) }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    method: method,
-                    phone: phone
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message || '✅ تم السداد وتأكيد الحجز بنجاح!');
-                    window.location.href = data.redirect_url || window.location.href;
-                } else {
-                    alert('حدث خطأ: ' + (data.error || 'تعذر تأكيد العملية'));
-                    btn.disabled = false;
-                    btn.innerHTML = 'إعادة المحاولة';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('حدث خطأ أثناء معالجة الطلب.');
-                btn.disabled = false;
-                btn.innerHTML = 'إعادة المحاولة';
-            });
-        }
+        // BNPL modals removed — all payments route through Telr gateway
 
         document.addEventListener('DOMContentLoaded', function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('open_modal') === 'tabby') {
-                selectMethod('tabby', 'تابي (4 أقساط)', '{{ number_format($tabbyTotal, 2) }}');
-                openTabbyModal();
-            } else if (params.get('open_modal') === 'tamara') {
-                selectMethod('tamara', 'تمارا (4 أقساط)', '{{ number_format($tamaraTotal, 2) }}');
-                openTamaraModal();
-            } else {
-                // Auto-detect Apple device (iPhone, iPad, Mac, Safari)
-                const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
-                if (isApple) {
-                    const apBadge = document.getElementById('applepay-device-badge');
-                    if (apBadge) {
-                        apBadge.textContent = '🍎 موصى به لجهازك';
-                        apBadge.style.background = '#000000';
-                        apBadge.style.color = '#ffffff';
-                    }
-                    selectMethod('apple_pay', 'Apple Pay', '{{ number_format($base, 2) }}');
-                } else {
-                    selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($base, 2) }}');
+            // Auto-detect Apple device (iPhone, iPad, Mac, Safari) and recommend Apple Pay
+            const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+            if (isApple) {
+                const apBadge = document.getElementById('applepay-device-badge');
+                if (apBadge) {
+                    apBadge.textContent = '🍎 موصى به لجهازك';
+                    apBadge.style.background = '#000000';
+                    apBadge.style.color = '#ffffff';
                 }
+                selectMethod('apple_pay', 'Apple Pay', '{{ number_format($base, 2) }}');
+            } else {
+                selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($base, 2) }}');
             }
         });
     </script>
 
-    <!-- Tabby Modal -->
-    <div id="tabby-modal" class="bnpl-modal-overlay" style="display:none;">
-        <div class="bnpl-modal-box">
-            <div class="bnpl-modal-header tabby-hdr">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="background:#111; color:#3effbf; padding:3px 8px; border-radius:6px; font-weight:900; font-size:14px;">tabby</span>
-                    <strong style="font-size:15px; color:#111;">الدفع بالتقسيط عبر تابي</strong>
-                </div>
-                <button type="button" onclick="closeBnplModals()" class="bnpl-close-btn">&times;</button>
-            </div>
-            <div class="bnpl-modal-body">
-                <p style="font-size:12px; color:#4b5563; margin-bottom:12px;">قسّم فاتورتك على 4 دفعات بدون أي فوائد خفية متوافقة مع الشريعة الإسلامية.</p>
-
-                <div class="bnpl-summary-box">
-                    <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:#111; margin-bottom:4px;">
-                        <span>إجمالي الفاتورة شامل التقسيط (+15%):</span>
-                        <span style="color:#059669; font-family:monospace; font-size:16px;">{{ number_format($tabbyTotal, 2) }} ر.س</span>
-                    </div>
-                    <div style="font-size:11px; color:#6b7280;">(المبلغ الأساسي {{ number_format($base, 2) }} ر.س + رسوم تابي {{ number_format($base * 0.15, 2) }} ر.س)</div>
-                </div>
-
-                <div class="bnpl-schedule">
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot active">1</div>
-                        <span class="step-title">اليوم</span>
-                        <span class="step-amount">{{ number_format($tabbyInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot">2</div>
-                        <span class="step-title">بعد شهر</span>
-                        <span class="step-amount">{{ number_format($tabbyInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot">3</div>
-                        <span class="step-title">بعد شهرين</span>
-                        <span class="step-amount">{{ number_format($tabbyInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot">4</div>
-                        <span class="step-title">بعد 3 أشهر</span>
-                        <span class="step-amount">{{ number_format($tabbyInstallment, 2) }}</span>
-                    </div>
-                </div>
-
-                <div style="margin-top:14px;">
-                    <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">رقم الجوال المسجل في تابي (+966):</label>
-                    <input type="tel" id="tabby-phone" value="{{ $invoice->phone }}" dir="ltr" placeholder="05XXXXXXXX" style="width:100%; padding:10px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px; font-weight:700; text-align:center;">
-                </div>
-
-                <div id="tabby-error" style="color:#dc2626; font-size:12px; font-weight:700; margin-top:8px; display:none;"></div>
-
-                <button type="button" id="tabby-confirm-btn" onclick="submitBnpl('tabby')" style="margin-top:16px; width:100%; background:#3effbf; color:#064e3b; border:none; padding:12px; border-radius:10px; font-size:15px; font-weight:900; cursor:pointer;">
-                    تأكيد الدفع عبر تابي ({{ number_format($tabbyTotal, 2) }} ر.س)
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tamara Modal -->
-    <div id="tamara-modal" class="bnpl-modal-overlay" style="display:none;">
-        <div class="bnpl-modal-box">
-            <div class="bnpl-modal-header tamara-hdr">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="background:#fed7aa; color:#7c2d12; padding:3px 8px; border-radius:6px; font-weight:900; font-size:14px;">تمارا</span>
-                    <strong style="font-size:15px; color:#7c2d12;">الدفع بالتقسيط عبر تمارا</strong>
-                </div>
-                <button type="button" onclick="closeBnplModals()" class="bnpl-close-btn">&times;</button>
-            </div>
-            <div class="bnpl-modal-body">
-                <p style="font-size:12px; color:#4b5563; margin-bottom:12px;">قسّمها على 4 دفعات مريحة ومتوافقة مع الشريعة عبر تمارا.</p>
-
-                <div class="bnpl-summary-box tamara-summary">
-                    <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:#111; margin-bottom:4px;">
-                        <span>إجمالي الفاتورة شامل التقسيط (+15%):</span>
-                        <span style="color:#c2410c; font-family:monospace; font-size:16px;">{{ number_format($tamaraTotal, 2) }} ر.س</span>
-                    </div>
-                    <div style="font-size:11px; color:#6b7280;">(المبلغ الأساسي {{ number_format($base, 2) }} ر.س + رسوم تمارا {{ number_format($base * 0.15, 2) }} ر.س)</div>
-                </div>
-
-                <div class="bnpl-schedule">
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot tamara-dot active">1</div>
-                        <span class="step-title">اليوم</span>
-                        <span class="step-amount">{{ number_format($tamaraInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot tamara-dot">2</div>
-                        <span class="step-title">بعد شهر</span>
-                        <span class="step-amount">{{ number_format($tamaraInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot tamara-dot">3</div>
-                        <span class="step-title">بعد شهرين</span>
-                        <span class="step-amount">{{ number_format($tamaraInstallment, 2) }}</span>
-                    </div>
-                    <div class="bnpl-step">
-                        <div class="bnpl-dot tamara-dot">4</div>
-                        <span class="step-title">بعد 3 أشهر</span>
-                        <span class="step-amount">{{ number_format($tamaraInstallment, 2) }}</span>
-                    </div>
-                </div>
-
-                <div style="margin-top:14px;">
-                    <label style="font-size:12px; font-weight:700; color:#374151; display:block; margin-bottom:4px;">رقم الجوال المسجل في تمارا (+966):</label>
-                    <input type="tel" id="tamara-phone" value="{{ $invoice->phone }}" dir="ltr" placeholder="05XXXXXXXX" style="width:100%; padding:10px 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:14px; font-weight:700; text-align:center;">
-                </div>
-
-                <div id="tamara-error" style="color:#dc2626; font-size:12px; font-weight:700; margin-top:8px; display:none;"></div>
-
-                <button type="button" id="tamara-confirm-btn" onclick="submitBnpl('tamara')" style="margin-top:16px; width:100%; background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color:#ffffff; border:none; padding:12px; border-radius:10px; font-size:15px; font-weight:900; cursor:pointer;">
-                    تأكيد الدفع عبر تمارا ({{ number_format($tamaraTotal, 2) }} ر.س)
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Tabby & Tamara Modals removed — all payments now route through Telr gateway -->
+    <!-- When Tabby/Tamara are activated on Telr, they will appear automatically on the checkout page -->
 
     <!-- Download Script -->
     <script>

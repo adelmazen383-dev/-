@@ -223,9 +223,42 @@ class TelrService
             }
         }
 
-        // 3. Address line 1 & line 2 (pure Latin ASCII)
-        $address1 = 'King Fahd Road';
-        $address2 = 'District ' . $city;
+        // 3. Address lines — use real property data when available (Apple Pay requires valid address)
+        $address1 = '';
+        $address2 = '';
+
+        // Try to build address from property info
+        if (!empty($propertyName)) {
+            $address1 = $this->transliterateArabic($propertyName);
+        }
+        if (!empty($location)) {
+            $transliteratedLocation = $this->transliterateArabic($location);
+            if (!empty($address1)) {
+                $address2 = $transliteratedLocation;
+            } else {
+                $address1 = $transliteratedLocation;
+            }
+        }
+
+        // Fallback: ensure address1 is never empty (Telr/Apple Pay requirement: min 2 chars)
+        if (empty($address1) || strlen($address1) < 2) {
+            $address1 = $city . ' Main Road';
+        }
+        if (empty($address2) || strlen($address2) < 2) {
+            $address2 = $region . ' Region';
+        }
+
+        // Sanitize: only Latin chars, digits, spaces, commas, dots, dashes
+        $address1 = preg_replace('/[^a-zA-Z0-9\s,.\-]/', '', $address1);
+        $address2 = preg_replace('/[^a-zA-Z0-9\s,.\-]/', '', $address2);
+
+        // Ensure minimum length after sanitization
+        if (strlen(trim($address1)) < 2) {
+            $address1 = $city . ' Main Road';
+        }
+        if (strlen(trim($address2)) < 2) {
+            $address2 = $region . ' Region';
+        }
 
         // 4. Email address
         $userEmail = $invoice->user?->email;
@@ -242,8 +275,8 @@ class TelrService
         return [
             'bill_fname'   => $firstName,
             'bill_sname'   => $surname,
-            'bill_addr1'   => $address1,
-            'bill_addr2'   => $address2,
+            'bill_addr1'   => trim($address1),
+            'bill_addr2'   => trim($address2),
             'bill_city'    => $city,
             'bill_region'  => $region,
             'bill_country' => 'SA',
