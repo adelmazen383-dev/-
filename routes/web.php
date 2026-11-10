@@ -16,8 +16,20 @@ use App\Http\Controllers\VerificationController;
 */
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('welcome-public');
+})->name('home');
+
+Route::get('/terms', function () {
+    return view('public.terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return view('public.privacy');
+})->name('privacy');
+
+Route::get('/refund-policy', function () {
+    return view('public.refund-policy');
+})->name('refund-policy');
 
 // ─── Public Routes (with Rate Limiting) ────────────────────
 
