@@ -6,6 +6,7 @@
     <title>كارت حجز الوحدة السكنية | توثيق العقود | {{ $invoice->customer_name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
@@ -927,7 +928,7 @@
     <!-- Tabby & Tamara Modals removed — all payments now route through Telr gateway -->
     <!-- When Tabby/Tamara are activated on Telr, they will appear automatically on the checkout page -->
 
-    <!-- Download Script -->
+    <!-- Download Script with Native Arabic Text Rendering Support -->
     <script>
         function downloadCardImage() {
             const btn = document.getElementById('btn-download');
@@ -937,6 +938,35 @@
 
             const card = document.getElementById('hotel-smart-card');
 
+            if (window.htmlToImage) {
+                htmlToImage.toPng(card, {
+                    pixelRatio: 2.5,
+                    backgroundColor: '#ffffff',
+                    cacheBust: true,
+                }).then(function(dataUrl) {
+                    const link = document.createElement('a');
+                    link.download = 'كارت_حجز_{{ $invoice->customer_name }}_{{ $invoice->invoice_number }}.png';
+                    link.href = dataUrl;
+                    link.click();
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }).catch(function(err) {
+                    console.error('html-to-image error:', err);
+                    fallbackHtml2Canvas(card, btn, originalText);
+                });
+            } else {
+                fallbackHtml2Canvas(card, btn, originalText);
+            }
+        }
+
+        function fallbackHtml2Canvas(card, btn, originalText) {
+            if (!window.html2canvas) {
+                alert('حدث خطأ أثناء تحميل الصورة.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
             html2canvas(card, {
                 scale: 2.5,
                 useCORS: true,
