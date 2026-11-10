@@ -49,15 +49,6 @@ class TelrService
 
         $desc = 'Unit Reservation No ' . ($invoice->suite_number ?: ($invoice->apartment_number ?: $invoice->invoice_number));
 
-        // Determine which panels (payment methods) to show on Telr checkout
-        $panels = match ($chosenMethod) {
-            'apple_pay' => 'card,applepay',              // Cards + Apple Pay (never isolate applepay)
-            'tabby'     => 'tabby',                      // Tabby only
-            'tamara'    => 'tamara',                     // Tamara only
-            'standard'  => 'card',                       // Cards only (Mada/Visa/MC)
-            default     => 'card,applepay,tabby,tamara', // ALL available methods
-        };
-
         $billing = $this->buildBillingDetails($invoice);
 
         $payload = array_merge([
@@ -71,14 +62,16 @@ class TelrService
             'ivp_desc'     => $desc,
             'ivp_framed'   => 0, // Explicitly enforce full-screen redirection (not an iFrame)
 
-            // Show only the selected payment panel(s) on Telr's checkout page
-            'ivp_panels'   => $panels,
-
             // Return URLs — Telr redirects the customer here after payment
             'return_auth'  => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'success']),
             'return_decl'  => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'declined']),
             'return_can'   => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'cancelled']),
         ], $billing);
+
+        // When standard is chosen, restrict to card; otherwise leave empty so Telr renders all active methods (Apple Pay, Mada, Visa, MC) safely without triggering Invalid Session errors
+        if ($chosenMethod === 'standard') {
+            $payload['ivp_panels'] = 'card';
+        }
 
         try {
             $response = Http::asForm()->timeout(15)->post($this->apiUrl, $payload);
@@ -181,7 +174,7 @@ class TelrService
             $surname = 'Customer';
         }
 
-        // 2. City, Region & Postal Code mapping (Saudi Arabia in standard English/Latin)
+        // Build valid address & city details
         $location = trim((string) ($invoice->property_location ?? ''));
         $propertyName = trim((string) ($invoice->property_name ?? ''));
         $searchContext = $location . ' ' . $propertyName;
@@ -189,29 +182,30 @@ class TelrService
         $city       = 'Riyadh';
         $region     = 'Riyadh';
         $postalCode = '12271';
+        $street     = 'King Fahd Road';
 
         $saudiCities = [
-            'جدة'         => ['city' => 'Jeddah', 'region' => 'Makkah', 'zip' => '21589'],
-            'مكة'         => ['city' => 'Mecca', 'region' => 'Makkah', 'zip' => '24231'],
-            'المدينة'     => ['city' => 'Medina', 'region' => 'Medina', 'zip' => '42311'],
-            'الدمام'      => ['city' => 'Dammam', 'region' => 'Eastern Province', 'zip' => '31411'],
-            'الخبر'       => ['city' => 'Khobar', 'region' => 'Eastern Province', 'zip' => '31952'],
-            'الظهران'     => ['city' => 'Dhahran', 'region' => 'Eastern Province', 'zip' => '31261'],
-            'الأحساء'     => ['city' => 'Al Ahsa', 'region' => 'Eastern Province', 'zip' => '31982'],
-            'الهفوف'      => ['city' => 'Hofuf', 'region' => 'Eastern Province', 'zip' => '31982'],
-            'الجبيل'      => ['city' => 'Jubail', 'region' => 'Eastern Province', 'zip' => '31951'],
-            'الطائف'      => ['city' => 'Taif', 'region' => 'Makkah', 'zip' => '26513'],
-            'القصيم'      => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411'],
-            'بريدة'       => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411'],
-            'عنيزة'       => ['city' => 'Unaizah', 'region' => 'Al Qassim', 'zip' => '51911'],
-            'حائل'        => ['city' => 'Hail', 'region' => 'Hail', 'zip' => '55421'],
-            'تبوك'        => ['city' => 'Tabuk', 'region' => 'Tabuk', 'zip' => '71411'],
-            'أبها'        => ['city' => 'Abha', 'region' => 'Asir', 'zip' => '62521'],
-            'خميس مشيط'   => ['city' => 'Khamis Mushait', 'region' => 'Asir', 'zip' => '62431'],
-            'جازان'       => ['city' => 'Jazan', 'region' => 'Jazan', 'zip' => '82711'],
-            'نجران'       => ['city' => 'Najran', 'region' => 'Najran', 'zip' => '75211'],
-            'ينبع'        => ['city' => 'Yanbu', 'region' => 'Medina', 'zip' => '46421'],
-            'الرياض'      => ['city' => 'Riyadh', 'region' => 'Riyadh', 'zip' => '12271'],
+            'جدة'         => ['city' => 'Jeddah', 'region' => 'Makkah', 'zip' => '21589', 'street' => 'Corniche Road'],
+            'مكة'         => ['city' => 'Mecca', 'region' => 'Makkah', 'zip' => '24231', 'street' => 'Ibrahim Al Khalil Road'],
+            'المدينة'     => ['city' => 'Medina', 'region' => 'Medina', 'zip' => '42311', 'street' => 'King Abdulaziz Road'],
+            'الدمام'      => ['city' => 'Dammam', 'region' => 'Eastern Province', 'zip' => '31411', 'street' => 'King Saud Road'],
+            'الخبر'       => ['city' => 'Khobar', 'region' => 'Eastern Province', 'zip' => '31952', 'street' => 'Prince Turki Street'],
+            'الظهران'     => ['city' => 'Dhahran', 'region' => 'Eastern Province', 'zip' => '31261', 'street' => 'King Fahd Road'],
+            'الأحساء'     => ['city' => 'Al Ahsa', 'region' => 'Eastern Province', 'zip' => '31982', 'street' => 'Dhahran Road'],
+            'الهفوف'      => ['city' => 'Hofuf', 'region' => 'Eastern Province', 'zip' => '31982', 'street' => 'King Abdulaziz Road'],
+            'الجبيل'      => ['city' => 'Jubail', 'region' => 'Eastern Province', 'zip' => '31951', 'street' => 'Jeddah Street'],
+            'الطائف'      => ['city' => 'Taif', 'region' => 'Makkah', 'zip' => '26513', 'street' => 'Shubra Street'],
+            'القصيم'      => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411', 'street' => 'King Abdulaziz Road'],
+            'بريدة'       => ['city' => 'Buraidah', 'region' => 'Al Qassim', 'zip' => '51411', 'street' => 'King Abdulaziz Road'],
+            'عنيزة'       => ['city' => 'Unaizah', 'region' => 'Al Qassim', 'zip' => '51911', 'street' => 'Al Safir Street'],
+            'حائل'        => ['city' => 'Hail', 'region' => 'Hail', 'zip' => '55421', 'street' => 'King Faisal Road'],
+            'تبوك'        => ['city' => 'Tabuk', 'region' => 'Tabuk', 'zip' => '71411', 'street' => 'King Fahd Road'],
+            'أبها'        => ['city' => 'Abha', 'region' => 'Asir', 'zip' => '62521', 'street' => 'King Abdulaziz Road'],
+            'خميس مشيط'   => ['city' => 'Khamis Mushait', 'region' => 'Asir', 'zip' => '62431', 'street' => 'King Fahd Road'],
+            'جازان'       => ['city' => 'Jazan', 'region' => 'Jazan', 'zip' => '82711', 'street' => 'Corniche Road'],
+            'نجران'       => ['city' => 'Najran', 'region' => 'Najran', 'zip' => '75211', 'street' => 'King Abdulaziz Road'],
+            'ينبع'        => ['city' => 'Yanbu', 'region' => 'Medina', 'zip' => '46421', 'street' => 'King Abdullah Road'],
+            'الرياض'      => ['city' => 'Riyadh', 'region' => 'Riyadh', 'zip' => '12271', 'street' => 'King Fahd Road'],
         ];
 
         foreach ($saudiCities as $keyword => $data) {
@@ -219,52 +213,22 @@ class TelrService
                 $city       = $data['city'];
                 $region     = $data['region'];
                 $postalCode = $data['zip'];
+                $street     = $data['street'];
                 break;
             }
         }
 
-        // 3. Address lines — use real property data when available (Apple Pay requires valid address)
-        $address1 = '';
-        $address2 = '';
+        // 3. Address lines — strictly formatted standard street & district address (Apple Pay compliant)
+        $address1 = $street;
+        $address2 = 'District ' . $city;
 
-        // Try to build address from property info
-        if (!empty($propertyName)) {
-            $address1 = $this->transliterateArabic($propertyName);
-        }
-        if (!empty($location)) {
-            $transliteratedLocation = $this->transliterateArabic($location);
-            if (!empty($address1)) {
-                $address2 = $transliteratedLocation;
-            } else {
-                $address1 = $transliteratedLocation;
-            }
-        }
-
-        // Fallback: ensure address1 is never empty (Telr/Apple Pay requirement: min 2 chars)
-        if (empty($address1) || strlen($address1) < 2) {
-            $address1 = $city . ' Main Road';
-        }
-        if (empty($address2) || strlen($address2) < 2) {
-            $address2 = $region . ' Region';
-        }
-
-        // Sanitize: only Latin chars, digits, spaces, commas, dots, dashes
-        $address1 = preg_replace('/[^a-zA-Z0-9\s,.\-]/', '', $address1);
-        $address2 = preg_replace('/[^a-zA-Z0-9\s,.\-]/', '', $address2);
-
-        // Ensure minimum length after sanitization
-        if (strlen(trim($address1)) < 2) {
-            $address1 = $city . ' Main Road';
-        }
-        if (strlen(trim($address2)) < 2) {
-            $address2 = $region . ' Region';
-        }
-
-        // 4. Email address
+        // 4. Email address — ensure a valid commercial domain (never allow example.com / test.com)
         $userEmail = $invoice->user?->email;
-        $email = (!empty($userEmail) && filter_var($userEmail, FILTER_VALIDATE_EMAIL))
-            ? $userEmail
-            : 'billing@thiqa.me';
+        if (!empty($userEmail) && filter_var($userEmail, FILTER_VALIDATE_EMAIL) && !str_contains(strtolower($userEmail), 'example.com') && !str_contains(strtolower($userEmail), 'test.com')) {
+            $email = $userEmail;
+        } else {
+            $email = 'billing@thiqa.me';
+        }
 
         // 5. Phone number (clean non-digits, keep leading + if present, ensure 7-15 digits)
         $cleanPhone = preg_replace('/[^0-9+]/', '', (string) $invoice->phone);

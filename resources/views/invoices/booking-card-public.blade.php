@@ -810,10 +810,10 @@
             </div>
 
             <!-- 3. Tabby (قيد التفعيل) -->
-            <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (4 أقساط)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby" style="opacity:0.55; position:relative;">
+            <div class="pay-option-card" onclick="showBnplAlert('tabby')" id="method-card-tabby" style="opacity:0.55; cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد التفعيل</div>
-                    <div class="pay-option-radio"></div>
+                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد الاعتماد</div>
+                    <div class="pay-option-radio" style="opacity:0.4;"></div>
                 </div>
                 <div class="pay-option-title">
                     <span class="brand-tabby">tabby</span> <strong>تابي</strong>
@@ -821,15 +821,15 @@
                 <div class="pay-option-price">{{ number_format($tabbyTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     <strong>{{ number_format($tabbyInstallment, 2) }} ر.س</strong> / شهرياً<br>
-                    <span style="font-size:10px; color:#065f46; font-weight:700;">(شامل 15% رسوم تابي: +{{ number_format($base * 0.15, 2) }} ر.س)</span>
+                    <span style="font-size:10px; color:#b45309; font-weight:700;">(تحت التفعيل لدى تابي)</span>
                 </div>
             </div>
 
             <!-- 4. Tamara (قيد التفعيل) -->
-            <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (4 أقساط)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara" style="opacity:0.55; position:relative;">
+            <div class="pay-option-card" onclick="showBnplAlert('tamara')" id="method-card-tamara" style="opacity:0.55; cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد التفعيل</div>
-                    <div class="pay-option-radio"></div>
+                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد الاعتماد</div>
+                    <div class="pay-option-radio" style="opacity:0.4;"></div>
                 </div>
                 <div class="pay-option-title">
                     <span class="brand-tamara">تمارا</span> <strong>تمارا</strong>
@@ -837,14 +837,14 @@
                 <div class="pay-option-price">{{ number_format($tamaraTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     <strong>{{ number_format($tamaraInstallment, 2) }} ر.س</strong> / شهرياً<br>
-                    <span style="font-size:10px; color:#9a3412; font-weight:700;">(شامل 15% رسوم تمارا: +{{ number_format($base * 0.15, 2) }} ر.س)</span>
+                    <span style="font-size:10px; color:#b45309; font-weight:700;">(تحت التفعيل لدى تمارا)</span>
                 </div>
             </div>
         </div>
 
         <div class="pay-portal-action">
             <button type="button" id="pay-submit-btn" onclick="proceedPayment()" class="pay-action-btn">
-                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'tabby' ? 'تابي (4 أقساط)' : ($activeMethod === 'tamara' ? 'تمارا (4 أقساط)' : ($activeMethod === 'standard' ? 'بطاقة مدى / فيزا / ماستركارد' : 'Apple Pay')) }}</span> (<span id="selected-method-amount">{{ number_format($activeMethod === 'tabby' ? $tabbyTotal : ($activeMethod === 'tamara' ? $tamaraTotal : $base), 2) }}</span> ر.س)
+                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'standard' ? 'بطاقة مدى / فيزا / ماستركارد' : 'Apple Pay' }}</span> (<span id="selected-method-amount">{{ number_format($base, 2) }}</span> ر.س)
             </button>
         </div>
     </div>
@@ -888,6 +888,11 @@
             const amountEl = document.getElementById('selected-method-amount');
             if (labelEl) labelEl.textContent = label;
             if (amountEl) amountEl.textContent = amount;
+        }
+
+        function showBnplAlert(method) {
+            const name = method === 'tabby' ? 'تابي (Tabby)' : 'تمارا (Tamara)';
+            alert('خدمة التقسيط عبر ' + name + ' قيد الاعتماد والتفعيل حالياً لدى البنك.\n\nيرجى اختيار الدفع عبر Apple Pay أو بطاقة مدى / فيزا لإتمام الحجز فوراً.');
         }
 
         function proceedPayment() {
