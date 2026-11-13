@@ -227,7 +227,7 @@ class TelrService
         if (!empty($userEmail) && filter_var($userEmail, FILTER_VALIDATE_EMAIL) && !str_contains(strtolower($userEmail), 'example.com') && !str_contains(strtolower($userEmail), 'test.com')) {
             $email = $userEmail;
         } else {
-            $email = 'billing@thiqa.me';
+            $email = 'support@thiqa.me';
         }
 
         // 5. Phone number (clean non-digits, keep leading + if present, ensure 7-15 digits)
