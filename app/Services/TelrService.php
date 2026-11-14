@@ -222,18 +222,40 @@ class TelrService
         $address1 = $street;
         $address2 = 'District ' . $city;
 
-        // 4. Email address — ensure a valid commercial domain (never allow example.com / test.com)
-        $userEmail = $invoice->user?->email;
-        if (!empty($userEmail) && filter_var($userEmail, FILTER_VALIDATE_EMAIL) && !str_contains(strtolower($userEmail), 'example.com') && !str_contains(strtolower($userEmail), 'test.com')) {
-            $email = $userEmail;
-        } else {
-            $email = 'support@thiqa.me';
-        }
-
-        // 5. Phone number (clean non-digits, keep leading + if present, ensure 7-15 digits)
+        // 4. Phone number (clean non-digits, ensure 7-15 digits) — resolved BEFORE email fallback
         $cleanPhone = preg_replace('/[^0-9+]/', '', (string) $invoice->phone);
         if (empty($cleanPhone) || strlen($cleanPhone) < 7) {
             $cleanPhone = '0597819851';
+        }
+
+        // 5. Email address — always use the real customer email to avoid blacklist issues.
+        // Priority: invoice->user->email → invoice->tenant->email → invoice->email → unique per-phone email
+        // NEVER use a fixed system email (billing@ / support@) as it can get globally blacklisted by Telr.
+        $badDomains = ['example.com', 'test.com', 'thiqa.me'];
+        $email = null;
+
+        $candidates = [
+            $invoice->user?->email,
+            $invoice->tenant?->email ?? null,
+            $invoice->email ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (!empty($candidate)
+                && filter_var($candidate, FILTER_VALIDATE_EMAIL)
+                && !collect($badDomains)->contains(fn($d) => str_contains(strtolower($candidate), $d))
+            ) {
+                $email = $candidate;
+                break;
+            }
+        }
+
+        // Last resort: derive a unique email per customer from their phone (never a shared fixed address)
+        if (!$email) {
+            $phoneDigits = preg_replace('/[^0-9]/', '', $cleanPhone);
+            $email = !empty($phoneDigits)
+                ? 'customer.' . substr($phoneDigits, -8) . '@mail.thiqa.me'
+                : 'customer.' . substr(md5($invoice->invoice_number ?? uniqid()), 0, 10) . '@mail.thiqa.me';
         }
 
         return [
