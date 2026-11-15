@@ -810,11 +810,11 @@
                 </div>
             </div>
 
-            <!-- 3. Tabby (قيد التفعيل) -->
-            <div class="pay-option-card" onclick="showBnplAlert('tabby')" id="method-card-tabby" style="opacity:0.55; cursor:pointer;">
+            <!-- 3. Tabby (مفعّل الآن) -->
+            <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (قسمها على 4 دفعات)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby" style="cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد الاعتماد</div>
-                    <div class="pay-option-radio" style="opacity:0.4;"></div>
+                    <div class="pay-option-badge badge-tabby">4 دفعات</div>
+                    <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
                     <span class="brand-tabby">tabby</span> <strong>تابي</strong>
@@ -822,7 +822,7 @@
                 <div class="pay-option-price">{{ number_format($tabbyTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     <strong>{{ number_format($tabbyInstallment, 2) }} ر.س</strong> / شهرياً<br>
-                    <span style="font-size:10px; color:#b45309; font-weight:700;">(تحت التفعيل لدى تابي)</span>
+                    <span style="font-size:10px; color:#065f46; font-weight:700;">قسمها على 4 دفعات بدون فوائد</span>
                 </div>
             </div>
 

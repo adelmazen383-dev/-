@@ -41,4 +41,11 @@ return [
         'test_mode' => env('TELR_TEST_MODE', '1'), // 1 for test, 0 for live
     ],
 
+    'tabby' => [
+        'public_key'    => env('TABBY_PUBLIC_KEY', 'pk_test_01a1b9a8-0a43-a60d-3dfe-7d1a7faae77b'),
+        'secret_key'    => env('TABBY_SECRET_KEY', 'sk_test_01a1b9a8-0a43-a60d-3dfe-7d1a8fa5a4d7'),
+        'merchant_code' => env('TABBY_MERCHANT_CODE', 'Qas12'),
+        'api_url'       => env('TABBY_API_URL', 'https://api.tabby.ai/api/v2'),
+    ],
+
 ];

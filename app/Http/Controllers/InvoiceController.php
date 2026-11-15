@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Services\TelrService;
+use App\Services\TabbyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
     public function __construct(
-        private TelrService $telrService
+        private TelrService $telrService,
+        private TabbyService $tabbyService
     ) {}
 
     /* ── List all invoices ── */
@@ -332,9 +334,41 @@ class InvoiceController extends Controller
             'total_payable'  => $totalPayable,
         ]);
 
-        // ── ALL payment methods go through Telr — create fresh session every time ──
-        // This ensures: 1) No stale/expired sessions  2) No fake BNPL payments
-        // 3) Telr handles all payment method availability (card, Apple Pay, Tabby, Tamara)
+        // ── 1. Tabby BNPL (Direct Official API v2) ──
+        if ($method === 'tabby') {
+            $tabbyResponse = $this->tabbyService->createCheckoutSession($invoice);
+
+            if ($tabbyResponse['success']) {
+                $invoice->update([
+                    'tabby_url' => $tabbyResponse['web_url'],
+                ]);
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success'       => true,
+                        'url'           => $tabbyResponse['web_url'],
+                        'method'        => 'tabby',
+                        'base_amount'   => $baseAmount,
+                        'fee_amount'    => $feeAmount,
+                        'total_payable' => $totalPayable,
+                    ]);
+                }
+
+                return redirect()->away($tabbyResponse['web_url']);
+            }
+
+            $errorMessage = $tabbyResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تابي، يرجى المحاولة لاحقاً.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => $errorMessage,
+                ], 422);
+            }
+
+            return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
+        }
+
+        // ── 2. Telr Gateway (Standard Cards & Apple Pay) ──
         $telrResponse = $this->telrService->createOrder($invoice, $method);
 
         if ($telrResponse['success']) {
@@ -342,9 +376,7 @@ class InvoiceController extends Controller
                 'telr_transaction_url' => $telrResponse['url'],
                 'telr_order_ref'       => $telrResponse['ref'],
             ];
-            if ($method === 'tabby') {
-                $updateData['tabby_url'] = $telrResponse['url'];
-            } elseif ($method === 'tamara') {
+            if ($method === 'tamara') {
                 $updateData['tamara_url'] = $telrResponse['url'];
             }
             $invoice->update($updateData);
@@ -363,11 +395,10 @@ class InvoiceController extends Controller
             return redirect()->away($telrResponse['url']);
         }
 
-        // Provide helpful error for BNPL methods that may not be activated yet
+        // Provide helpful error for methods that may not be activated yet
         $errorMessage = $telrResponse['error'] ?? 'تعذر توليد رابط الدفع، يرجى المحاولة لاحقاً.';
-        if (in_array($method, ['tabby', 'tamara'])) {
-            $methodName = $method === 'tabby' ? 'تابي' : 'تمارا';
-            $errorMessage = "خدمة {$methodName} غير متاحة حالياً أو قيد التفعيل. " . $errorMessage . " يرجى اختيار وسيلة دفع أخرى (مدى / فيزا / Apple Pay).";
+        if ($method === 'tamara') {
+            $errorMessage = "خدمة تمارا قيد التفعيل حالياً. يرجى اختيار وسيلة دفع أخرى (مدى / فيزا / Apple Pay / تابي).";
         }
 
         if ($request->wantsJson()) {
@@ -416,5 +447,95 @@ class InvoiceController extends Controller
         return redirect()
             ->route('contracts.create', ['invoice_id' => $invoice->id])
             ->with('success', '✅ تم تسجيل الفاتورة كمدفوعة بنجاح! تم توجيهك لإنشاء العقد وتعبئة بيانات المستأجر والوحدة تلقائياً.');
+    }
+
+    /* ── Tabby Payment Callback ── */
+    public function tabbyCallback(Request $request)
+    {
+        $token     = $request->query('token');
+        $status    = $request->query('status'); // success, cancel, failure
+        $paymentId = $request->query('payment_id');
+
+        $invoice = Invoice::where('booking_card_token', $token)->first();
+        if (!$invoice) {
+            return redirect('/')->with('error', 'فاتورة غير صالحة.');
+        }
+
+        if ($status === 'success') {
+            if ($paymentId) {
+                $paymentInfo = $this->tabbyService->getPayment($paymentId);
+                $tabbyStatus = strtoupper($paymentInfo['status'] ?? '');
+
+                if ($tabbyStatus === 'AUTHORIZED') {
+                    $totalAmount = (float) ($invoice->total_payable ?: round($invoice->base_amount * 1.15, 2));
+                    $this->tabbyService->capturePayment($paymentId, $totalAmount);
+                    $tabbyStatus = 'CLOSED';
+                }
+
+                if (in_array($tabbyStatus, ['CLOSED', 'AUTHORIZED'])) {
+                    $totalAmount = (float) ($invoice->total_payable ?: round($invoice->base_amount * 1.15, 2));
+                    $invoice->update([
+                        'status'           => 'paid',
+                        'amount_paid'      => $totalAmount,
+                        'remaining_amount' => 0.00,
+                        'paid_at'          => now(),
+                        'payment_method'   => 'tabby',
+                    ]);
+
+                    return redirect()->route('booking-card.show', $token)
+                        ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تابي (Tabby) بنجاح! تم تأكيد حجزك.');
+                }
+            } else {
+                $totalAmount = (float) ($invoice->total_payable ?: round($invoice->base_amount * 1.15, 2));
+                $invoice->update([
+                    'status'           => 'paid',
+                    'amount_paid'      => $totalAmount,
+                    'remaining_amount' => 0.00,
+                    'paid_at'          => now(),
+                    'payment_method'   => 'tabby',
+                ]);
+
+                return redirect()->route('booking-card.show', $token)
+                    ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تابي (Tabby) بنجاح! تم تأكيد حجزك.');
+            }
+        } elseif ($status === 'cancel') {
+            return redirect()->route('booking-card.show', $token)
+                ->with('warning', 'تم إلغاء عملية التقسيط عبر تابي. يمكنك المحاولة مجدداً أو اختيار وسيلة دفع أخرى.');
+        }
+
+        return redirect()->route('booking-card.show', $token)
+            ->with('error', 'تعذر إتمام الدفع عبر تابي. يرجى اختيار وسيلة دفع أخرى.');
+    }
+
+    /* ── Tabby Webhook ── */
+    public function tabbyWebhook(Request $request)
+    {
+        $payload = $request->all();
+        \Illuminate\Support\Facades\Log::info('Tabby Webhook received', $payload);
+
+        $paymentId = $payload['id'] ?? null;
+        $status    = strtoupper($payload['status'] ?? '');
+        $refId     = $payload['order']['reference_id'] ?? null;
+
+        if ($refId && in_array($status, ['AUTHORIZED', 'CLOSED'])) {
+            $invoice = Invoice::where('invoice_number', $refId)->first();
+            if ($invoice && !$invoice->isPaid()) {
+                if ($status === 'AUTHORIZED' && $paymentId) {
+                    $totalAmount = (float) ($invoice->total_payable ?: round($invoice->base_amount * 1.15, 2));
+                    $this->tabbyService->capturePayment($paymentId, $totalAmount);
+                }
+
+                $totalAmount = (float) ($invoice->total_payable ?: round($invoice->base_amount * 1.15, 2));
+                $invoice->update([
+                    'status'           => 'paid',
+                    'amount_paid'      => $totalAmount,
+                    'remaining_amount' => 0.00,
+                    'paid_at'          => now(),
+                    'payment_method'   => 'tabby',
+                ]);
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 }
