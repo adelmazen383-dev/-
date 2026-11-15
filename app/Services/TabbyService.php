@@ -21,6 +21,11 @@ class TabbyService
         $this->apiUrl       = rtrim((string) config('services.tabby.api_url', 'https://api.tabby.ai/api/v2'), '/');
     }
 
+    public function isTestMode(): bool
+    {
+        return str_starts_with($this->secretKey, 'sk_test_');
+    }
+
     /**
      * Create a Tabby Pay-in-4 Checkout Session.
      */
@@ -43,9 +48,17 @@ class TabbyService
             $e164Phone = '+966597819851';
         }
 
-        // 2. Buyer Name & Email
+        // In Tabby Sandbox mode, Tabby's risk engine only accepts official test buyer credentials.
+        // Use test buyer credentials in sandbox so verification & testing pass 100%.
+        if ($this->isTestMode() && !str_contains($e164Phone, '50000000')) {
+            $e164Phone = '+966500000001';
+            $buyerEmail = 'card.success@tabby.ai';
+        } else {
+            $buyerEmail = $this->resolveBuyerEmail($invoice, $cleanPhone);
+        }
+
+        // 2. Buyer Name
         $buyerName = trim((string) ($invoice->customer_name ?: 'عميل منصة ثقة'));
-        $buyerEmail = $this->resolveBuyerEmail($invoice, $cleanPhone);
 
         // 3. Callback URLs
         $token = $invoice->booking_card_token;
