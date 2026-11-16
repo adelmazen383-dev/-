@@ -85,6 +85,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle');
         Route::post('/users/{user}/toggle-template', [UserController::class, 'toggleTemplate'])->name('users.toggle-template');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Payment Fees Settings
+        Route::get('/settings/payment', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.payment');
+        Route::post('/settings/payment', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.payment.update');
     });
 
     // Export

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\Setting;
 use App\Services\TelrService;
 use App\Services\TabbyService;
 use Illuminate\Http\Request;
@@ -88,19 +89,13 @@ class InvoiceController extends Controller
         $validated['remaining_amount'] = max(0, $agreedAmount - $amountPaid);
         $validated['deposit_amount']   = (isset($validated['deposit_amount']) && $validated['deposit_amount'] !== '') ? (float)$validated['deposit_amount'] : 0.00;
 
-        // Payment method & Tabby / Tamara 15% fee calculation
+        // Payment method & dynamic fee calculation from Settings
         $paymentMethod = $validated['payment_method'] ?? 'all';
         $baseAmount    = (float)$validated['amount'] + (float)$validated['deposit_amount'];
 
-        if (in_array($paymentMethod, ['tabby', 'tamara'])) {
-            $feePercentage = 15.00;
-            $feeAmount     = round($baseAmount * 0.15, 2);
-            $totalPayable  = $baseAmount + $feeAmount;
-        } else {
-            $feePercentage = 0.00;
-            $feeAmount     = 0.00;
-            $totalPayable  = $baseAmount;
-        }
+        $feePercentage = Setting::getFeePercentage($paymentMethod);
+        $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
+        $totalPayable  = $baseAmount + $feeAmount;
 
         $validated['payment_method'] = $paymentMethod;
         $validated['fee_percentage'] = $feePercentage;
@@ -289,8 +284,8 @@ class InvoiceController extends Controller
         if (!empty($validated['payment_method'])) {
             $method        = $validated['payment_method'];
             $baseAmount    = $invoice->base_amount;
-            $feePercentage = in_array($method, ['tabby', 'tamara']) ? 15.00 : 0.00;
-            $feeAmount     = in_array($method, ['tabby', 'tamara']) ? round($baseAmount * 0.15, 2) : 0.00;
+            $feePercentage = Setting::getFeePercentage($method);
+            $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
             $totalPayable  = $baseAmount + $feeAmount;
 
             $updateData['payment_method'] = $method;
@@ -323,8 +318,8 @@ class InvoiceController extends Controller
         }
 
         $baseAmount    = $invoice->base_amount;
-        $feePercentage = in_array($method, ['tabby', 'tamara']) ? 15.00 : 0.00;
-        $feeAmount     = in_array($method, ['tabby', 'tamara']) ? round($baseAmount * 0.15, 2) : 0.00;
+        $feePercentage = Setting::getFeePercentage($method);
+        $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
         $totalPayable  = $baseAmount + $feeAmount;
 
         $invoice->update([

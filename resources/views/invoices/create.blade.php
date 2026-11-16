@@ -141,39 +141,42 @@
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 bg-white" id="pm_card_apple_pay">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="apple_pay" {{ old('payment_method') === 'apple_pay' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">0% رسوم</span>
+                            @php $apFee = \App\Models\Setting::getFeePercentage('apple_pay'); @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border font-mono font-bold">+{{ $apFee }}% رسوم</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-slate-800" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.62-.75 1.04-1.8 0.92-2.84-.9.04-1.98.6-2.62 1.34-.57.65-1.06 1.71-.93 2.73 1 .08 2.01-.48 2.63-1.23z"/></svg>
-                            <span class="text-xs font-bold text-slate-900">Apple Pay / مدى</span>
+                            <span class="text-xs font-bold text-slate-900">Apple Pay</span>
                         </div>
-                        <span class="text-[11px] text-slate-500 mt-0.5">دفع مباشر وفوري بدون أي رسوم إضافية</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $apFee }}% رسوم تلقائياً على الرابط</span>
                     </label>
 
                     <!-- Option 3: Tabby -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-emerald-400 bg-white" id="pm_card_tabby">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="tabby" {{ old('payment_method') === 'tabby' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono font-bold">+15% رسوم</span>
+                            @php $tbFee = \App\Models\Setting::getFeePercentage('tabby'); @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono font-bold">+{{ $tbFee }}% رسوم</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-[#3EFEBA] text-slate-900 tracking-tighter">tabby</span>
                             <span class="text-xs font-bold text-slate-900">تابي (4 أقساط)</span>
                         </div>
-                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف 15% رسوم تقسيط تلقائياً على الرابط</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tbFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
 
                     <!-- Option 4: Tamara -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-orange-400 bg-white" id="pm_card_tamara">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="tamara" {{ old('payment_method') === 'tamara' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 border border-orange-300 font-mono font-bold">+15% رسوم</span>
+                            @php $tmFee = \App\Models\Setting::getFeePercentage('tamara'); @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 border border-orange-300 font-mono font-bold">+{{ $tmFee }}% رسوم</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-[#ffd5b8] text-[#c25000]">تمارا</span>
                             <span class="text-xs font-bold text-slate-900">تمارا (4 أقساط)</span>
                         </div>
-                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف 15% رسوم تقسيط تلقائياً على الرابط</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tmFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
                 </div>
             </div>
@@ -251,11 +254,21 @@
             let feePercent = 0;
             let methodLabel = '';
 
-            if (selectedMethod === 'tabby' || selectedMethod === 'tamara') {
-                feePercent = 15;
-                feeAmount = baseAmount * 0.15;
-                const methodName = selectedMethod === 'tabby' ? 'تابي' : 'تمارا';
-                methodLabel = ` + 15% رسوم ${methodName} (${feeAmount.toFixed(2)} ر.س)`;
+            const feeRates = {
+                apple_pay: {{ \App\Models\Setting::getFeePercentage('apple_pay') }},
+                standard: {{ \App\Models\Setting::getFeePercentage('standard') }},
+                tabby: {{ \App\Models\Setting::getFeePercentage('tabby') }},
+                tamara: {{ \App\Models\Setting::getFeePercentage('tamara') }},
+                all: 0
+            };
+
+            const rate = feeRates[selectedMethod] || 0;
+            if (rate > 0) {
+                feePercent = rate;
+                feeAmount = (baseAmount * rate) / 100;
+                const methodNames = { apple_pay: 'Apple Pay', tabby: 'تابي', tamara: 'تمارا', standard: 'البطاقات' };
+                const methodName = methodNames[selectedMethod] || '';
+                methodLabel = ` + ${feePercent}% رسوم ${methodName} (${feeAmount.toFixed(2)} ر.س)`;
             }
 
             const totalPayable = baseAmount + feeAmount;

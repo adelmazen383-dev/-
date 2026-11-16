@@ -9,7 +9,8 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background: #064e3b; background-image: radial-gradient(circle at 50% 20%, #065f46 0%, #022c22 100%); min-height: 100vh; color: #f8fafc; }
-        .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+        @media (min-width: 640px) { .container { padding: 40px 24px; } }
         .back-link { color: #34d399; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; }
         .back-link:hover { text-decoration: underline; }
         h1 { font-size: 32px; font-weight: 800; color: #34d399; margin-bottom: 8px; }
@@ -26,7 +27,10 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">→ الرجوع للصفحة الرئيسية</a>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <a href="/" class="back-link" style="margin-bottom:0;">→ الرجوع للصفحة الرئيسية</a>
+            <a href="{{ route('login') }}" style="color:#a7f3d0; font-size:13px; font-weight:700; text-decoration:none; background:rgba(16,185,129,0.15); border:1px solid rgba(52,211,153,0.3); padding:6px 14px; border-radius:8px;">تسجيل الدخول</a>
+        </div>
         <h1>سياسة الاسترجاع والإلغاء</h1>
         <p class="subtitle">آخر تحديث: {{ date('Y-m-d') }}</p>
 

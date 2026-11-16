@@ -35,14 +35,18 @@ class TelrService
         $depositAmount = (float) ($invoice->deposit_amount ?? 0);
         $baseAmount    = $rentAmount + $depositAmount;
 
-        $feeAmount = 0.00;
-        $feeDesc   = '';
-        if (in_array($chosenMethod, ['tabby', 'tamara'])) {
-            $feeAmount = round($baseAmount * 0.15, 2);
-            $methodName = $chosenMethod === 'tabby' ? 'تابي Tabby' : 'تمارا Tamara';
-            $feeDesc   = " (شامل رسوم تقسيط {$methodName} 15%: " . number_format($feeAmount, 2) . " ر.س)";
-        } elseif ($chosenMethod === 'apple_pay') {
-            $feeDesc = ' (Apple Pay)';
+        $feePercentage = \App\Models\Setting::getFeePercentage($chosenMethod);
+        $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
+        $feeDesc       = '';
+        if ($feePercentage > 0) {
+            $methodName = match ($chosenMethod) {
+                'tabby'     => 'تابي Tabby',
+                'tamara'    => 'تمارا Tamara',
+                'apple_pay' => 'Apple Pay',
+                'standard'  => 'بطاقة مدى / فيزا',
+                default     => '',
+            };
+            $feeDesc = " (شامل رسوم {$methodName} {$feePercentage}%: " . number_format($feeAmount, 2) . " ر.س)";
         }
 
         $totalAmount = $baseAmount + $feeAmount;

@@ -17,5 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('login') || $request->routeIs('login')) {
+                return redirect()->route('login')
+                    ->withInput($request->except('password', '_token'))
+                    ->with('warning', 'انتهت صلاحية جلسة تسجيل الدخول بسبب عدم النشاط أو تحديث الصفحة، تم تجديد الجلسة تلقائياً. يُرجى إدخال كلمة المرور والمحاولة مجدداً.');
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'انتهت صلاحية الجلسة، يُرجى تحديث الصفحة والمحاولة مجدداً.'], 419);
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('password', '_token'))
+                ->with('warning', 'انتهت صلاحية الصفحة، تم تحديث الجلسة تلقائياً. يُرجى إعادة المحاولة.');
+        });
     })->create();

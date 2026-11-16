@@ -128,11 +128,17 @@ class Invoice extends Model
         return (float) ($this->amount ?? 0) + (float) ($this->deposit_amount ?? 0);
     }
 
-    public function getCalculatedFee(?string $method = null): float
+    public function getCalculatedFeePercentage(?string $method = null): float
     {
         $m = $method ?? $this->payment_method ?? 'all';
-        if (in_array($m, ['tabby', 'tamara'])) {
-            return round($this->base_amount * 0.15, 2);
+        return Setting::getFeePercentage($m);
+    }
+
+    public function getCalculatedFee(?string $method = null): float
+    {
+        $percentage = $this->getCalculatedFeePercentage($method);
+        if ($percentage > 0) {
+            return round(($this->base_amount * $percentage) / 100, 2);
         }
         return 0.00;
     }
@@ -154,12 +160,17 @@ class Invoice extends Model
 
     public function getPaymentMethodLabelAttribute(): string
     {
+        $visaPct = Setting::getFeePercentage('standard');
+        $applePct = Setting::getFeePercentage('apple_pay');
+        $tabbyPct = Setting::getFeePercentage('tabby');
+        $tamaraPct = Setting::getFeePercentage('tamara');
+
         return match ($this->payment_method) {
-            'tabby'     => 'تابي (Tabby - رسوم 15%)',
-            'tamara'    => 'تمارا (Tamara - رسوم 15%)',
-            'apple_pay' => 'Apple Pay / مدى / بطاقة ائتمانية',
-            'standard'  => 'مدى / فيزا / ماستركارد',
-            default     => 'الكل (خيار العميل: Apple Pay / تابي / تمارا)',
+            'tabby'     => "تابي (Tabby - رسوم {$tabbyPct}%)",
+            'tamara'    => "تمارا (Tamara - رسوم {$tamaraPct}%)",
+            'apple_pay' => "Apple Pay (رسوم {$applePct}%)",
+            'standard'  => "بطاقة مدى / فيزا / ماستركارد (رسوم {$visaPct}%)",
+            default     => 'الكل (خيار العميل: Apple Pay / مدى / تابي)',
         };
     }
 

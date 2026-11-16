@@ -2,128 +2,224 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>نظام إدارة العقود | تسجيل الدخول</title>
+    <title>ثقة | تسجيل الدخول</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        * { font-family: 'Cairo', sans-serif; }
-        .auth-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        
+        body {
+            background: #064e3b;
+            background-image: 
+                radial-gradient(circle at 50% 0%, #065f46 0%, transparent 60%),
+                radial-gradient(circle at 10% 90%, #047857 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, #022c22 0%, transparent 60%);
             min-height: 100vh;
+            min-height: 100dvh;
+            color: #f8fafc;
+            margin: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        /* Subtle glowing background orbs */
+        .bg-glow-1 {
+            position: fixed;
+            top: -120px;
+            right: -120px;
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatGlow 14s ease-in-out infinite alternate;
+        }
+
+        .bg-glow-2 {
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatGlow 18s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 30px) scale(1.1); }
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
             position: relative;
-            overflow: hidden;
+            z-index: 10;
+            margin: auto;
         }
-        .auth-bg::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
-            animation: float 8s ease-in-out infinite;
+
+        .top-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 4px;
         }
-        .auth-bg::after {
-            content: '';
-            position: absolute;
-            bottom: -50%;
-            left: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
-            animation: float 10s ease-in-out infinite reverse;
+
+        .back-home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #a7f3d0;
+            background: rgba(6, 78, 59, 0.6);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            padding: 7px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
         }
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, -30px); }
+
+        .back-home-btn:hover {
+            background: rgba(16, 185, 129, 0.25);
+            color: #ffffff;
+            border-color: #34d399;
+            transform: translateY(-1px);
         }
+
+        .brand-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: #6ee7b7;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
         .glass-card {
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(6, 78, 59, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(52, 211, 153, 0.22);
             border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            box-shadow: 
+                0 20px 40px -15px rgba(0, 0, 0, 0.5),
+                0 0 50px -10px rgba(16, 185, 129, 0.15);
+            padding: 28px 24px;
         }
+
+        @media (min-width: 640px) {
+            .glass-card {
+                padding: 36px 32px;
+            }
+        }
+
         .input-field {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(2, 44, 34, 0.55);
+            border: 1.5px solid rgba(52, 211, 153, 0.22);
             border-radius: 12px;
             color: #ffffff !important;
-            padding: 12px 16px;
+            padding: 13px 16px;
             width: 100%;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             font-size: 15px;
         }
+
         .input-field:focus {
             outline: none;
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
-            background: rgba(255, 255, 255, 0.12);
+            border-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.22);
+            background: rgba(2, 44, 34, 0.85);
             color: #ffffff !important;
         }
+
         .input-field::placeholder { color: #94a3b8; }
+        
         .input-field:-webkit-autofill,
         .input-field:-webkit-autofill:hover, 
         .input-field:-webkit-autofill:focus {
             -webkit-text-fill-color: #ffffff !important;
-            -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+            -webkit-box-shadow: 0 0 0px 1000px #064e3b inset !important;
             transition: background-color 5000s ease-in-out 0s;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            padding: 12px 24px;
+
+        .btn-auth-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            padding: 13px 24px;
             border-radius: 12px;
-            font-weight: 700;
+            font-weight: 800;
             width: 100%;
             border: none;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+
+        .btn-auth-primary:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+            background: linear-gradient(135deg, #34d399 0%, #059669 100%);
         }
-        .floating-shapes div {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.05;
-            background: white;
+
+        .btn-auth-primary:active {
+            transform: translateY(0);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            color: rgba(248, 250, 252, 0.5);
+            font-size: 12.5px;
         }
     </style>
 </head>
-<body class="auth-bg">
-    <div class="floating-shapes">
-        <div style="width:300px;height:300px;top:10%;right:10%;animation:float 12s infinite;"></div>
-        <div style="width:200px;height:200px;bottom:20%;left:15%;animation:float 8s infinite reverse;"></div>
-        <div style="width:150px;height:150px;top:50%;left:50%;animation:float 15s infinite;"></div>
-    </div>
+<body>
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
 
-    <div class="min-h-screen flex flex-col justify-center items-center px-4 relative z-10">
-        <!-- Logo -->
-        <div class="mb-8 text-center">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
+    <div class="auth-container">
+        <!-- Top Nav Bar with Return Home -->
+        <div class="top-nav-bar">
+            <a href="{{ route('home') }}" class="back-home-btn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <span>الموقع الرئيسي</span>
+            </a>
+            <div class="brand-badge">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>بوابة الإدارة المعتمدة</span>
             </div>
-            <h1 class="text-3xl font-black text-white">نظام العقود</h1>
-            <p class="text-slate-300 mt-1 text-sm">إدارة عقود التأجير الإلكترونية</p>
         </div>
 
-        <!-- Card -->
-        <div class="glass-card w-full max-w-md p-8">
+        <!-- Glass Card Content -->
+        <div class="glass-card">
             {{ $slot }}
         </div>
 
-        <p class="text-slate-400 text-xs mt-8">&copy; {{ date('Y') }} نظام العقود. جميع الحقوق محفوظة.</p>
+        <!-- Copyright -->
+        <div class="auth-footer">
+            <p>&copy; {{ date('Y') }} منصة ثقة لتوثيق العقود. جميع الحقوق محفوظة.</p>
+        </div>
     </div>
 </body>
 </html>

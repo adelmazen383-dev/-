@@ -1179,10 +1179,25 @@
         @if($invoice->isPending())
         @php
             $base = $invoice->base_amount;
-            $tabbyTotal = round($base * 1.15, 2);
+
+            $visaPct = \App\Models\Setting::getFeePercentage('standard');
+            $visaFee = round(($base * $visaPct) / 100, 2);
+            $visaTotal = $base + $visaFee;
+
+            $applePct = \App\Models\Setting::getFeePercentage('apple_pay');
+            $appleFee = round(($base * $applePct) / 100, 2);
+            $appleTotal = $base + $appleFee;
+
+            $tabbyPct = \App\Models\Setting::getFeePercentage('tabby');
+            $tabbyFee = round(($base * $tabbyPct) / 100, 2);
+            $tabbyTotal = $base + $tabbyFee;
             $tabbyInst = round($tabbyTotal / 4, 2);
-            $tamaraTotal = round($base * 1.15, 2);
+
+            $tamaraPct = \App\Models\Setting::getFeePercentage('tamara');
+            $tamaraFee = round(($base * $tamaraPct) / 100, 2);
+            $tamaraTotal = $base + $tamaraFee;
             $tamaraInst = round($tamaraTotal / 4, 2);
+
             $portalUrl = route('booking-card.show', $invoice->booking_card_token);
             $applePayUrl = route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'apple_pay']);
             $cardUrl     = route('booking-card.pay', ['token' => $invoice->booking_card_token, 'method' => 'standard']);
@@ -1209,10 +1224,10 @@
                 <a href="{{ $applePayUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#18181b; border:1.5px solid #ffffff; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:11px; font-weight:900; color:#ffffff;"> Apple Pay</span>
-                        <span style="font-size:8.5px; background:#ffffff; color:#000000; font-weight:800; padding:1px 5px; border-radius:3px;">فوري</span>
+                        <span style="font-size:8.5px; background:#ffffff; color:#000000; font-weight:800; padding:1px 5px; border-radius:3px;">@if($applePct > 0)+{{ $applePct }}%@else فوري @endif</span>
                     </div>
                     <div style="margin-top:6px;">
-                        <span style="font-size:14px; font-weight:900; color:#e0be8b; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
+                        <span style="font-size:14px; font-weight:900; color:#e0be8b; font-family:monospace;">{{ number_format($appleTotal, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
                     <div style="font-size:9px; color:#a1a1aa; margin-top:2px;">محفظة Apple</div>
                 </a>
@@ -1221,10 +1236,10 @@
                 <a href="{{ $cardUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#27272a; border:1px solid #52525b; border-radius:8px; padding:10px 8px; text-align:right; transition:all 0.2s;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:11px; font-weight:800; color:#ffffff;">💳 مدى / فيزا</span>
-                        <span style="font-size:8.5px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; padding:1px 5px; border-radius:3px;">0%</span>
+                        <span style="font-size:8.5px; background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; padding:1px 5px; border-radius:3px;">@if($visaPct > 0)+{{ $visaPct }}%@else 0% @endif</span>
                     </div>
                     <div style="margin-top:6px;">
-                        <span style="font-size:14px; font-weight:900; color:#c59b63; font-family:monospace;">{{ number_format($base, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
+                        <span style="font-size:14px; font-weight:900; color:#c59b63; font-family:monospace;">{{ number_format($visaTotal, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
                     <div style="font-size:9px; color:#a1a1aa; margin-top:2px;">بطاقات بنكية</div>
                 </a>
@@ -1238,7 +1253,7 @@
                     <div style="margin-top:6px;">
                         <span style="font-size:14px; font-weight:900; color:#3effbf; font-family:monospace;">{{ number_format($tabbyTotal, 2) }}</span> <small style="font-size:9.5px; color:#d4d4d8;">ر.س</small>
                     </div>
-                    <div style="font-size:9px; color:#a7f3d0; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س/ش (+15%)</div>
+                    <div style="font-size:9px; color:#a7f3d0; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س/ش (+{{ $tabbyPct }}%)</div>
                 </a>
 
                 <!-- 4. Tamara -->

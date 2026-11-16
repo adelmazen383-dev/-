@@ -31,9 +31,10 @@ class TabbyService
      */
     public function createCheckoutSession(Invoice $invoice): array
     {
-        $baseAmount   = (float) $invoice->base_amount;
-        $feeAmount    = round($baseAmount * 0.15, 2);
-        $totalAmount  = $baseAmount + $feeAmount;
+        $baseAmount    = (float) $invoice->base_amount;
+        $feePercentage = \App\Models\Setting::getFeePercentage('tabby');
+        $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
+        $totalAmount   = $baseAmount + $feeAmount;
         $formattedAmt = number_format($totalAmount, 2, '.', '');
 
         // 1. Format Phone Number to E.164 (+9665XXXXXXXX)

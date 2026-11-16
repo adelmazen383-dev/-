@@ -760,11 +760,32 @@
 
     @php
         $base = $invoice->base_amount;
-        $tabbyTotal = round($base * 1.15, 2);
+
+        $visaPct = \App\Models\Setting::getFeePercentage('standard');
+        $visaFee = round(($base * $visaPct) / 100, 2);
+        $visaTotal = $base + $visaFee;
+
+        $applePct = \App\Models\Setting::getFeePercentage('apple_pay');
+        $appleFee = round(($base * $applePct) / 100, 2);
+        $appleTotal = $base + $appleFee;
+
+        $tabbyPct = \App\Models\Setting::getFeePercentage('tabby');
+        $tabbyFee = round(($base * $tabbyPct) / 100, 2);
+        $tabbyTotal = $base + $tabbyFee;
         $tabbyInstallment = round($tabbyTotal / 4, 2);
-        $tamaraTotal = round($base * 1.15, 2);
+
+        $tamaraPct = \App\Models\Setting::getFeePercentage('tamara');
+        $tamaraFee = round(($base * $tamaraPct) / 100, 2);
+        $tamaraTotal = $base + $tamaraFee;
         $tamaraInstallment = round($tamaraTotal / 4, 2);
+
         $activeMethod = in_array($invoice->payment_method, ['tabby', 'tamara', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
+        $activeTotal = match($activeMethod) {
+            'standard' => $visaTotal,
+            'tabby'    => $tabbyTotal,
+            'tamara'   => $tamaraTotal,
+            default    => $appleTotal,
+        };
     @endphp
 
     <!-- ===== Interactive Payment Gateway Selector & Pay CTA ===== -->
@@ -777,43 +798,49 @@
 
         <div class="pay-portal-grid">
             <!-- 1. Apple Pay -->
-            <div class="pay-option-card {{ $activeMethod === 'apple_pay' ? 'selected' : '' }}" onclick="selectMethod('apple_pay', 'Apple Pay', '{{ number_format($base, 2) }}')" id="method-card-apple_pay">
+            <div class="pay-option-card {{ $activeMethod === 'apple_pay' ? 'selected' : '' }}" onclick="selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}')" id="method-card-apple_pay">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-free" id="applepay-device-badge">دفع فوري</div>
+                    <div class="pay-option-badge" style="background:#000000; color:#ffffff;" id="applepay-device-badge"> دفع فوري @if($applePct > 0)(+{{ $applePct }}%)@endif</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title flex-title">
                     <svg style="width: 16px; height: 16px; display:inline-block; vertical-align:middle; fill:#000;" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.62-.75 1.04-1.8 0.92-2.84-.9.04-1.98.6-2.62 1.34-.57.65-1.06 1.71-.93 2.73 1 .08 2.01-.48 2.63-1.23z"/></svg>
                     <strong>Apple Pay</strong>
                 </div>
-                <div class="pay-option-price">{{ number_format($base, 2) }} <small>ر.س</small></div>
+                <div class="pay-option-price">{{ number_format($appleTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     محفظة Apple Wallet<br>
-                    <span style="font-size:10px; color:#059669; font-weight:700;"> سداد فوري بالبصمة</span>
+                    <span style="font-size:10px; color:#059669; font-weight:700;"> سداد فوري بالبصمة @if($applePct > 0)· شامل الرسوم@endif</span>
                 </div>
             </div>
 
             <!-- 2. Bank Cards (Mada / Visa / Mastercard) -->
-            <div class="pay-option-card {{ $activeMethod === 'standard' ? 'selected' : '' }}" onclick="selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($base, 2) }}')" id="method-card-standard">
+            <div class="pay-option-card {{ $activeMethod === 'standard' ? 'selected' : '' }}" onclick="selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaTotal, 2) }}')" id="method-card-standard">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-free">0% رسوم إضافية</div>
+                    <div class="pay-option-badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
+                        @if($visaPct > 0)
+                            +{{ $visaPct }}% رسوم
+                        @else
+                            0% رسوم إضافية
+                        @endif
+                    </div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title flex-title">
                     <svg style="width: 16px; height: 16px; display:inline-block; vertical-align:middle; fill:#065f46;" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
                     <strong>بطاقة مدى / فيزا</strong>
                 </div>
-                <div class="pay-option-price">{{ number_format($base, 2) }} <small>ر.س</small></div>
+                <div class="pay-option-price">{{ number_format($visaTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     مدى · Visa · Mastercard<br>
-                    <span style="font-size:10px; color:#4b5563;">خصم مباشر من الحساب</span>
+                    <span style="font-size:10px; color:#4b5563;">خصم مباشر من الحساب @if($visaPct > 0)· شامل الرسوم@endif</span>
                 </div>
             </div>
 
             <!-- 3. Tabby (مفعّل الآن) -->
             <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (قسمها على 4 دفعات)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby" style="cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-tabby">4 دفعات</div>
+                    <div class="pay-option-badge badge-tabby">4 دفعات (+{{ $tabbyPct }}%)</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
@@ -845,7 +872,7 @@
 
         <div class="pay-portal-action">
             <button type="button" id="pay-submit-btn" onclick="proceedPayment()" class="pay-action-btn">
-                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'standard' ? 'بطاقة مدى / فيزا / ماستركارد' : 'Apple Pay' }}</span> (<span id="selected-method-amount">{{ number_format($base, 2) }}</span> ر.س)
+                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'standard' ? 'بطاقة مدى / فيزا / ماستركارد' : 'Apple Pay' }}</span> (<span id="selected-method-amount">{{ number_format($activeTotal, 2) }}</span> ر.س)
             </button>
         </div>
     </div>
@@ -918,9 +945,9 @@
                     apBadge.style.background = '#000000';
                     apBadge.style.color = '#ffffff';
                 }
-                selectMethod('apple_pay', 'Apple Pay', '{{ number_format($base, 2) }}');
+                selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}');
             } else {
-                selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($base, 2) }}');
+                selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaTotal, 2) }}');
             }
         });
     </script>
