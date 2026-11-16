@@ -107,21 +107,33 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::create($validated);
 
-        // Call Telr API to get the payment URL
-        $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod);
+        // Generate payment URL depending on payment method
+        $tabbyUrl = null;
+        if ($paymentMethod === 'tabby' || $paymentMethod === 'all') {
+            $tabbyResponse = $this->tabbyService->createCheckoutSession($invoice);
+            if ($tabbyResponse['success']) {
+                $tabbyUrl = $tabbyResponse['web_url'];
+            }
+        }
+
+        // Call Telr API for cards / apple_pay / fallback
+        $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod === 'all' ? null : $paymentMethod);
+
+        $updateData = [];
+        if ($tabbyUrl) {
+            $updateData['tabby_url'] = $tabbyUrl;
+        }
 
         if ($telrResponse['success']) {
-            $updateData = [
-                'telr_transaction_url' => $telrResponse['url'],
-                'telr_order_ref'       => $telrResponse['ref'],
-            ];
-            if ($paymentMethod === 'tabby') {
-                $updateData['tabby_url'] = $telrResponse['url'];
-            } elseif ($paymentMethod === 'tamara') {
-                $updateData['tamara_url'] = $telrResponse['url'];
-            }
-            $invoice->update($updateData);
+            $updateData['telr_transaction_url'] = $telrResponse['url'];
+            $updateData['telr_order_ref']       = $telrResponse['ref'];
+        }
 
+        if (!empty($updateData)) {
+            $invoice->update($updateData);
+        }
+
+        if ($telrResponse['success'] || $tabbyUrl) {
             return redirect()
                 ->route('invoices.show', $invoice)
                 ->with('success', 'تم إنشاء الفاتورة وكارت الحجز ورابط الدفع بنجاح.');

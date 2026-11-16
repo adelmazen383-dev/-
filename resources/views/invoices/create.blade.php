@@ -126,7 +126,7 @@
             <!-- Payment Method & Gateway Configuration -->
             <div class="md:col-span-3 border-t border-slate-200 pt-4 mt-1">
                 <label class="block text-xs font-bold text-slate-800 mb-2">طريقة الدفع في رابط البوابة وكارت الحجز:</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     <!-- Option 1: All / Customer Choice -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 bg-white" id="pm_card_all">
                         <div class="flex items-center justify-between mb-1.5">
@@ -134,10 +134,24 @@
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">مرن (موصى به)</span>
                         </div>
                         <span class="text-xs font-bold text-slate-900">خيار مرن للعميل</span>
-                        <span class="text-[11px] text-slate-500 mt-0.5">العميل يختار بين Apple Pay أو تابي أو تمارا في كارت الحجز</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">العميل يختار بين Apple Pay أو فيزا أو تابي في كارت الحجز</span>
                     </label>
 
-                    <!-- Option 2: Apple Pay / Cards -->
+                    <!-- Option 2: Visa / Mada Cards -->
+                    <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-blue-400 bg-white" id="pm_card_standard">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <input type="radio" name="payment_method" value="standard" {{ old('payment_method') === 'standard' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-blue-600 focus:ring-blue-500">
+                            @php $visaFee = \App\Models\Setting::getFeePercentage('standard'); @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 font-mono font-bold">+{{ $visaFee }}% رسوم</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                            <span class="text-xs font-bold text-slate-900">مدى / فيزا</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $visaFee }}% رسوم تلقائياً على الرابط</span>
+                    </label>
+
+                    <!-- Option 3: Apple Pay -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-indigo-400 bg-white" id="pm_card_apple_pay">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="apple_pay" {{ old('payment_method') === 'apple_pay' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-indigo-600 focus:ring-indigo-500">
@@ -151,7 +165,7 @@
                         <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $apFee }}% رسوم تلقائياً على الرابط</span>
                     </label>
 
-                    <!-- Option 3: Tabby -->
+                    <!-- Option 4: Tabby -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-emerald-400 bg-white" id="pm_card_tabby">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="tabby" {{ old('payment_method') === 'tabby' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-emerald-600 focus:ring-emerald-500">
@@ -165,7 +179,7 @@
                         <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tbFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
 
-                    <!-- Option 4: Tamara -->
+                    <!-- Option 5: Tamara -->
                     <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-orange-400 bg-white" id="pm_card_tamara">
                         <div class="flex items-center justify-between mb-1.5">
                             <input type="radio" name="payment_method" value="tamara" {{ old('payment_method') === 'tamara' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-orange-600 focus:ring-orange-500">

@@ -936,8 +936,9 @@
         // BNPL modals removed — all payments route through Telr gateway
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Auto-detect Apple device (iPhone, iPad, Mac, Safari) and recommend Apple Pay
+            const invoiceMethod = '{{ $invoice->payment_method }}';
             const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
+
             if (isApple) {
                 const apBadge = document.getElementById('applepay-device-badge');
                 if (apBadge) {
@@ -945,9 +946,20 @@
                     apBadge.style.background = '#000000';
                     apBadge.style.color = '#ffffff';
                 }
+            }
+
+            if (invoiceMethod === 'tabby') {
+                selectMethod('tabby', 'تابي (قسمها على 4 دفعات)', '{{ number_format($tabbyTotal, 2) }}');
+            } else if (invoiceMethod === 'apple_pay') {
                 selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}');
-            } else {
+            } else if (invoiceMethod === 'standard') {
                 selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaTotal, 2) }}');
+            } else {
+                if (isApple) {
+                    selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}');
+                } else {
+                    selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaTotal, 2) }}');
+                }
             }
         });
     </script>

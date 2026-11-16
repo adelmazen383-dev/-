@@ -309,8 +309,14 @@
                     </div>
                     @if($invoice->telr_transaction_url)
                     <div>
-                        <p class="text-slate-500 text-xs font-bold mb-1">رابط بطاقة الفيزا المباشر (Telr)</p>
-                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-slate-500 text-xs underline break-all">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
+                        <p class="text-slate-500 text-xs font-bold mb-1">رابط الدفع المباشر (Telr / مدى / فيزا / Apple Pay)</p>
+                        <a href="{{ $invoice->telr_transaction_url }}" target="_blank" class="text-slate-600 text-xs underline break-all font-semibold">{{ Str::limit($invoice->telr_transaction_url, 45) }}</a>
+                    </div>
+                    @endif
+                    @if($invoice->tabby_url)
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold mb-1">رابط تابي المباشر (Tabby Pay-in-4)</p>
+                        <a href="{{ $invoice->tabby_url }}" target="_blank" class="text-emerald-600 text-xs underline break-all font-semibold">{{ Str::limit($invoice->tabby_url, 45) }}</a>
                     </div>
                     @endif
                     <div>
@@ -322,7 +328,7 @@
                     <div class="pt-3 border-t border-slate-100">
                         <button type="button" onclick="document.getElementById('manual-link-form').classList.toggle('hidden')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            {{ $invoice->telr_transaction_url ? 'تعديل روابط وإعدادات الدفع يدوياً' : 'إدخال روابط دفع يدوياً' }}
+                            {{ $invoice->telr_transaction_url || $invoice->tabby_url ? 'تعديل روابط وإعدادات الدفع يدوياً' : 'إدخال روابط دفع يدوياً' }}
                         </button>
                         <form id="manual-link-form" method="POST" action="{{ route('invoices.update-payment-link', $invoice) }}" class="hidden mt-3 space-y-2">
                             @csrf
@@ -330,10 +336,10 @@
                                 <label class="text-[11px] text-slate-500 block mb-1">طريقة الدفع للفاتورة:</label>
                                 <select name="payment_method" class="w-full text-xs rounded border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="all" {{ $invoice->payment_method === 'all' ? 'selected' : '' }}>مرن (العميل يختار في الكارت)</option>
-                                    <option value="apple_pay" {{ $invoice->payment_method === 'apple_pay' ? 'selected' : '' }}>Apple Pay / مدى (0% رسوم)</option>
-                                    <option value="standard" {{ $invoice->payment_method === 'standard' ? 'selected' : '' }}>مدى / بطاقات (0% رسوم)</option>
-                                    <option value="tabby" {{ $invoice->payment_method === 'tabby' ? 'selected' : '' }}>تابي Tabby (+15% رسوم تقسيط)</option>
-                                    <option value="tamara" {{ $invoice->payment_method === 'tamara' ? 'selected' : '' }}>تمارا Tamara (+15% رسوم تقسيط)</option>
+                                    <option value="standard" {{ $invoice->payment_method === 'standard' ? 'selected' : '' }}>مدى / فيزا (+{{ \App\Models\Setting::getFeePercentage('standard') }}% رسوم)</option>
+                                    <option value="apple_pay" {{ $invoice->payment_method === 'apple_pay' ? 'selected' : '' }}>Apple Pay (+{{ \App\Models\Setting::getFeePercentage('apple_pay') }}% رسوم)</option>
+                                    <option value="tabby" {{ $invoice->payment_method === 'tabby' ? 'selected' : '' }}>تابي Tabby (+{{ \App\Models\Setting::getFeePercentage('tabby') }}% رسوم تقسيط)</option>
+                                    <option value="tamara" {{ $invoice->payment_method === 'tamara' ? 'selected' : '' }}>تمارا Tamara (+{{ \App\Models\Setting::getFeePercentage('tamara') }}% رسوم تقسيط)</option>
                                 </select>
                             </div>
                             <div>
