@@ -3,50 +3,73 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="stat-card indigo">
+        <!-- 1. Total Contracts -->
+        <a href="{{ route('contracts.index') }}" class="stat-card indigo group block hover:no-underline transition cursor-pointer">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-500 text-xs font-bold">إجمالي العقود</p>
+                    <p class="text-slate-500 text-xs font-bold group-hover:text-indigo-600 transition">إجمالي العقود</p>
                     <p class="text-2xl font-black text-slate-800 mt-1">{{ $totalContracts }}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center transition">
                     <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
             </div>
-        </div>
-        <div class="stat-card emerald">
+            <div class="mt-2 text-[11px] text-slate-400 group-hover:text-indigo-600 flex items-center gap-1 font-semibold">
+                <span>عرض كافة العقود</span>
+                <span>←</span>
+            </div>
+        </a>
+
+        <!-- 2. Signed Contracts -->
+        <a href="{{ route('contracts.index', ['status' => 'signed']) }}" class="stat-card emerald group block hover:no-underline transition cursor-pointer">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-500 text-xs font-bold">عقود موقّعة</p>
+                    <p class="text-slate-500 text-xs font-bold group-hover:text-emerald-600 transition">عقود موقّعة</p>
                     <p class="text-2xl font-black text-emerald-600 mt-1">{{ $signedContracts }}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center transition">
                     <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-        </div>
-        <div class="stat-card amber">
+            <div class="mt-2 text-[11px] text-slate-400 group-hover:text-emerald-600 flex items-center gap-1 font-semibold">
+                <span>عرض العقود الموقعة</span>
+                <span>←</span>
+            </div>
+        </a>
+
+        <!-- 3. Pending Contracts -->
+        <a href="{{ route('contracts.index', ['status' => 'pending']) }}" class="stat-card amber group block hover:no-underline transition cursor-pointer">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-500 text-xs font-bold">بانتظار التوقيع</p>
+                    <p class="text-slate-500 text-xs font-bold group-hover:text-amber-600 transition">بانتظار التوقيع</p>
                     <p class="text-2xl font-black text-amber-600 mt-1">{{ $pendingContracts }}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-lg bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center transition">
                     <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
-        </div>
-        <div class="stat-card rose">
+            <div class="mt-2 text-[11px] text-slate-400 group-hover:text-amber-600 flex items-center gap-1 font-semibold">
+                <span>عرض العقود المعلقة</span>
+                <span>←</span>
+            </div>
+        </a>
+
+        <!-- 4. Total Customers -->
+        <a href="{{ route('clients.index') }}" class="stat-card rose group block hover:no-underline transition cursor-pointer">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-slate-500 text-xs font-bold">إجمالي العملاء</p>
+                    <p class="text-slate-500 text-xs font-bold group-hover:text-rose-600 transition">إجمالي العملاء</p>
                     <p class="text-2xl font-black text-rose-600 mt-1">{{ $totalCustomers }}</p>
                 </div>
-                <div class="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-lg bg-rose-50 group-hover:bg-rose-100 flex items-center justify-center transition">
                     <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
             </div>
-        </div>
+            <div class="mt-2 text-[11px] text-slate-400 group-hover:text-rose-600 flex items-center gap-1 font-semibold">
+                <span>عرض قائمة العملاء</span>
+                <span>←</span>
+            </div>
+        </a>
     </div>
 
     <!-- Financial Summary + Chart -->
@@ -58,21 +81,21 @@
                 ملخص مالي
             </h3>
             <div class="space-y-4">
+                <a href="{{ route('contracts.index', ['status' => 'signed']) }}" class="flex justify-between items-center p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition no-underline block" title="عرض العقود الموقعة">
+                    <span class="text-slate-600 text-sm font-semibold">إجمالي الإيجارات (موقّعة)</span>
+                    <span class="text-emerald-600 font-bold text-lg">{{ number_format($totalRentSigned) }} ر.س</span>
+                </a>
                 <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50">
-                    <span class="text-slate-600 text-sm">إجمالي الإيجارات (موقّعة)</span>
-                    <span class="text-emerald-400 font-bold text-lg">{{ number_format($totalRentSigned) }} ر.س</span>
+                    <span class="text-slate-600 text-sm font-semibold">إجمالي ربح الموقع</span>
+                    <span class="text-amber-600 font-bold text-lg">{{ number_format($totalSiteProfit) }} ر.س</span>
                 </div>
-                <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50">
-                    <span class="text-slate-600 text-sm">إجمالي ربح الموقع</span>
-                    <span class="text-amber-400 font-bold text-lg">{{ number_format($totalSiteProfit) }} ر.س</span>
-                </div>
-                <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50">
-                    <span class="text-slate-600 text-sm">إجمالي الإيجارات (كل العقود)</span>
+                <a href="{{ route('contracts.index') }}" class="flex justify-between items-center p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition no-underline block" title="عرض كل العقود">
+                    <span class="text-slate-600 text-sm font-semibold">إجمالي الإيجارات (كل العقود)</span>
                     <span class="text-slate-700 font-bold text-lg">{{ number_format($totalRentAll) }} ر.س</span>
-                </div>
+                </a>
                 <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50">
-                    <span class="text-slate-600 text-sm">نسبة التوقيع</span>
-                    <span class="text-indigo-400 font-bold text-lg">{{ $totalContracts > 0 ? round(($signedContracts / $totalContracts) * 100) : 0 }}%</span>
+                    <span class="text-slate-600 text-sm font-semibold">نسبة التوقيع</span>
+                    <span class="text-indigo-600 font-bold text-lg">{{ $totalContracts > 0 ? round(($signedContracts / $totalContracts) * 100) : 0 }}%</span>
                 </div>
             </div>
             <div class="mt-4 flex gap-2">
@@ -142,7 +165,7 @@
                 </thead>
                 <tbody>
                     @forelse($recentContracts as $contract)
-                    <tr>
+                    <tr onclick="window.location='{{ route('contracts.show', $contract) }}'" class="cursor-pointer hover:bg-slate-50 transition" title="عرض تفاصيل العقد">
                         <td class="font-mono text-indigo-400 font-bold">{{ $contract->contract_number }}</td>
                         <td>{{ $contract->customer->name ?? '—' }}</td>
                         <td>

@@ -34,10 +34,14 @@ class ContractController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'pending') {
+                $query->whereIn('status', ['draft', 'sent', 'viewed', 'signed_by_lessee']);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
-        $contracts = $query->paginate(15);
+        $contracts = $query->paginate(15)->withQueryString();
         return view('contracts.index', compact('contracts'));
     }
 

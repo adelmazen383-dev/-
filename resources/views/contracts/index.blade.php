@@ -11,6 +11,7 @@
             </div>
             <select name="status" class="form-input" style="min-width:160px;" onchange="this.form.submit()">
                 <option value="">كل الحالات</option>
+                <option value="pending" {{ request('status')=='pending'?'selected':'' }}>بانتظار التوقيع</option>
                 <option value="draft" {{ request('status')=='draft'?'selected':'' }}>مسودة</option>
                 <option value="sent" {{ request('status')=='sent'?'selected':'' }}>مُرسل</option>
                 <option value="viewed" {{ request('status')=='viewed'?'selected':'' }}>تمت المشاهدة</option>
