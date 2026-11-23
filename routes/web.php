@@ -41,8 +41,9 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::match(['get', 'post'], '/payment/tamara/callback', [\App\Http\Controllers\InvoiceController::class, 'tamaraCallback'])->name('payment.tamara.callback');
     Route::post('/payment/tamara/webhook', [\App\Http\Controllers\InvoiceController::class, 'tamaraWebhook'])->name('payment.tamara.webhook');
     Route::get('/card/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicBookingCard'])->name('booking-card.show');
-    Route::match(['get', 'post'], '/card/{token}/pay', [\App\Http\Controllers\InvoiceController::class, 'selectPaymentMethod'])->name('booking-card.pay');
-    Route::post('/card/{token}/confirm-bnpl', [\App\Http\Controllers\InvoiceController::class, 'confirmBnplPayment'])->name('booking-card.confirm-bnpl');
+    // ─── Strict rate limit on payment action (20 attempts per 5 min) ───
+    Route::match(['get', 'post'], '/card/{token}/pay', [\App\Http\Controllers\InvoiceController::class, 'selectPaymentMethod'])->middleware('throttle:20,5')->name('booking-card.pay');
+    Route::post('/card/{token}/confirm-bnpl', [\App\Http\Controllers\InvoiceController::class, 'confirmBnplPayment'])->middleware('throttle:10,5')->name('booking-card.confirm-bnpl');
     Route::get('/invoices/{invoice}/print', [\App\Http\Controllers\InvoiceController::class, 'invoicePrint'])->name('invoices.print');
     Route::get('/invoice/{token}', [\App\Http\Controllers\InvoiceController::class, 'publicInvoice'])->name('invoices.public');
 });

@@ -11,6 +11,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // ─── Force HTTPS in production ───
+        $middleware->prepend(\App\Http\Middleware\ForceHttps::class);
+
+        // ─── Security Headers on all responses ───
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // ─── Monitor suspicious activity ───
+        $middleware->append(\App\Http\Middleware\SuspiciousActivityMonitor::class);
+
+        // ─── Verify payment amounts ───
+        $middleware->append(\App\Http\Middleware\VerifyPaymentAmount::class);
+
+        // ─── CSRF exceptions for payment webhooks ───
         $middleware->validateCsrfTokens(except: [
             '/telr/*',
             '/payment/tabby/*',

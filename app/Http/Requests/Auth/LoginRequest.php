@@ -75,6 +75,13 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        // Log suspicious brute-force attempt
+        \Illuminate\Support\Facades\Log::warning('BRUTE FORCE ATTEMPT DETECTED', [
+            'ip'      => $this->ip(),
+            'email'   => $this->string('email'),
+            'seconds' => $seconds,
+        ]);
+
         throw ValidationException::withMessages([
             'email' => trans('auth.throttle', [
                 'seconds' => $seconds,
