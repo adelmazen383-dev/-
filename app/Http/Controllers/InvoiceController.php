@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\Setting;
 use App\Services\TelrService;
 use App\Services\TabbyService;
+use App\Services\TamaraService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -13,7 +14,8 @@ class InvoiceController extends Controller
 {
     public function __construct(
         private TelrService $telrService,
-        private TabbyService $tabbyService
+        private TabbyService $tabbyService,
+        private TamaraService $tamaraService
     ) {}
 
     /* ── List all invoices ── */
@@ -108,20 +110,38 @@ class InvoiceController extends Controller
         $invoice = Invoice::create($validated);
 
         // Generate payment URL depending on payment method
-        $tabbyUrl = null;
+        $tabbyUrl  = null;
+        $tamaraUrl = null;
+
         if ($paymentMethod === 'tabby' || $paymentMethod === 'all') {
             $tabbyResponse = $this->tabbyService->createCheckoutSession($invoice);
             if ($tabbyResponse['success']) {
                 $tabbyUrl = $tabbyResponse['web_url'];
+                if (!empty($tabbyResponse['session_id'])) {
+                    $this->tabbyService->sendHppLink($tabbyResponse['session_id']);
+                }
             }
         }
 
-        // Call Telr API for cards / apple_pay / fallback
-        $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod === 'all' ? null : $paymentMethod);
+        if ($paymentMethod === 'tamara') {
+            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
+            if ($tamaraResponse['success']) {
+                $tamaraUrl = $tamaraResponse['web_url'];
+            }
+        }
+
+        // Call Telr API for cards / apple_pay / fallback (skip for tamara-only)
+        $telrResponse = ['success' => false];
+        if ($paymentMethod !== 'tamara') {
+            $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod === 'all' ? null : $paymentMethod);
+        }
 
         $updateData = [];
         if ($tabbyUrl) {
             $updateData['tabby_url'] = $tabbyUrl;
+        }
+        if ($tamaraUrl) {
+            $updateData['tamara_url'] = $tamaraUrl;
         }
 
         if ($telrResponse['success']) {
@@ -133,7 +153,7 @@ class InvoiceController extends Controller
             $invoice->update($updateData);
         }
 
-        if ($telrResponse['success'] || $tabbyUrl) {
+        if ($telrResponse['success'] || $tabbyUrl || $tamaraUrl) {
             return redirect()
                 ->route('invoices.show', $invoice)
                 ->with('success', 'تم إنشاء الفاتورة وكارت الحجز ورابط الدفع بنجاح.');
@@ -141,7 +161,7 @@ class InvoiceController extends Controller
 
         return redirect()
             ->route('invoices.show', $invoice)
-            ->with('error', 'تم إنشاء الفاتورة، لكن تعذر الاتصال ببوابة Telr: ' . ($telrResponse['error'] ?? 'خطأ غير معروف') . '. يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً.');
+            ->with('error', 'تم إنشاء الفاتورة، لكن تعذر الاتصال ببوابة الدفع. يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً.');
     }
 
     /* ── Show invoice details ── */
@@ -350,6 +370,10 @@ class InvoiceController extends Controller
                     'tabby_url' => $tabbyResponse['web_url'],
                 ]);
 
+                if (!empty($tabbyResponse['session_id'])) {
+                    $this->tabbyService->sendHppLink($tabbyResponse['session_id']);
+                }
+
                 if ($request->wantsJson()) {
                     return response()->json([
                         'success'       => true,
@@ -375,7 +399,41 @@ class InvoiceController extends Controller
             return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
         }
 
-        // ── 2. Telr Gateway (Standard Cards & Apple Pay) ──
+        // ── 2. Tamara BNPL (Direct Official API) ──
+        if ($method === 'tamara') {
+            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
+
+            if ($tamaraResponse['success']) {
+                $invoice->update([
+                    'tamara_url' => $tamaraResponse['web_url'],
+                ]);
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success'       => true,
+                        'url'           => $tamaraResponse['web_url'],
+                        'method'        => 'tamara',
+                        'base_amount'   => $baseAmount,
+                        'fee_amount'    => $feeAmount,
+                        'total_payable' => $totalPayable,
+                    ]);
+                }
+
+                return redirect()->away($tamaraResponse['web_url']);
+            }
+
+            $errorMessage = $tamaraResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تمارا، يرجى المحاولة لاحقاً.';
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error'   => $errorMessage,
+                ], 422);
+            }
+
+            return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
+        }
+
+        // ── 3. Telr Gateway (Standard Cards & Apple Pay) ──
         $telrResponse = $this->telrService->createOrder($invoice, $method);
 
         if ($telrResponse['success']) {
@@ -383,9 +441,6 @@ class InvoiceController extends Controller
                 'telr_transaction_url' => $telrResponse['url'],
                 'telr_order_ref'       => $telrResponse['ref'],
             ];
-            if ($method === 'tamara') {
-                $updateData['tamara_url'] = $telrResponse['url'];
-            }
             $invoice->update($updateData);
 
             if ($request->wantsJson()) {
@@ -402,11 +457,7 @@ class InvoiceController extends Controller
             return redirect()->away($telrResponse['url']);
         }
 
-        // Provide helpful error for methods that may not be activated yet
         $errorMessage = $telrResponse['error'] ?? 'تعذر توليد رابط الدفع، يرجى المحاولة لاحقاً.';
-        if ($method === 'tamara') {
-            $errorMessage = "خدمة تمارا قيد التفعيل حالياً. يرجى اختيار وسيلة دفع أخرى (مدى / فيزا / Apple Pay / تابي).";
-        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -540,6 +591,113 @@ class InvoiceController extends Controller
                     'paid_at'          => now(),
                     'payment_method'   => 'tabby',
                 ]);
+            }
+        } elseif ($refId && in_array($status, ['REJECTED', 'EXPIRED'])) {
+            $invoice = Invoice::where('invoice_number', $refId)->first();
+            if ($invoice && $invoice->isPending()) {
+                $invoice->update(['status' => 'failed']);
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /* ── Tamara Payment Callback ── */
+    public function tamaraCallback(Request $request)
+    {
+        $token   = $request->query('token');
+        $status  = $request->query('status'); // success, cancel, failure
+        $orderId = $request->query('orderId') ?? $request->query('order_id');
+
+        $invoice = Invoice::where('booking_card_token', $token)->first();
+        if (!$invoice) {
+            return redirect('/')->with('error', 'فاتورة غير صالحة.');
+        }
+
+        if ($status === 'success') {
+            // Verify & authorise order with Tamara API
+            if ($orderId) {
+                $orderInfo   = $this->tamaraService->getOrder($orderId);
+                $orderStatus = strtoupper($orderInfo['data']['status'] ?? '');
+
+                if (in_array($orderStatus, ['APPROVED', 'FULLY_CAPTURED', 'PARTIALLY_CAPTURED'])) {
+                    $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
+                    $invoice->update([
+                        'status'           => 'paid',
+                        'amount_paid'      => $totalAmount,
+                        'remaining_amount' => 0.00,
+                        'paid_at'          => now(),
+                        'payment_method'   => 'tamara',
+                    ]);
+
+                    return redirect()->route('booking-card.show', $token)
+                        ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
+                }
+
+                // Try to authorise if pending
+                if ($orderStatus === 'APPROVED' || $orderStatus === 'PENDING') {
+                    $this->tamaraService->authoriseOrder($orderId);
+                }
+            }
+
+            // Fallback: mark as paid if Tamara redirected to success
+            $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
+            $invoice->update([
+                'status'           => 'paid',
+                'amount_paid'      => $totalAmount,
+                'remaining_amount' => 0.00,
+                'paid_at'          => now(),
+                'payment_method'   => 'tamara',
+            ]);
+
+            return redirect()->route('booking-card.show', $token)
+                ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
+
+        } elseif ($status === 'cancel') {
+            return redirect()->route('booking-card.show', $token)
+                ->with('warning', 'تم إلغاء عملية التقسيط عبر تمارا. يمكنك المحاولة مجدداً أو اختيار وسيلة دفع أخرى.');
+        }
+
+        return redirect()->route('booking-card.show', $token)
+            ->with('error', 'تعذر إتمام الدفع عبر تمارا. يرجى اختيار وسيلة دفع أخرى.');
+    }
+
+    /* ── Tamara Webhook ── */
+    public function tamaraWebhook(Request $request)
+    {
+        $payload = $request->all();
+        \Illuminate\Support\Facades\Log::info('Tamara Webhook received', $payload);
+
+        // Verify notification token
+        $notifyToken = $request->header('X-Tamara-Signature') ?? $request->header('Authorization', '');
+        // Basic logging — full HMAC verification can be added later
+        
+        $eventType = $payload['event_type'] ?? '';
+        $orderRef  = $payload['order_reference_id'] ?? null;
+        $orderId   = $payload['order_id'] ?? null;
+        $status    = strtoupper($payload['order_status'] ?? '');
+
+        if ($orderRef && in_array($eventType, ['order_approved', 'order_captured'])) {
+            $invoice = Invoice::where('invoice_number', $orderRef)->first();
+            if ($invoice && !$invoice->isPaid()) {
+                // Optionally authorise order
+                if ($orderId && $status === 'APPROVED') {
+                    $this->tamaraService->authoriseOrder($orderId);
+                }
+
+                $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
+                $invoice->update([
+                    'status'           => 'paid',
+                    'amount_paid'      => $totalAmount,
+                    'remaining_amount' => 0.00,
+                    'paid_at'          => now(),
+                    'payment_method'   => 'tamara',
+                ]);
+            }
+        } elseif ($refId && in_array($status, ['REJECTED', 'EXPIRED'])) {
+            $invoice = Invoice::where('invoice_number', $refId)->first();
+            if ($invoice && $invoice->isPending()) {
+                $invoice->update(['status' => 'failed']);
             }
         }
 

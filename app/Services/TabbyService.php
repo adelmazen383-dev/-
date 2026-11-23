@@ -145,10 +145,24 @@ class TabbyService
             }
 
             // Handle rejection / unavailability
-            $reason = $data['rejection_reason_code'] ?? ($data['error'] ?? 'غير متاح للتقسيط حالياً');
+            $rawReason = $data['configuration']['products']['installments']['rejection_reason']
+                ?? $data['rejection_reason_code']
+                ?? $data['rejection_reason']
+                ?? $data['error']
+                ?? 'not_available';
+
+            $rejectionMessages = [
+                'not_available'        => 'نأسف، تابي غير قادرة على الموافقة على هذه العملية. الرجاء استخدام طريقة دفع أخرى.',
+                'order_amount_too_high' => 'قيمة الطلب تفوق الحد الأقصى المسموح به حاليًا مع تابي. يُرجى تخفيض قيمة السلة أو استخدام وسيلة دفع أخرى.',
+                'order_amount_too_low'  => 'قيمة الطلب أقل من الحد الأدنى المطلوب لاستخدام خدمة تابي. يُرجى زيادة قيمة الطلب أو استخدام وسيلة دفع أخرى.',
+            ];
+
+            $userMessage = $rejectionMessages[$rawReason] ?? ('عذراً، خدمة تابي غير متاحة لهذا الطلب: ' . $rawReason);
+
             return [
                 'success' => false,
-                'error'   => 'عذراً، خدمة تابي غير متاحة لهذا الطلب: ' . $reason,
+                'error'   => $userMessage,
+                'code'    => $rawReason,
             ];
         } catch (\Exception $e) {
             Log::error('Tabby Checkout Exception', [
@@ -160,6 +174,51 @@ class TabbyService
                 'success' => false,
                 'error'   => 'تعذر الاتصال بخدمة تابي: ' . $e->getMessage(),
             ];
+        }
+    }
+
+    /**
+     * Send payment link via SMS / Push from Tabby side to customer.
+     */
+    public function sendHppLink(string $sessionId): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->secretKey,
+                'Content-Type'  => 'application/json',
+                'User-Agent'    => 'ThiqaPlatform/1.0',
+            ])->timeout(20)->post("{$this->apiUrl}/checkout/{$sessionId}/send_hpp_link");
+
+            return [
+                'success' => $response->successful(),
+                'status'  => $response->status(),
+                'data'    => $response->json(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Tabby Send HPP Link Exception', ['session_id' => $sessionId, 'error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Cancel a Tabby checkout session.
+     */
+    public function cancelSession(string $sessionId): array
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->secretKey,
+                'Content-Type'  => 'application/json',
+            ])->timeout(20)->post("{$this->apiUrl}/checkout/{$sessionId}/cancel");
+
+            return [
+                'success' => $response->successful(),
+                'status'  => $response->status(),
+                'data'    => $response->json(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Tabby Cancel Session Exception', ['session_id' => $sessionId, 'error' => $e->getMessage()]);
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 

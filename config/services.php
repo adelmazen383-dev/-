@@ -48,4 +48,11 @@ return [
         'api_url'       => env('TABBY_API_URL', 'https://api.tabby.ai/api/v2'),
     ],
 
+    'tamara' => [
+        'api_token'          => env('TAMARA_API_TOKEN', ''),
+        'public_key'         => env('TAMARA_PUBLIC_KEY', ''),
+        'notification_token' => env('TAMARA_NOTIFICATION_TOKEN', ''),
+        'api_url'            => env('TAMARA_API_URL', 'https://api.tamara.co'),
+    ],
+
 ];
