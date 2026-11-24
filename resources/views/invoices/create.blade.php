@@ -179,18 +179,17 @@
                         <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tbFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
 
-                    <!-- Option 5: Tamara -->
-                    <label class="relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-orange-400 bg-white" id="pm_card_tamara">
+                    <!-- Option 5: Tamara (قيد التفعيل) -->
+                    <label class="relative flex flex-col p-3 rounded-xl border-2 bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed" id="pm_card_tamara" title="خدمة تمارا قيد التفعيل حالياً لدى بوابة الدفع">
                         <div class="flex items-center justify-between mb-1.5">
-                            <input type="radio" name="payment_method" value="tamara" {{ old('payment_method') === 'tamara' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-orange-600 focus:ring-orange-500">
-                            @php $tmFee = \App\Models\Setting::getFeePercentage('tamara'); @endphp
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 border border-orange-300 font-mono font-bold">+{{ $tmFee }}% رسوم</span>
+                            <input type="radio" name="payment_method" value="tamara" disabled class="text-orange-600 focus:ring-orange-500">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">⏳ قيد التفعيل</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-[#ffd5b8] text-[#c25000]">تمارا</span>
-                            <span class="text-xs font-bold text-slate-900">تمارا (4 أقساط)</span>
+                            <span class="text-xs font-bold text-slate-500">تمارا (قريباً)</span>
                         </div>
-                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tmFee }}% رسوم تقسيط تلقائياً على الرابط</span>
+                        <span class="text-[11px] text-slate-400 mt-0.5">الخدمة قيد الاعتماد من تيلر</span>
                     </label>
                 </div>
             </div>

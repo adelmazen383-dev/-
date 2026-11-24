@@ -339,7 +339,7 @@
                                     <option value="standard" {{ $invoice->payment_method === 'standard' ? 'selected' : '' }}>مدى / فيزا (+{{ \App\Models\Setting::getFeePercentage('standard') }}% رسوم)</option>
                                     <option value="apple_pay" {{ $invoice->payment_method === 'apple_pay' ? 'selected' : '' }}>Apple Pay (+{{ \App\Models\Setting::getFeePercentage('apple_pay') }}% رسوم)</option>
                                     <option value="tabby" {{ $invoice->payment_method === 'tabby' ? 'selected' : '' }}>تابي Tabby (+{{ \App\Models\Setting::getFeePercentage('tabby') }}% رسوم تقسيط)</option>
-                                    <option value="tamara" {{ $invoice->payment_method === 'tamara' ? 'selected' : '' }}>تمارا Tamara (+{{ \App\Models\Setting::getFeePercentage('tamara') }}% رسوم تقسيط)</option>
+                                    <option value="tamara" disabled class="text-slate-400">تمارا Tamara (قيد التفعيل)</option>
                                 </select>
                             </div>
                             <div>

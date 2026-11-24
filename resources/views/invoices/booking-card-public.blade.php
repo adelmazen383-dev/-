@@ -779,11 +779,11 @@
         $tamaraTotal = $base + $tamaraFee;
         $tamaraInstallment = round($tamaraTotal / 4, 2);
 
-        $activeMethod = in_array($invoice->payment_method, ['tabby', 'tamara', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
+        // تمارا معطلة حالياً ومغلقة - الخيارات المتاحة هي تابي، أبل باي، وبطاقات مدى/فيزا
+        $activeMethod = in_array($invoice->payment_method, ['tabby', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
         $activeTotal = match($activeMethod) {
             'standard' => $visaTotal,
             'tabby'    => $tabbyTotal,
-            'tamara'   => $tamaraTotal,
             default    => $appleTotal,
         };
     @endphp
@@ -853,11 +853,11 @@
                 </div>
             </div>
 
-            <!-- 4. Tamara (قيد التفعيل) -->
-            <div class="pay-option-card" onclick="showBnplAlert('tamara')" id="method-card-tamara" style="opacity:0.55; cursor:pointer;">
+            <!-- 4. Tamara (قيد التفعيل من تيلر) -->
+            <div class="pay-option-card" id="method-card-tamara" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
                 <div class="pay-option-top">
                     <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد الاعتماد</div>
-                    <div class="pay-option-radio" style="opacity:0.4;"></div>
+                    <div class="pay-option-radio" style="opacity:0.3;"></div>
                 </div>
                 <div class="pay-option-title">
                     <span class="brand-tamara">تمارا</span> <strong>تمارا</strong>
@@ -904,7 +904,6 @@
 
     <script>
         let currentMethod = '{{ $activeMethod }}';
-
 
         function selectMethod(method, label, amount) {
             currentMethod = method;

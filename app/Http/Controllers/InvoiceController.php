@@ -109,51 +109,35 @@ class InvoiceController extends Controller
 
         $invoice = Invoice::create($validated);
 
-        // Generate payment URL depending on payment method
-        $tabbyUrl  = null;
-        $tamaraUrl = null;
-
-        if ($paymentMethod === 'tabby' || $paymentMethod === 'all') {
-            $tabbyResponse = $this->tabbyService->createCheckoutSession($invoice);
-            if ($tabbyResponse['success']) {
-                $tabbyUrl = $tabbyResponse['web_url'];
-                if (!empty($tabbyResponse['session_id'])) {
-                    $this->tabbyService->sendHppLink($tabbyResponse['session_id']);
-                }
-            }
-        }
+        // ── توليد رابط الدفع ──
+        // تمارا: مغلقة مؤقتاً حتى يكتمل التفعيل
+        // كل الطرق الأخرى (standard, apple_pay, tabby, all) → تيلر
+        $tamaraUrl    = null;
+        $telrResponse = ['success' => false];
 
         if ($paymentMethod === 'tamara') {
-            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
-            if ($tamaraResponse['success']) {
-                $tamaraUrl = $tamaraResponse['web_url'];
-            }
-        }
-
-        // Call Telr API for cards / apple_pay / fallback (skip for tamara-only)
-        $telrResponse = ['success' => false];
-        if ($paymentMethod !== 'tamara') {
-            $telrResponse = $this->telrService->createOrder($invoice, $paymentMethod === 'all' ? null : $paymentMethod);
+            // تمارا قيد التفعيل — أعد توجيه لتيلر
+            $telrResponse = $this->telrService->createOrder($invoice, null);
+        } else {
+            $telrResponse = $this->telrService->createOrder(
+                $invoice,
+                $paymentMethod === 'all' ? null : $paymentMethod
+            );
         }
 
         $updateData = [];
-        if ($tabbyUrl) {
-            $updateData['tabby_url'] = $tabbyUrl;
-        }
         if ($tamaraUrl) {
             $updateData['tamara_url'] = $tamaraUrl;
         }
-
         if ($telrResponse['success']) {
             $updateData['telr_transaction_url'] = $telrResponse['url'];
             $updateData['telr_order_ref']       = $telrResponse['ref'];
         }
-
         if (!empty($updateData)) {
             $invoice->update($updateData);
         }
 
-        if ($telrResponse['success'] || $tabbyUrl || $tamaraUrl) {
+        if ($telrResponse['success'] || $tamaraUrl) {
             return redirect()
                 ->route('invoices.show', $invoice)
                 ->with('success', 'تم إنشاء الفاتورة وكارت الحجز ورابط الدفع بنجاح.');
@@ -361,23 +345,20 @@ class InvoiceController extends Controller
             'total_payable'  => $totalPayable,
         ]);
 
-        // ── 1. Tabby BNPL (Direct Official API v2) ──
+        // ── 1. Tabby BNPL — routed through Telr gateway (Store 36090) ──
         if ($method === 'tabby') {
-            $tabbyResponse = $this->tabbyService->createCheckoutSession($invoice);
+            $telrResponse = $this->telrService->createOrder($invoice, 'tabby');
 
-            if ($tabbyResponse['success']) {
+            if ($telrResponse['success']) {
                 $invoice->update([
-                    'tabby_url' => $tabbyResponse['web_url'],
+                    'telr_transaction_url' => $telrResponse['url'],
+                    'telr_order_ref'       => $telrResponse['ref'],
                 ]);
-
-                if (!empty($tabbyResponse['session_id'])) {
-                    $this->tabbyService->sendHppLink($tabbyResponse['session_id']);
-                }
 
                 if ($request->wantsJson()) {
                     return response()->json([
                         'success'       => true,
-                        'url'           => $tabbyResponse['web_url'],
+                        'url'           => $telrResponse['url'],
                         'method'        => 'tabby',
                         'base_amount'   => $baseAmount,
                         'fee_amount'    => $feeAmount,
@@ -385,10 +366,10 @@ class InvoiceController extends Controller
                     ]);
                 }
 
-                return redirect()->away($tabbyResponse['web_url']);
+                return redirect()->away($telrResponse['url']);
             }
 
-            $errorMessage = $tabbyResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تابي، يرجى المحاولة لاحقاً.';
+            $errorMessage = $telrResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تابي، يرجى المحاولة لاحقاً.';
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -399,30 +380,9 @@ class InvoiceController extends Controller
             return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
         }
 
-        // ── 2. Tamara BNPL (Direct Official API) ──
+        // ── 2. Tamara BNPL (معطلة حالياً - قيد الاعتماد والتفعيل) ──
         if ($method === 'tamara') {
-            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
-
-            if ($tamaraResponse['success']) {
-                $invoice->update([
-                    'tamara_url' => $tamaraResponse['web_url'],
-                ]);
-
-                if ($request->wantsJson()) {
-                    return response()->json([
-                        'success'       => true,
-                        'url'           => $tamaraResponse['web_url'],
-                        'method'        => 'tamara',
-                        'base_amount'   => $baseAmount,
-                        'fee_amount'    => $feeAmount,
-                        'total_payable' => $totalPayable,
-                    ]);
-                }
-
-                return redirect()->away($tamaraResponse['web_url']);
-            }
-
-            $errorMessage = $tamaraResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تمارا، يرجى المحاولة لاحقاً.';
+            $errorMessage = 'خدمة التقسيط عبر تمارا (Tamara) قيد الاعتماد والتفعيل حالياً لدى بوابة الدفع. يرجى اختيار الدفع عبر تابي (Tabby) أو Apple Pay أو بطاقة مدى / فيزا.';
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -469,23 +429,19 @@ class InvoiceController extends Controller
         return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
     }
 
-    /* ── Confirm BNPL payment (Tabby / Tamara) — DISABLED: must go through Telr gateway ── */
+    /* ── Confirm BNPL (disabled — all payments go through Telr) ── */
     public function confirmBnplPayment(Request $request, string $token)
     {
-        // SAFETY: Direct BNPL confirmation is disabled.
-        // All payments (including Tabby/Tamara) must go through Telr gateway
-        // to ensure real payment processing before marking as paid.
-        $methodLabel = $request->input('method') === 'tabby' ? 'تابي' : 'تمارا';
-
+        // جميع المدفوعات تمر عبر تيلر — هذا الـ endpoint لا يُستخدم
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => false,
-                'error'   => "خدمة {$methodLabel} قيد التفعيل حالياً. يرجى اختيار الدفع ببطاقة مدى أو فيزا أو Apple Pay.",
+                'error'   => 'يرجى استخدام زر الدفع في الكارت للانتقال لبوابة الدفع.',
             ], 422);
         }
 
         return redirect()->route('booking-card.show', $token)
-            ->with('error', "خدمة {$methodLabel} قيد التفعيل حالياً. يرجى اختيار وسيلة دفع أخرى.");
+            ->with('error', 'يرجى اختيار وسيلة الدفع من الكارت مجدداً.');
     }
 
     /* ── Mark as paid manually (cash / bank transfer / testing) ── */
@@ -592,8 +548,8 @@ class InvoiceController extends Controller
                     'payment_method'   => 'tabby',
                 ]);
             }
-        } elseif ($refId && in_array($status, ['REJECTED', 'EXPIRED'])) {
-            $invoice = Invoice::where('invoice_number', $refId)->first();
+        } elseif ($orderRef && in_array($status, ['REJECTED', 'EXPIRED'])) {
+            $invoice = Invoice::where('invoice_number', $orderRef)->first();
             if ($invoice && $invoice->isPending()) {
                 $invoice->update(['status' => 'failed']);
             }
@@ -694,8 +650,8 @@ class InvoiceController extends Controller
                     'payment_method'   => 'tamara',
                 ]);
             }
-        } elseif ($refId && in_array($status, ['REJECTED', 'EXPIRED'])) {
-            $invoice = Invoice::where('invoice_number', $refId)->first();
+        } elseif ($orderRef && in_array($status, ['REJECTED', 'EXPIRED'])) {
+            $invoice = Invoice::where('invoice_number', $orderRef)->first();
             if ($invoice && $invoice->isPending()) {
                 $invoice->update(['status' => 'failed']);
             }

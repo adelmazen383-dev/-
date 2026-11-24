@@ -98,7 +98,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm">تابي (Tabby - تقسيط 4 دفعات)</h3>
-                                <p class="text-[11px] text-slate-500">تقسيط مرن عبر الربط المباشر API v2</p>
+                                <p class="text-[11px] text-slate-500">تقسيط مرن عبر بوابة Telr (Store 36090)</p>
                             </div>
                         </div>
                         <span class="bg-emerald-100 text-emerald-800 text-[11px] font-black px-2 py-0.5 rounded-md">4 دفعات</span>
@@ -127,7 +127,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm">تمارا (Tamara - تقسيط 4 دفعات)</h3>
-                                <p class="text-[11px] text-slate-500">خيار التقسيط عبر تمارا</p>
+                                <p class="text-[11px] text-amber-600 font-bold">⏳ قيد الاعتماد والتفعيل لدى تيلر</p>
                             </div>
                         </div>
                         <span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2 py-0.5 rounded-md">4 دفعات</span>

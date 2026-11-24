@@ -72,9 +72,15 @@ class TelrService
             'return_can'   => route('telr.callback', ['invoice' => $invoice->invoice_number, 'status' => 'cancelled']),
         ], $billing);
 
-        // When standard is chosen, restrict to card; otherwise leave empty so Telr renders all active methods (Apple Pay, Mada, Visa, MC) safely without triggering Invalid Session errors
-        if ($chosenMethod === 'standard') {
-            $payload['ivp_panels'] = 'card';
+        // Map payment method to Telr ivp_panels
+        $panelsMap = [
+            'standard'  => 'card',
+            'apple_pay' => 'applepay',
+            'tabby'     => 'tabby',
+        ];
+
+        if (isset($panelsMap[$chosenMethod])) {
+            $payload['ivp_panels'] = $panelsMap[$chosenMethod];
         }
 
         try {
