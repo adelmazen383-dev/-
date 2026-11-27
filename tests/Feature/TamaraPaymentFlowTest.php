@@ -453,13 +453,21 @@ class TamaraPaymentFlowTest extends TestCase
             ->assertOk()
             ->assertSee('+12.5%');
 
+        $this->get(route('booking-card.show', $invoice->booking_card_token))
+            ->assertOk()
+            ->assertSee('1,125.00')
+            ->assertDontSee('+12.5%')
+            ->assertDontSee('+5%');
+
         $this->get(route('invoices.print', $invoice))
             ->assertOk()
-            ->assertSee('+12.5%');
+            ->assertSee('1,125.00')
+            ->assertDontSee('+12.5%');
 
         $this->get(route('invoices.print', ['invoice' => $invoice, 'design' => 'sindi']))
             ->assertOk()
-            ->assertSee('+12.5%');
+            ->assertSee('1,125.00')
+            ->assertDontSee('+12.5%');
 
         $this->get(route('invoices.booking-card', $invoice))
             ->assertOk();

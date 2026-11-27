@@ -972,7 +972,7 @@
                         <a href="{{ $applePayUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#f9fafb; border:1.5px solid #111827; border-radius:8px; padding:8px 8px; text-align:right; transition:all 0.2s;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <span style="font-size:10.5px; font-weight:900; color:#111827;"> Apple Pay</span>
-                                <span style="font-size:8.5px; background:#000; color:#fff; font-weight:700; padding:1px 4px; border-radius:3px;">@if($applePct > 0)+{{ $applePct }}%@else فوري @endif</span>
+                                <span style="font-size:8.5px; background:#000; color:#fff; font-weight:700; padding:1px 4px; border-radius:3px;">فوري</span>
                             </div>
                             <div style="margin-top:4px;">
                                 <span style="font-size:13px; font-weight:900; color:#065f46;">{{ number_format($appleTotal, 2) }}</span> <small style="font-size:9.5px;">ر.س</small>
@@ -984,7 +984,7 @@
                         <a href="{{ $cardUrl }}" target="_blank" style="text-decoration:none; display:flex; flex-direction:column; justify-content:space-between; background:#f9fafb; border:1.5px solid #d1d5db; border-radius:8px; padding:8px 8px; text-align:right; transition:all 0.2s;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <span style="font-size:10.5px; font-weight:800; color:#111827;">💳 مدى / فيزا</span>
-                                <span style="font-size:8.5px; background:#dcfce7; color:#166534; font-weight:700; padding:1px 4px; border-radius:3px;">@if($visaPct > 0)+{{ $visaPct }}%@else 0% @endif</span>
+                                <span style="font-size:8.5px; background:#dcfce7; color:#166534; font-weight:700; padding:1px 4px; border-radius:3px;">مباشر</span>
                             </div>
                             <div style="margin-top:4px;">
                                 <span style="font-size:13px; font-weight:900; color:#065f46;">{{ number_format($visaTotal, 2) }}</span> <small style="font-size:9.5px;">ر.س</small>
@@ -1001,7 +1001,7 @@
                             <div style="margin-top:4px;">
                                 <span style="font-size:13px; font-weight:900; color:#065f46;">{{ number_format($tabbyTotal, 2) }}</span> <small style="font-size:9.5px;">ر.س</small>
                             </div>
-                            <div style="font-size:9px; color:#047857; font-weight:600; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س/ش (+{{ $tabbyPct }}%)</div>
+                            <div style="font-size:9px; color:#047857; font-weight:600; margin-top:2px;">{{ number_format($tabbyInst, 2) }} ر.س/ش</div>
                         </a>
 
                         <!-- 4. Tamara -->
@@ -1013,7 +1013,7 @@
                             <div style="margin-top:4px;">
                                 <span style="font-size:13px; font-weight:900; color:#9a3412;">{{ number_format($tamaraTotal, 2) }}</span> <small style="font-size:9.5px;">ر.س</small>
                             </div>
-                            <div style="font-size:9px; color:#9a3412; font-weight:600; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س/ش (+{{ $tamaraPct }}%)</div>
+                            <div style="font-size:9px; color:#9a3412; font-weight:600; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س/ش</div>
                         </a>
                     </div>
                 </div>

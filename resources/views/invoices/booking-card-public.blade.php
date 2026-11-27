@@ -829,7 +829,7 @@
             <!-- 1. Apple Pay -->
             <div class="pay-option-card {{ $activeMethod === 'apple_pay' ? 'selected' : '' }}" onclick="selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}')" id="method-card-apple_pay">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#000000; color:#ffffff;" id="applepay-device-badge"> دفع فوري @if($applePct > 0)(+{{ $applePct }}%)@endif</div>
+                    <div class="pay-option-badge" style="background:#000000; color:#ffffff;" id="applepay-device-badge"> دفع فوري</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title flex-title">
@@ -846,13 +846,7 @@
             <!-- 2. Bank Cards (Mada / Visa / Mastercard) -->
             <div class="pay-option-card {{ $activeMethod === 'standard' ? 'selected' : '' }}" onclick="selectMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaTotal, 2) }}')" id="method-card-standard">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
-                        @if($visaPct > 0)
-                            +{{ $visaPct }}% رسوم
-                        @else
-                            0% رسوم إضافية
-                        @endif
-                    </div>
+                    <div class="pay-option-badge" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">دفع مباشر</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title flex-title">
@@ -869,7 +863,7 @@
             <!-- 3. Tabby (مفعّل الآن) -->
             <div class="pay-option-card {{ $activeMethod === 'tabby' ? 'selected' : '' }}" onclick="selectMethod('tabby', 'تابي (قسمها على 4 دفعات)', '{{ number_format($tabbyTotal, 2) }}')" id="method-card-tabby" style="cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-tabby">4 دفعات (+{{ $tabbyPct }}%)</div>
+                    <div class="pay-option-badge badge-tabby">4 دفعات</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
@@ -885,7 +879,7 @@
             <!-- 4. Tamara -->
             <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (قسمها على 4 دفعات)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara" style="cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge badge-tamara">4 دفعات (+{{ $tamaraPct }}%)</div>
+                    <div class="pay-option-badge badge-tamara">4 دفعات</div>
                     <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
@@ -915,7 +909,16 @@
         <p style="font-size:13px; color:#047857; font-weight:600; margin-bottom:4px;">
             تم تسجيل دفعتك
             @if($invoice->payment_method)
-                عبر <strong>{{ $invoice->payment_method_label }}</strong>
+                @php
+                    $cleanMethodLabel = match ($invoice->payment_method) {
+                        'tabby'     => 'تابي (Tabby)',
+                        'tamara'    => 'تمارا (Tamara)',
+                        'apple_pay' => 'Apple Pay',
+                        'standard'  => 'بطاقة مدى / فيزا / ماستركارد',
+                        default     => 'الدفع الإلكتروني',
+                    };
+                @endphp
+                عبر <strong>{{ $cleanMethodLabel }}</strong>
             @endif
             بتاريخ {{ $invoice->paid_at ? $invoice->paid_at->format('Y-m-d') : now()->format('Y-m-d') }}
         </p>
