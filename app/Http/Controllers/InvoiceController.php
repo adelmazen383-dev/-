@@ -110,14 +110,12 @@ class InvoiceController extends Controller
         $invoice = Invoice::create($validated);
 
         // ── توليد رابط الدفع ──
-        // تمارا: مغلقة مؤقتاً حتى يكتمل التفعيل
-        // كل الطرق الأخرى (standard, apple_pay, tabby, all) → تيلر
-        $tamaraUrl    = null;
-        $telrResponse = ['success' => false];
+        $tamaraResponse = ['success' => false];
+        $telrResponse   = ['success' => false];
 
         if ($paymentMethod === 'tamara') {
-            // تمارا قيد التفعيل — أعد توجيه لتيلر
-            $telrResponse = $this->telrService->createOrder($invoice, null);
+            // توليد جلسة الدفع عبر تمارا مباشرة
+            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
         } else {
             $telrResponse = $this->telrService->createOrder(
                 $invoice,
@@ -126,8 +124,12 @@ class InvoiceController extends Controller
         }
 
         $updateData = [];
-        if ($tamaraUrl) {
-            $updateData['tamara_url'] = $tamaraUrl;
+        if ($tamaraResponse['success']) {
+            $updateData['tamara_url']                = $tamaraResponse['web_url'];
+            $updateData['tamara_order_id']           = $tamaraResponse['order_id'] ?? null;
+            $updateData['tamara_checkout_id']        = $tamaraResponse['checkout_id'] ?? null;
+            $updateData['tamara_order_reference_id'] = $tamaraResponse['order_reference_id'] ?? null;
+            $updateData['tamara_status']             = $tamaraResponse['status'] ?? 'new';
         }
         if ($telrResponse['success']) {
             $updateData['telr_transaction_url'] = $telrResponse['url'];
@@ -137,15 +139,20 @@ class InvoiceController extends Controller
             $invoice->update($updateData);
         }
 
-        if ($telrResponse['success'] || $tamaraUrl) {
+        if ($telrResponse['success'] || $tamaraResponse['success']) {
             return redirect()
                 ->route('invoices.show', $invoice)
                 ->with('success', 'تم إنشاء الفاتورة وكارت الحجز ورابط الدفع بنجاح.');
         }
 
+        $gatewayError = $tamaraResponse['error'] ?? $telrResponse['error'] ?? null;
+        $errorNotice  = $gatewayError
+            ? "تم إنشاء الفاتورة، لكن تعذر توليد رابط الدفع ({$gatewayError}). يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً."
+            : 'تم إنشاء الفاتورة، لكن تعذر الاتصال ببوابة الدفع. يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً.';
+
         return redirect()
             ->route('invoices.show', $invoice)
-            ->with('error', 'تم إنشاء الفاتورة، لكن تعذر الاتصال ببوابة الدفع. يمكنك إعادة المحاولة أو إدخال رابط دفع يدوياً.');
+            ->with('error', $errorNotice);
     }
 
     /* ── Show invoice details ── */
@@ -221,6 +228,40 @@ class InvoiceController extends Controller
     /* ── Manual "Check Status" button for admin ── */
     public function checkStatus(Invoice $invoice)
     {
+        $isTamara = $invoice->payment_method === 'tamara'
+            || (!$invoice->telr_order_ref && ($invoice->tamara_order_id || $invoice->tamara_order_reference_id));
+
+        if ($isTamara) {
+            $result = $this->tamaraService->verifyOrderPayment($invoice);
+
+            if ($result['paid']) {
+                $this->markInvoicePaidViaTamara($invoice, $result['order_id'], $result['status']);
+
+                return redirect()
+                    ->route('contracts.create', ['invoice_id' => $invoice->id])
+                    ->with('success', '✅ تم التحقق من سداد الفاتورة عبر تمارا بنجاح! تم توجيهك لإنشاء العقد وتعبئة كافة البيانات تلقائياً.');
+            }
+
+            if ($result['failed']) {
+                $invoice->update([
+                    'status'        => 'failed',
+                    'tamara_status' => $result['status'] ?? $invoice->tamara_status,
+                ]);
+
+                return back()->with('error', '❌ العملية فشلت أو تم رفضها لدى تمارا. الحالة: ' . $invoice->tamaraStatusLabel());
+            }
+
+            if (!empty($result['error'])) {
+                return back()->with('error', 'فشل التحقق من حالة طلب تمارا: ' . $result['error']);
+            }
+
+            if (!empty($result['status'])) {
+                $invoice->update(['tamara_status' => $result['status']]);
+            }
+
+            return back()->with('error', '⏳ العملية قيد المعالجة لدى تمارا ولم تكتمل بعد.');
+        }
+
         if (!$invoice->telr_order_ref) {
             return back()->with('error', 'لا يوجد رقم مرجعي لهذه الفاتورة. أعد إنشاء رابط الدفع.');
         }
@@ -261,6 +302,10 @@ class InvoiceController extends Controller
             return back()->with('error', 'هذه الفاتورة مدفوعة بالفعل.');
         }
 
+        if ($invoice->payment_method === 'tamara') {
+            return $this->retryTamara($invoice);
+        }
+
         $telrResponse = $this->telrService->createOrder($invoice);
 
         if ($telrResponse['success']) {
@@ -273,6 +318,43 @@ class InvoiceController extends Controller
         }
 
         return back()->with('error', 'فشل الاتصال ببوابة Telr: ' . ($telrResponse['error'] ?? 'خطأ غير معروف'));
+    }
+
+    /* ── Retry generating a Tamara checkout session ── */
+    public function retryTamara(Invoice $invoice)
+    {
+        if ($invoice->isPaid()) {
+            return back()->with('error', 'هذه الفاتورة مدفوعة بالفعل.');
+        }
+
+        $baseAmount    = $invoice->base_amount;
+        $feePercentage = Setting::getFeePercentage('tamara');
+        $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
+        $totalPayable  = round($baseAmount + $feeAmount, 2);
+
+        $invoice->update([
+            'payment_method' => 'tamara',
+            'fee_percentage' => $feePercentage,
+            'fee_amount'     => $feeAmount,
+            'total_payable'  => $totalPayable,
+        ]);
+
+        $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
+
+        if ($tamaraResponse['success']) {
+            $invoice->update([
+                'tamara_url'                => $tamaraResponse['web_url'],
+                'tamara_order_id'           => $tamaraResponse['order_id'] ?? null,
+                'tamara_checkout_id'        => $tamaraResponse['checkout_id'] ?? null,
+                'tamara_order_reference_id' => $tamaraResponse['order_reference_id'] ?? null,
+                'tamara_status'             => $tamaraResponse['status'] ?? 'new',
+                'status'                    => 'pending',
+            ]);
+
+            return back()->with('success', 'تم تجديد رابط الدفع عبر تمارا بنجاح.');
+        }
+
+        return back()->with('error', 'فشل الاتصال ببوابة تمارا: ' . ($tamaraResponse['error'] ?? 'خطأ غير معروف'));
     }
 
     /* ── Manually update / enter payment link ── */
@@ -333,12 +415,20 @@ class InvoiceController extends Controller
             return redirect()->route('booking-card.show', $token)->with('error', 'الفاتورة مسجلة كمدفوعة بالفعل.');
         }
 
+        if ($invoice->status === 'cancelled') {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'error' => 'هذه الفاتورة ملغاة ولا يمكن سدادها.'], 422);
+            }
+            return redirect()->route('booking-card.show', $token)->with('error', 'هذه الفاتورة ملغاة ولا يمكن سدادها.');
+        }
+
         $baseAmount    = $invoice->base_amount;
         $feePercentage = Setting::getFeePercentage($method);
         $feeAmount     = $feePercentage > 0 ? round(($baseAmount * $feePercentage) / 100, 2) : 0.00;
-        $totalPayable  = $baseAmount + $feeAmount;
+        $totalPayable  = round($baseAmount + $feeAmount, 2);
 
         $invoice->update([
+            'status'         => 'pending',
             'payment_method' => $method,
             'fee_percentage' => $feePercentage,
             'fee_amount'     => $feeAmount,
@@ -380,9 +470,34 @@ class InvoiceController extends Controller
             return redirect()->route('booking-card.show', $token)->with('error', $errorMessage);
         }
 
-        // ── 2. Tamara BNPL (معطلة حالياً - قيد الاعتماد والتفعيل) ──
+        // ── 2. Tamara BNPL — direct integration via Tamara API ──
         if ($method === 'tamara') {
-            $errorMessage = 'خدمة التقسيط عبر تمارا (Tamara) قيد الاعتماد والتفعيل حالياً لدى بوابة الدفع. يرجى اختيار الدفع عبر تابي (Tabby) أو Apple Pay أو بطاقة مدى / فيزا.';
+            $tamaraResponse = $this->tamaraService->createCheckoutSession($invoice);
+
+            if ($tamaraResponse['success']) {
+                $invoice->update([
+                    'tamara_url'                => $tamaraResponse['web_url'],
+                    'tamara_order_id'           => $tamaraResponse['order_id'] ?? $invoice->tamara_order_id,
+                    'tamara_checkout_id'        => $tamaraResponse['checkout_id'] ?? $invoice->tamara_checkout_id,
+                    'tamara_order_reference_id' => $tamaraResponse['order_reference_id'] ?? $invoice->tamara_order_reference_id,
+                    'tamara_status'             => $tamaraResponse['status'] ?? 'new',
+                ]);
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success'       => true,
+                        'url'           => $tamaraResponse['web_url'],
+                        'method'        => 'tamara',
+                        'base_amount'   => $baseAmount,
+                        'fee_amount'    => $feeAmount,
+                        'total_payable' => $totalPayable,
+                    ]);
+                }
+
+                return redirect()->away($tamaraResponse['web_url']);
+            }
+
+            $errorMessage = $tamaraResponse['error'] ?? 'تعذر توليد رابط التقسيط عبر تمارا، يرجى المحاولة لاحقاً.';
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
@@ -548,8 +663,8 @@ class InvoiceController extends Controller
                     'payment_method'   => 'tabby',
                 ]);
             }
-        } elseif ($orderRef && in_array($status, ['REJECTED', 'EXPIRED'])) {
-            $invoice = Invoice::where('invoice_number', $orderRef)->first();
+        } elseif ($refId && in_array($status, ['REJECTED', 'EXPIRED'])) {
+            $invoice = Invoice::where('invoice_number', $refId)->first();
             if ($invoice && $invoice->isPending()) {
                 $invoice->update(['status' => 'failed']);
             }
@@ -561,57 +676,80 @@ class InvoiceController extends Controller
     /* ── Tamara Payment Callback ── */
     public function tamaraCallback(Request $request)
     {
-        $token   = $request->query('token');
-        $status  = $request->query('status'); // success, cancel, failure
+        $token   = (string) $request->query('token', '');
+        $status  = strtolower((string) ($request->query('status') ?? $request->query('paymentStatus') ?? ''));
         $orderId = $request->query('orderId') ?? $request->query('order_id');
+        $orderId = is_string($orderId) && trim($orderId) !== '' ? trim($orderId) : null;
 
         $invoice = Invoice::where('booking_card_token', $token)->first();
         if (!$invoice) {
             return redirect('/')->with('error', 'فاتورة غير صالحة.');
         }
 
-        if ($status === 'success') {
-            // Verify & authorise order with Tamara API
-            if ($orderId) {
-                $orderInfo   = $this->tamaraService->getOrder($orderId);
-                $orderStatus = strtoupper($orderInfo['data']['status'] ?? '');
+        if ($invoice->isPaid()) {
+            return redirect()->route('booking-card.show', $token)
+                ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
+        }
 
-                if (in_array($orderStatus, ['APPROVED', 'FULLY_CAPTURED', 'PARTIALLY_CAPTURED'])) {
-                    $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
-                    $invoice->update([
-                        'status'           => 'paid',
-                        'amount_paid'      => $totalAmount,
-                        'remaining_amount' => 0.00,
-                        'paid_at'          => now(),
-                        'payment_method'   => 'tamara',
-                    ]);
-
-                    return redirect()->route('booking-card.show', $token)
-                        ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
-                }
-
-                // Try to authorise if pending
-                if ($orderStatus === 'APPROVED' || $orderStatus === 'PENDING') {
-                    $this->tamaraService->authoriseOrder($orderId);
-                }
-            }
-
-            // Fallback: mark as paid if Tamara redirected to success
-            $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
+        if (in_array($status, ['cancel', 'canceled', 'cancelled'], true)) {
             $invoice->update([
-                'status'           => 'paid',
-                'amount_paid'      => $totalAmount,
-                'remaining_amount' => 0.00,
-                'paid_at'          => now(),
-                'payment_method'   => 'tamara',
+                'tamara_order_id' => $orderId ?: $invoice->tamara_order_id,
+                'tamara_status'   => 'canceled',
             ]);
 
             return redirect()->route('booking-card.show', $token)
-                ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
-
-        } elseif ($status === 'cancel') {
-            return redirect()->route('booking-card.show', $token)
                 ->with('warning', 'تم إلغاء عملية التقسيط عبر تمارا. يمكنك المحاولة مجدداً أو اختيار وسيلة دفع أخرى.');
+        }
+
+        if (in_array($status, ['failure', 'declined', 'expired'], true)) {
+            $tamaraStatus = $status === 'failure' ? 'declined' : $status;
+            if ($orderId || $invoice->tamara_order_id) {
+                $lookup = $this->tamaraService->getOrder($orderId ?: $invoice->tamara_order_id);
+                if (!empty($lookup['status'])) {
+                    $tamaraStatus = strtolower((string) $lookup['status']);
+                }
+            }
+
+            $invoice->update([
+                'status'          => 'failed',
+                'tamara_order_id' => $orderId ?: $invoice->tamara_order_id,
+                'tamara_status'   => $tamaraStatus,
+            ]);
+
+            return redirect()->route('booking-card.show', $token)
+                ->with('error', 'تعذر إتمام الدفع عبر تمارا. يرجى المحاولة مجدداً أو اختيار وسيلة دفع أخرى.');
+        }
+
+        if (in_array($status, ['success', 'approved'], true)) {
+            $result = $this->tamaraService->verifyOrderPayment($invoice, $orderId);
+
+            if ($result['paid']) {
+                $this->markInvoicePaidViaTamara($invoice, $result['order_id'], $result['status']);
+
+                return redirect()->route('booking-card.show', $token)
+                    ->with('success', '✅ تم إتمام الدفع بالتقسيط عبر تمارا (Tamara) بنجاح! تم تأكيد حجزك.');
+            }
+
+            if ($result['failed']) {
+                $invoice->update([
+                    'status'          => 'failed',
+                    'tamara_order_id' => $result['order_id'] ?: $invoice->tamara_order_id,
+                    'tamara_status'   => $result['status'] ?? 'declined',
+                ]);
+
+                return redirect()->route('booking-card.show', $token)
+                    ->with('error', '❌ لم تتم الموافقة على الطلب لدى تمارا. يرجى اختيار وسيلة دفع أخرى.');
+            }
+
+            if (!empty($result['status']) || !empty($result['order_id'])) {
+                $invoice->update([
+                    'tamara_order_id' => $result['order_id'] ?: $invoice->tamara_order_id,
+                    'tamara_status'   => $result['status'] ?? $invoice->tamara_status,
+                ]);
+            }
+
+            return redirect()->route('booking-card.show', $token)
+                ->with('warning', '⏳ عملية الدفع قيد التحقق لدى تمارا. يرجى الانتظار لحظات وتحديث الصفحة أو التواصل معنا.');
         }
 
         return redirect()->route('booking-card.show', $token)
@@ -621,42 +759,151 @@ class InvoiceController extends Controller
     /* ── Tamara Webhook ── */
     public function tamaraWebhook(Request $request)
     {
-        $payload = $request->all();
-        \Illuminate\Support\Facades\Log::info('Tamara Webhook received', $payload);
+        if (!$this->tamaraService->verifyWebhookRequest($request)) {
+            \Illuminate\Support\Facades\Log::warning('Tamara Webhook rejected: invalid or missing verification token', [
+                'ip'         => $request->ip(),
+                'event_type' => $request->input('event_type'),
+                'order_id'   => $request->input('order_id'),
+            ]);
 
-        // Verify notification token
-        $notifyToken = $request->header('X-Tamara-Signature') ?? $request->header('Authorization', '');
-        // Basic logging — full HMAC verification can be added later
-        
-        $eventType = $payload['event_type'] ?? '';
-        $orderRef  = $payload['order_reference_id'] ?? null;
-        $orderId   = $payload['order_id'] ?? null;
-        $status    = strtoupper($payload['order_status'] ?? '');
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        if ($orderRef && in_array($eventType, ['order_approved', 'order_captured'])) {
-            $invoice = Invoice::where('invoice_number', $orderRef)->first();
-            if ($invoice && !$invoice->isPaid()) {
-                // Optionally authorise order
-                if ($orderId && $status === 'APPROVED') {
-                    $this->tamaraService->authoriseOrder($orderId);
+        $safePayload = $request->only([
+            'event_type',
+            'order_id',
+            'order_reference_id',
+            'order_number',
+            'order_status',
+        ]);
+        \Illuminate\Support\Facades\Log::info('Tamara Webhook received', $safePayload);
+
+        $eventType   = strtolower((string) ($safePayload['event_type'] ?? ''));
+        $orderRef    = $safePayload['order_reference_id'] ?? null;
+        $orderNumber = $safePayload['order_number'] ?? null;
+        $orderId     = $safePayload['order_id'] ?? null;
+        $orderStatus = strtolower((string) ($safePayload['order_status'] ?? $request->input('data.status', '')));
+
+        $invoice = $this->findInvoiceForTamaraWebhook(
+            is_string($orderId) ? $orderId : null,
+            is_string($orderRef) ? $orderRef : null,
+            is_string($orderNumber) ? $orderNumber : null
+        );
+
+        if (!$invoice) {
+            \Illuminate\Support\Facades\Log::info('Tamara Webhook ignored: matching invoice not found', $safePayload);
+            return response()->json(['status' => 'ignored']);
+        }
+
+        $successEvents   = ['order_approved', 'order_authorised', 'order_captured'];
+        $successStatuses = ['approved', 'authorised', 'fully_captured', 'partially_captured'];
+        $failureEvents   = ['order_declined', 'order_expired', 'order_canceled', 'order_cancelled'];
+        $failureStatuses = ['declined', 'expired', 'canceled', 'cancelled'];
+
+        if (in_array($eventType, $successEvents, true) || in_array($orderStatus, $successStatuses, true)) {
+            if ($invoice->isPaid()) {
+                if ($orderStatus !== '' || $eventType === 'order_captured') {
+                    $invoice->update([
+                        'tamara_order_id' => $orderId ?: $invoice->tamara_order_id,
+                        'tamara_status'   => $eventType === 'order_captured' ? 'fully_captured' : ($orderStatus ?: $invoice->tamara_status),
+                    ]);
                 }
 
-                $totalAmount = (float) ($invoice->total_payable ?: $invoice->base_amount);
+                return response()->json(['status' => 'ok']);
+            }
+
+            $result = $this->tamaraService->verifyOrderPayment($invoice, is_string($orderId) ? $orderId : null);
+
+            if ($result['paid']) {
+                $this->markInvoicePaidViaTamara($invoice, $result['order_id'], $result['status']);
+            } elseif ($result['failed']) {
                 $invoice->update([
-                    'status'           => 'paid',
-                    'amount_paid'      => $totalAmount,
-                    'remaining_amount' => 0.00,
-                    'paid_at'          => now(),
-                    'payment_method'   => 'tamara',
+                    'status'          => 'failed',
+                    'tamara_order_id' => $result['order_id'] ?: $invoice->tamara_order_id,
+                    'tamara_status'   => $result['status'] ?? $invoice->tamara_status,
+                ]);
+            } elseif (!empty($result['status']) || !empty($orderId)) {
+                $invoice->update([
+                    'tamara_order_id' => $result['order_id'] ?: ($orderId ?: $invoice->tamara_order_id),
+                    'tamara_status'   => $result['status'] ?? $invoice->tamara_status,
                 ]);
             }
-        } elseif ($orderRef && in_array($status, ['REJECTED', 'EXPIRED'])) {
-            $invoice = Invoice::where('invoice_number', $orderRef)->first();
-            if ($invoice && $invoice->isPending()) {
-                $invoice->update(['status' => 'failed']);
+        } elseif (in_array($eventType, $failureEvents, true) || in_array($orderStatus, $failureStatuses, true)) {
+            if (!$invoice->isPaid()) {
+                $derivedStatus = $orderStatus ?: match ($eventType) {
+                    'order_declined' => 'declined',
+                    'order_expired'  => 'expired',
+                    default          => 'canceled',
+                };
+
+                $invoice->update([
+                    'status'          => 'failed',
+                    'tamara_order_id' => $orderId ?: $invoice->tamara_order_id,
+                    'tamara_status'   => $derivedStatus,
+                ]);
             }
+        } elseif ($eventType === 'order_refunded' || in_array($orderStatus, ['fully_refunded', 'partially_refunded'], true)) {
+            $invoice->update([
+                'tamara_order_id' => $orderId ?: $invoice->tamara_order_id,
+                'tamara_status'   => $orderStatus ?: 'fully_refunded',
+            ]);
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    private function findInvoiceForTamaraWebhook(?string $orderId, ?string $orderRef, ?string $orderNumber): ?Invoice
+    {
+        if (!empty($orderId)) {
+            $byOrderId = Invoice::where('tamara_order_id', $orderId)->first();
+            if ($byOrderId) {
+                return $byOrderId;
+            }
+        }
+
+        if (!empty($orderRef)) {
+            $byRef = Invoice::where('tamara_order_reference_id', $orderRef)
+                ->orWhere('invoice_number', $orderRef)
+                ->first();
+            if ($byRef) {
+                return $byRef;
+            }
+        }
+
+        if (!empty($orderNumber)) {
+            return Invoice::where('invoice_number', $orderNumber)->first();
+        }
+
+        return null;
+    }
+
+    private function markInvoicePaidViaTamara(Invoice $invoice, ?string $orderId = null, ?string $tamaraStatus = null): void
+    {
+        $agreed   = (float) ($invoice->agreed_amount ?? $invoice->amount);
+        $paidNow  = (float) $invoice->amount;
+        $baseAmt  = $invoice->base_amount;
+
+        if ($invoice->payment_method === 'tamara') {
+            $feePct       = (float) $invoice->fee_percentage;
+            $feeAmt       = (float) $invoice->fee_amount;
+            $totalPayable = $invoice->total_payable > 0 ? (float) $invoice->total_payable : round($baseAmt + $feeAmt, 2);
+        } else {
+            $feePct       = Setting::getFeePercentage('tamara');
+            $feeAmt       = $feePct > 0 ? round(($baseAmt * $feePct) / 100, 2) : 0.00;
+            $totalPayable = round($baseAmt + $feeAmt, 2);
+        }
+
+        $invoice->update([
+            'status'           => 'paid',
+            'amount_paid'      => $paidNow,
+            'remaining_amount' => max(0, $agreed - $paidNow),
+            'paid_at'          => $invoice->paid_at ?? now(),
+            'payment_method'   => 'tamara',
+            'fee_percentage'   => $feePct,
+            'fee_amount'       => $feeAmt,
+            'total_payable'    => $totalPayable,
+            'tamara_order_id'  => $orderId ?: $invoice->tamara_order_id,
+            'tamara_status'    => $tamaraStatus ?: ($invoice->tamara_status ?: 'authorised'),
+        ]);
     }
 }

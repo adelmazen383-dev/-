@@ -134,7 +134,7 @@
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">مرن (موصى به)</span>
                         </div>
                         <span class="text-xs font-bold text-slate-900">خيار مرن للعميل</span>
-                        <span class="text-[11px] text-slate-500 mt-0.5">العميل يختار بين Apple Pay أو فيزا أو تابي في كارت الحجز</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">العميل يختار بين Apple Pay أو فيزا أو تابي أو تمارا في كارت الحجز</span>
                     </label>
 
                     <!-- Option 2: Visa / Mada Cards -->
@@ -179,17 +179,18 @@
                         <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tbFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
 
-                    <!-- Option 5: Tamara (قيد التفعيل) -->
-                    <label class="relative flex flex-col p-3 rounded-xl border-2 bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed" id="pm_card_tamara" title="خدمة تمارا قيد التفعيل حالياً لدى بوابة الدفع">
+                    <!-- Option 5: Tamara -->
+                    <label class="relative flex flex-col p-3 rounded-xl border-2 bg-white border-slate-200 hover:border-amber-400 cursor-pointer transition-all has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50/30" id="pm_card_tamara">
                         <div class="flex items-center justify-between mb-1.5">
-                            <input type="radio" name="payment_method" value="tamara" disabled class="text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">⏳ قيد التفعيل</span>
+                            <input type="radio" name="payment_method" value="tamara" {{ old('payment_method') === 'tamara' ? 'checked' : '' }} onchange="calculateRemaining()" class="text-amber-600 focus:ring-amber-500">
+                            @php $tmFee = \App\Models\Setting::getFeePercentage('tamara'); @endphp
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-mono font-bold">+{{ $tmFee }}% رسوم</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-[#ffd5b8] text-[#c25000]">تمارا</span>
-                            <span class="text-xs font-bold text-slate-500">تمارا (قريباً)</span>
+                            <span class="text-xs font-bold text-slate-900">تمارا (4 أقساط)</span>
                         </div>
-                        <span class="text-[11px] text-slate-400 mt-0.5">الخدمة قيد الاعتماد من تيلر</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5">يضاف {{ $tmFee }}% رسوم تقسيط تلقائياً على الرابط</span>
                     </label>
                 </div>
             </div>
@@ -295,7 +296,9 @@
             const gatewayBreakdown = document.getElementById('total_gateway_breakdown');
             if (gatewayBreakdown) {
                 if (feePercent > 0) {
-                    gatewayBreakdown.innerHTML = `<span class="text-amber-900 font-bold">(المطلوب: ${amount.toFixed(2)} + التأمين: ${deposit.toFixed(2)}${methodLabel})</span> &bull; <span class="text-emerald-700 font-bold">4 دفعات: ${installmentAmount} ر.س</span>`;
+                    const isBnpl = selectedMethod === 'tabby' || selectedMethod === 'tamara';
+                    const instHtml = isBnpl ? ` &bull; <span class="text-emerald-700 font-bold">4 دفعات: ${installmentAmount} ر.س</span>` : '';
+                    gatewayBreakdown.innerHTML = `<span class="text-amber-900 font-bold">(المطلوب: ${amount.toFixed(2)} + التأمين: ${deposit.toFixed(2)}${methodLabel})</span>${instHtml}`;
                 } else {
                     gatewayBreakdown.textContent = `(المطلوب: ${amount.toFixed(2)} ر.س + التأمين: ${deposit.toFixed(2)} ر.س)`;
                 }

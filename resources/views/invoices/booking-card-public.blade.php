@@ -628,6 +628,8 @@
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             @if($invoice->isPaid())
                 <span class="status-pill paid">✅ تم السداد</span>
+            @elseif($invoice->status === 'failed')
+                <span class="status-pill" style="background:rgba(239,68,68,0.25); color:#fca5a5; border:1px solid rgba(239,68,68,0.5);">❌ تعثرت المحاولة السابقة</span>
             @elseif($invoice->isPending())
                 <span class="status-pill pending">⏳ {{ number_format($invoice->amount, 0) }} ريال</span>
             @endif
@@ -643,6 +645,22 @@
             </button>
         </div>
     </div>
+
+    @if(session('success'))
+        <div style="width:100%; max-width:720px; margin-bottom:14px; background:#ecfdf5; border:1.5px solid #10b981; color:#065f46; border-radius:12px; padding:12px 16px; font-size:13px; font-weight:700; text-align:center; box-shadow:0 4px 12px rgba(16,185,129,0.15);">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('warning'))
+        <div style="width:100%; max-width:720px; margin-bottom:14px; background:#fffbeb; border:1.5px solid #f59e0b; color:#92400e; border-radius:12px; padding:12px 16px; font-size:13px; font-weight:700; text-align:center; box-shadow:0 4px 12px rgba(245,158,11,0.15);">
+            {{ session('warning') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div style="width:100%; max-width:720px; margin-bottom:14px; background:#fef2f2; border:1.5px solid #ef4444; color:#991b1b; border-radius:12px; padding:12px 16px; font-size:13px; font-weight:700; text-align:center; box-shadow:0 4px 12px rgba(239,68,68,0.15);">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <!-- ===== The Smart Card ===== -->
     <div class="card-container">
@@ -779,18 +797,29 @@
         $tamaraTotal = $base + $tamaraFee;
         $tamaraInstallment = round($tamaraTotal / 4, 2);
 
-        // تمارا معطلة حالياً ومغلقة - الخيارات المتاحة هي تابي، أبل باي، وبطاقات مدى/فيزا
-        $activeMethod = in_array($invoice->payment_method, ['tabby', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
+        $activeMethod = in_array($invoice->payment_method, ['tabby', 'tamara', 'apple_pay', 'standard']) ? $invoice->payment_method : 'apple_pay';
         $activeTotal = match($activeMethod) {
             'standard' => $visaTotal,
             'tabby'    => $tabbyTotal,
+            'tamara'   => $tamaraTotal,
             default    => $appleTotal,
+        };
+        $activeLabel = match($activeMethod) {
+            'standard' => 'بطاقة مدى / فيزا / ماستركارد',
+            'tabby'    => 'تابي (قسمها على 4 دفعات)',
+            'tamara'   => 'تمارا (قسمها على 4 دفعات)',
+            default    => 'Apple Pay',
         };
     @endphp
 
     <!-- ===== Interactive Payment Gateway Selector & Pay CTA ===== -->
-    @if($invoice->isPending())
+    @if($invoice->isPending() || $invoice->status === 'failed')
     <div class="pay-portal-wrapper">
+        @if($invoice->status === 'failed')
+        <div style="margin-bottom:14px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:10px; padding:10px 14px; font-size:12.5px; font-weight:700;">
+            ❌ لم تكتمل محاولة الدفع السابقة. يمكنك إعادة المحاولة أو اختيار وسيلة دفع أخرى أدناه.
+        </div>
+        @endif
         <div class="pay-portal-header">
             <h3>اختر وسيلة الدفع لإتمام الحجز فوراً</h3>
             <p>سداد إلكتروني معتمد ومشفّر بأعلى معايير الأمان البنكي</p>
@@ -853,11 +882,11 @@
                 </div>
             </div>
 
-            <!-- 4. Tamara (قيد التفعيل من تيلر) -->
-            <div class="pay-option-card" id="method-card-tamara" style="opacity:0.45; cursor:not-allowed; pointer-events:none;">
+            <!-- 4. Tamara -->
+            <div class="pay-option-card {{ $activeMethod === 'tamara' ? 'selected' : '' }}" onclick="selectMethod('tamara', 'تمارا (قسمها على 4 دفعات)', '{{ number_format($tamaraTotal, 2) }}')" id="method-card-tamara" style="cursor:pointer;">
                 <div class="pay-option-top">
-                    <div class="pay-option-badge" style="background:#fef3c7; color:#92400e;">⏳ قيد الاعتماد</div>
-                    <div class="pay-option-radio" style="opacity:0.3;"></div>
+                    <div class="pay-option-badge badge-tamara">4 دفعات (+{{ $tamaraPct }}%)</div>
+                    <div class="pay-option-radio"></div>
                 </div>
                 <div class="pay-option-title">
                     <span class="brand-tamara">تمارا</span> <strong>تمارا</strong>
@@ -865,14 +894,14 @@
                 <div class="pay-option-price">{{ number_format($tamaraTotal, 2) }} <small>ر.س</small></div>
                 <div class="pay-option-sub">
                     <strong>{{ number_format($tamaraInstallment, 2) }} ر.س</strong> / شهرياً<br>
-                    <span style="font-size:10px; color:#b45309; font-weight:700;">(تحت التفعيل لدى تمارا)</span>
+                    <span style="font-size:10px; color:#c2410c; font-weight:700;">قسمها على 4 دفعات بدون فوائد</span>
                 </div>
             </div>
         </div>
 
         <div class="pay-portal-action">
             <button type="button" id="pay-submit-btn" onclick="proceedPayment()" class="pay-action-btn">
-                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeMethod === 'standard' ? 'بطاقة مدى / فيزا / ماستركارد' : 'Apple Pay' }}</span> (<span id="selected-method-amount">{{ number_format($activeTotal, 2) }}</span> ر.س)
+                💳 متابعة الدفع عبر <span id="selected-method-label">{{ $activeLabel }}</span> (<span id="selected-method-amount">{{ number_format($activeTotal, 2) }}</span> ر.س)
             </button>
         </div>
     </div>
@@ -917,22 +946,26 @@
             if (amountEl) amountEl.textContent = amount;
         }
 
-        function showBnplAlert(method) {
-            const name = method === 'tabby' ? 'تابي (Tabby)' : 'تمارا (Tamara)';
-            alert('خدمة التقسيط عبر ' + name + ' قيد الاعتماد والتفعيل حالياً لدى البنك.\n\nيرجى اختيار الدفع عبر Apple Pay أو بطاقة مدى / فيزا لإتمام الحجز فوراً.');
-        }
-
         function proceedPayment() {
             const btn = document.getElementById('pay-submit-btn');
             btn.innerHTML = '⏳ جارٍ الانتقال لبوابة الدفع الآمنة...';
             btn.disabled = true;
 
-            // ALL payment methods go through Telr gateway — creates fresh session every time
             const url = '{{ route("booking-card.pay", $invoice->booking_card_token) }}';
             window.location.href = url + '?method=' + encodeURIComponent(currentMethod);
         }
 
-        // BNPL modals removed — all payments route through Telr gateway
+        window.addEventListener('pageshow', function () {
+            const btn = document.getElementById('pay-submit-btn');
+            if (btn && btn.disabled) {
+                btn.disabled = false;
+                const labelEl = document.getElementById('selected-method-label');
+                const amountEl = document.getElementById('selected-method-amount');
+                const lbl = labelEl ? labelEl.textContent : '{{ $activeLabel }}';
+                const amt = amountEl ? amountEl.textContent : '{{ number_format($activeTotal, 2) }}';
+                btn.innerHTML = '💳 متابعة الدفع عبر <span id="selected-method-label">' + lbl + '</span> (<span id="selected-method-amount">' + amt + '</span> ر.س)';
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             const invoiceMethod = '{{ $invoice->payment_method }}';
@@ -949,6 +982,8 @@
 
             if (invoiceMethod === 'tabby') {
                 selectMethod('tabby', 'تابي (قسمها على 4 دفعات)', '{{ number_format($tabbyTotal, 2) }}');
+            } else if (invoiceMethod === 'tamara') {
+                selectMethod('tamara', 'تمارا (قسمها على 4 دفعات)', '{{ number_format($tamaraTotal, 2) }}');
             } else if (invoiceMethod === 'apple_pay') {
                 selectMethod('apple_pay', 'Apple Pay', '{{ number_format($appleTotal, 2) }}');
             } else if (invoiceMethod === 'standard') {
@@ -963,8 +998,7 @@
         });
     </script>
 
-    <!-- Tabby & Tamara Modals removed — all payments now route through Telr gateway -->
-    <!-- When Tabby/Tamara are activated on Telr, they will appear automatically on the checkout page -->
+    <!-- Apple Pay / Mada / Visa / Tabby route via Telr; Tamara connects directly to Tamara API -->
 
     <!-- Download Script with Native Arabic Text Rendering Support -->
     <script>

@@ -10,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Fix status ENUM to include 'signed_by_lessee'
-        DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed_by_lessee', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed_by_lessee', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        }
 
         // 2. Add tourism_license_number column (was missing from migrations)
         if (!Schema::hasColumn('contracts', 'tourism_license_number')) {
@@ -33,12 +35,20 @@ return new class extends Migration
         });
 
         // 5. Make payment_method nullable (no longer in form)
-        DB::statement("ALTER TABLE contracts MODIFY COLUMN payment_method VARCHAR(255) NULL DEFAULT 'cash'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contracts MODIFY COLUMN payment_method VARCHAR(255) NULL DEFAULT 'cash'");
+        } else {
+            Schema::table('contracts', function (Blueprint $table) {
+                $table->string('payment_method')->nullable()->default('cash')->change();
+            });
+        }
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        }
 
         Schema::table('contracts', function (Blueprint $table) {
             $table->dropColumn('tourism_license_number');

@@ -1013,7 +1013,7 @@
                             <div style="margin-top:4px;">
                                 <span style="font-size:13px; font-weight:900; color:#9a3412;">{{ number_format($tamaraTotal, 2) }}</span> <small style="font-size:9.5px;">ر.س</small>
                             </div>
-                            <div style="font-size:9px; color:#9a3412; font-weight:600; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س/ش (+15%)</div>
+                            <div style="font-size:9px; color:#9a3412; font-weight:600; margin-top:2px;">{{ number_format($tamaraInst, 2) }} ر.س/ش (+{{ $tamaraPct }}%)</div>
                         </a>
                     </div>
                 </div>

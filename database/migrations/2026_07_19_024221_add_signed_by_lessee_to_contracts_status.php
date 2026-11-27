@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,7 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed_by_lessee', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed_by_lessee', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        } else {
+            Schema::table('contracts', function (Blueprint $table) {
+                $table->string('status', 30)->default('draft')->change();
+            });
+        }
     }
 
     /**
@@ -18,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE contracts MODIFY COLUMN status ENUM('draft', 'sent', 'viewed', 'signed', 'rejected', 'cancelled') DEFAULT 'draft'");
+        }
     }
 };

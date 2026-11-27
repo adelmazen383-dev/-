@@ -38,6 +38,10 @@ class Invoice extends Model
         'telr_transaction_url',
         'tabby_url',
         'tamara_url',
+        'tamara_order_id',
+        'tamara_checkout_id',
+        'tamara_order_reference_id',
+        'tamara_status',
         'booking_card_token',
         'notes',
         'paid_at',
@@ -121,6 +125,22 @@ class Invoice extends Model
         };
     }
 
+    public function tamaraStatusLabel(): string
+    {
+        return match (strtolower((string) $this->tamara_status)) {
+            'new'                => 'بانتظار إتمام العميل (New)',
+            'approved'           => 'تمت الموافقة المبدئية (Approved)',
+            'authorised'         => 'مؤكد ومعتمد (Authorised)',
+            'fully_captured'     => 'تم التحصيل بالكامل (Captured)',
+            'partially_captured' => 'تم التحصيل جزئياً (Partially Captured)',
+            'declined'           => 'مرفوض (Declined)',
+            'expired'            => 'منتهي الصلاحية (Expired)',
+            'canceled', 'cancelled' => 'ملغي (Canceled)',
+            'fully_refunded', 'partially_refunded' => 'مسترد (Refunded)',
+            default              => $this->tamara_status ?: 'غير محدد',
+        };
+    }
+
     /* ── Computed & Payment Helpers ── */
 
     public function getBaseAmountAttribute(): float
@@ -170,7 +190,7 @@ class Invoice extends Model
             'tamara'    => "تمارا (Tamara - رسوم {$tamaraPct}%)",
             'apple_pay' => "Apple Pay (رسوم {$applePct}%)",
             'standard'  => "بطاقة مدى / فيزا / ماستركارد (رسوم {$visaPct}%)",
-            default     => 'الكل (خيار العميل: Apple Pay / مدى / تابي)',
+            default     => 'الكل (خيار العميل: Apple Pay / مدى / تابي / تمارا)',
         };
     }
 

@@ -127,7 +127,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm">تمارا (Tamara - تقسيط 4 دفعات)</h3>
-                                <p class="text-[11px] text-amber-600 font-bold">⏳ قيد الاعتماد والتفعيل لدى تيلر</p>
+                                <p class="text-[11px] text-emerald-600 font-bold">✅ مفعّل ومرتبط مباشرة عبر تمارا (API)</p>
                             </div>
                         </div>
                         <span class="bg-amber-100 text-amber-800 text-[11px] font-black px-2 py-0.5 rounded-md">4 دفعات</span>

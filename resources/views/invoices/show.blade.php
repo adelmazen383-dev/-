@@ -213,7 +213,16 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                             نسخ رابط فيزا المباشر (Telr)
                         </button>
+                    @endif
 
+                    @if($invoice->isPending() && $invoice->tamara_url)
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ $invoice->tamara_url }}').then(() => alert('تم نسخ رابط تمارا المباشر!'))" class="btn btn-ghost btn-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            نسخ رابط تمارا المباشر (Tamara)
+                        </button>
+                    @endif
+
+                    @if(($invoice->isPending() || $invoice->status === 'failed') && ($invoice->telr_order_ref || $invoice->tamara_order_id || $invoice->tamara_order_reference_id))
                         <form method="POST" action="{{ route('invoices.check-status', $invoice) }}" class="inline">
                             @csrf
                             <button type="submit" class="btn btn-indigo btn-sm">
@@ -223,7 +232,15 @@
                         </form>
                     @endif
 
-                    @if($invoice->isPending() && !$invoice->telr_transaction_url)
+                    @if($invoice->isPending() && $invoice->payment_method === 'tamara' && !$invoice->tamara_url)
+                        <form method="POST" action="{{ route('invoices.retry-tamara', $invoice) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="btn btn-indigo btn-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                إعادة توليد رابط تمارا
+                            </button>
+                        </form>
+                    @elseif($invoice->isPending() && $invoice->payment_method !== 'tamara' && !$invoice->telr_transaction_url)
                         <form method="POST" action="{{ route('invoices.retry-telr', $invoice) }}" class="inline">
                             @csrf
                             <button type="submit" class="btn btn-indigo btn-sm">
@@ -244,7 +261,7 @@
                     @endif
 
                     @if($invoice->status === 'failed')
-                        <form method="POST" action="{{ route('invoices.retry-telr', $invoice) }}" class="inline">
+                        <form method="POST" action="{{ $invoice->payment_method === 'tamara' ? route('invoices.retry-tamara', $invoice) : route('invoices.retry-telr', $invoice) }}" class="inline">
                             @csrf
                             <button type="submit" class="btn btn-indigo btn-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -262,16 +279,16 @@
                 </div>
 
                 {{-- Context message --}}
-                @if($invoice->isPending() && $invoice->telr_transaction_url)
+                @if($invoice->isPending() && ($invoice->telr_transaction_url || $invoice->tamara_url))
                 <div class="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
                     <p class="text-sm font-semibold text-amber-700">
                         📤 يمكنك إرسال الكارت الذكي للعميل عبر الواتساب متضمناً رابط السداد، واضغط "التحقق من حالة الدفع" لتحديث الحالة تلقائياً بعد السداد.
                     </p>
                 </div>
-                @elseif($invoice->isPending() && !$invoice->telr_transaction_url)
+                @elseif($invoice->isPending() && !$invoice->telr_transaction_url && !$invoice->tamara_url)
                 <div class="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
                     <p class="text-sm font-semibold text-rose-500">
-                        ⚠️ لم يتم توليد رابط الدفع بعد. تأكد من إعدادات بوابة Telr في ملف .env ثم اضغط "إعادة توليد رابط الدفع".
+                        ⚠️ لم يتم توليد رابط الدفع بعد. تأكد من إعدادات بوابة الدفع في ملف .env ثم اضغط "إعادة توليد رابط الدفع".
                     </p>
                 </div>
                 @elseif($invoice->isPaid())
@@ -289,7 +306,7 @@
             <div class="card">
                 <h3 class="text-slate-800 font-bold mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    بيانات بوابة الدفع (Telr)
+                    بيانات بوابة الدفع (Telr / Tamara)
                 </h3>
                 <div class="space-y-4 text-sm">
                     <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
@@ -319,6 +336,35 @@
                         <a href="{{ $invoice->tabby_url }}" target="_blank" class="text-emerald-600 text-xs underline break-all font-semibold">{{ Str::limit($invoice->tabby_url, 45) }}</a>
                     </div>
                     @endif
+                    @if($invoice->tamara_url || $invoice->tamara_order_id || $invoice->tamara_status)
+                    <div class="p-3 bg-amber-50 rounded-lg border border-amber-200 space-y-2">
+                        <p class="text-amber-900 text-xs font-bold">🟠 تفاصيل جلسة تمارا (Tamara)</p>
+                        @if($invoice->tamara_status)
+                        <div>
+                            <span class="text-[11px] text-amber-700 block">حالة الطلب في تمارا:</span>
+                            <span class="text-xs font-bold text-amber-950">{{ $invoice->tamaraStatusLabel() }}</span>
+                        </div>
+                        @endif
+                        @if($invoice->tamara_order_id)
+                        <div>
+                            <span class="text-[11px] text-amber-700 block">معرف طلب تمارا (Order ID):</span>
+                            <span class="text-[11px] font-mono text-slate-700 break-all">{{ $invoice->tamara_order_id }}</span>
+                        </div>
+                        @endif
+                        @if($invoice->tamara_order_reference_id)
+                        <div>
+                            <span class="text-[11px] text-amber-700 block">المرجع (Reference ID):</span>
+                            <span class="text-[11px] font-mono text-slate-700 break-all">{{ $invoice->tamara_order_reference_id }}</span>
+                        </div>
+                        @endif
+                        @if($invoice->tamara_url)
+                        <div>
+                            <span class="text-[11px] text-amber-700 block">رابط تمارا المباشر:</span>
+                            <a href="{{ $invoice->tamara_url }}" target="_blank" class="text-amber-700 text-xs underline break-all font-semibold">{{ Str::limit($invoice->tamara_url, 45) }}</a>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
                     <div>
                         <p class="text-slate-500 text-xs font-bold mb-1">رمز الكارت الذكي (Token)</p>
                         <p class="text-slate-500 font-mono text-[11px] break-all">{{ $invoice->booking_card_token }}</p>
@@ -328,7 +374,7 @@
                     <div class="pt-3 border-t border-slate-100">
                         <button type="button" onclick="document.getElementById('manual-link-form').classList.toggle('hidden')" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            {{ $invoice->telr_transaction_url || $invoice->tabby_url ? 'تعديل روابط وإعدادات الدفع يدوياً' : 'إدخال روابط دفع يدوياً' }}
+                            {{ $invoice->telr_transaction_url || $invoice->tabby_url || $invoice->tamara_url ? 'تعديل روابط وإعدادات الدفع يدوياً' : 'إدخال روابط دفع يدوياً' }}
                         </button>
                         <form id="manual-link-form" method="POST" action="{{ route('invoices.update-payment-link', $invoice) }}" class="hidden mt-3 space-y-2">
                             @csrf
@@ -339,7 +385,7 @@
                                     <option value="standard" {{ $invoice->payment_method === 'standard' ? 'selected' : '' }}>مدى / فيزا (+{{ \App\Models\Setting::getFeePercentage('standard') }}% رسوم)</option>
                                     <option value="apple_pay" {{ $invoice->payment_method === 'apple_pay' ? 'selected' : '' }}>Apple Pay (+{{ \App\Models\Setting::getFeePercentage('apple_pay') }}% رسوم)</option>
                                     <option value="tabby" {{ $invoice->payment_method === 'tabby' ? 'selected' : '' }}>تابي Tabby (+{{ \App\Models\Setting::getFeePercentage('tabby') }}% رسوم تقسيط)</option>
-                                    <option value="tamara" disabled class="text-slate-400">تمارا Tamara (قيد التفعيل)</option>
+                                    <option value="tamara" {{ $invoice->payment_method === 'tamara' ? 'selected' : '' }}>تمارا Tamara (+{{ \App\Models\Setting::getFeePercentage('tamara') }}% رسوم تقسيط)</option>
                                 </select>
                             </div>
                             <div>
