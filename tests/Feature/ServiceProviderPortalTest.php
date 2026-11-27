@@ -547,4 +547,127 @@ class ServiceProviderPortalTest extends TestCase
             ->assertSee('دفع جزئي')
             ->assertSee('300.00');
     }
+
+    public function test_uploaded_images_and_pdfs_stream_inline_with_exact_mime_headers_and_download_mode(): void
+    {
+        $admin = $this->createAdmin();
+
+        // Register provider with BOTH a real PNG image AND a valid PDF file
+        $pdfBytes = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n";
+        $pdfFile  = UploadedFile::fake()->createWithContent('tourism_license.pdf', $pdfBytes);
+        $imgFile  = UploadedFile::fake()->image('national_id.png', 300, 200);
+
+        $this->post(route('provider.register.submit'), [
+            'name'                  => 'نواف العتيبي',
+            'business_name'         => 'أجنحة نواف',
+            'email'                 => 'pdf-img@example.com',
+            'phone'                 => '0557770001',
+            'service_type'          => 'serviced_suites',
+            'property_kind'         => 'جناح فندقي',
+            'service_description'   => 'أجنحة فندقية مخدومة بالكامل في جدة',
+            'bank_name'             => 'الراجحي',
+            'bank_account_name'     => 'نواف العتيبي',
+            'iban'                  => 'SA0380000000608010167519',
+            'bank_owner_confirmed'  => '1',
+            'password'              => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+            'national_id_front'     => $imgFile,
+            'national_id_back'      => UploadedFile::fake()->image('id_back.jpg', 300, 200),
+            'tourism_license'       => $pdfFile,
+        ])->assertRedirect(route('provider.dashboard'));
+
+        $provider = ServiceProvider::where('email', 'pdf-img@example.com')->firstOrFail();
+
+        // Admin views PNG image inline -> exact image/png + inline disposition
+        $imgRes = $this->actingAs($admin, 'web')
+            ->get(route('admin.providers.document', [$provider, 'national_id_front']));
+        $imgRes->assertOk();
+        $this->assertStringContainsString('image/png', (string) $imgRes->headers->get('Content-Type'));
+        $this->assertStringContainsString('inline', (string) $imgRes->headers->get('Content-Disposition'));
+
+        // Admin views PDF inline -> exact application/pdf + inline disposition + Accept-Ranges
+        $pdfRes = $this->actingAs($admin, 'web')
+            ->get(route('admin.providers.document', [$provider, 'tourism_license']));
+        $pdfRes->assertOk();
+        $this->assertStringContainsString('application/pdf', (string) $pdfRes->headers->get('Content-Type'));
+        $this->assertStringContainsString('inline', (string) $pdfRes->headers->get('Content-Disposition'));
+        $this->assertSame('bytes', $pdfRes->headers->get('Accept-Ranges'));
+
+        // Download mode (?download=1) -> attachment disposition
+        $dlRes = $this->actingAs($admin, 'web')
+            ->get(route('admin.providers.document', [$provider, 'tourism_license']) . '?download=1');
+        $dlRes->assertOk();
+        $this->assertStringContainsString('attachment', (string) $dlRes->headers->get('Content-Disposition'));
+
+        // Also test PDF quote attachment on an invoice
+        $provider->update([
+            'subscription_status'    => 'active',
+            'subscription_starts_at' => now(),
+            'subscription_ends_at'   => now()->addMonth(),
+        ]);
+
+        $this->actingAs($provider, 'provider')->post(route('provider.invoices.store'), [
+            'customer_name'    => 'ماجد السبيعي',
+            'customer_phone'   => '0553334445',
+            'title'            => 'حجز جناح VIP',
+            'agreed_amount'    => 1000,
+            'amount'           => 1000,
+            'quote_attachment' => UploadedFile::fake()->createWithContent('quote.pdf', $pdfBytes),
+        ])->assertRedirect();
+
+        $inv = $provider->invoices()->firstOrFail();
+
+        $quotePdfRes = $this->get(route('provider-pay.attachment', $inv->public_token));
+        $quotePdfRes->assertOk();
+        $this->assertStringContainsString('application/pdf', (string) $quotePdfRes->headers->get('Content-Type'));
+        $this->assertStringContainsString('inline', (string) $quotePdfRes->headers->get('Content-Disposition'));
+    }
+
+    public function test_seo_landing_page_sitemap_xml_structured_data_and_private_noindex(): void
+    {
+        // Public SEO landing page (/providers)
+        $this->get(route('provider.landing'))
+            ->assertOk()
+            ->assertSee('rel="canonical"', false)
+            ->assertSee('application/ld+json', false)
+            ->assertSee('FAQPage', false)
+            ->assertSee('og:title', false)
+            ->assertSee('بوابة مقدمي الخدمات');
+
+        // Homepage SEO + JSON-LD
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('rel="canonical"', false)
+            ->assertSee('application/ld+json', false)
+            ->assertSee('og:site_name', false);
+
+        // Dynamic XML Sitemap
+        $sitemap = $this->get(route('seo.sitemap'));
+        $sitemap->assertOk();
+        $this->assertStringContainsString('application/xml', (string) $sitemap->headers->get('Content-Type'));
+        $sitemap->assertSee('/providers', false)
+            ->assertSee('/provider/register', false)
+            ->assertSee('<urlset', false);
+
+        // Private OTP & customer payment pages MUST be noindex, nofollow
+        $this->get(route('provider.password.request'))
+            ->assertOk()
+            ->assertSee('noindex, nofollow', false);
+
+        $provider = $this->createProvider();
+        $inv = ProviderInvoice::create([
+            'service_provider_id' => $provider->id,
+            'service_type'        => 'coordination',
+            'customer_name'       => 'عميل خاص',
+            'customer_phone'      => '0550009999',
+            'title'               => 'فاتورة خاصة',
+            'amount'              => 300,
+            'total_payable'       => 300,
+            'status'              => 'pending',
+        ]);
+
+        $this->get(route('provider-pay.show', $inv->public_token))
+            ->assertOk()
+            ->assertSee('noindex, nofollow', false);
+    }
 }

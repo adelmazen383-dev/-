@@ -63,13 +63,36 @@
                             لم يتم رفع وثائق مرفقة بعد.
                         </p>
                     @else
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @foreach($docs as $docKey => $docInfo)
-                                <a href="{{ route('admin.providers.document', [$provider, $docKey]) }}" target="_blank"
-                                   class="flex items-center justify-between gap-2 p-3 rounded-xl bg-sky-50 border border-sky-200 hover:bg-sky-100 transition">
-                                    <span class="text-xs font-extrabold text-sky-950">📎 {{ $docInfo['label'] }}</span>
-                                    <span class="text-[11px] font-bold text-sky-700 shrink-0">معاينة ↗</span>
-                                </a>
+                                @php $docUrl = route('admin.providers.document', [$provider, $docKey]); @endphp
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex flex-col">
+                                    @if(!empty($docInfo['is_image']))
+                                        <a href="{{ $docUrl }}" target="_blank" class="block bg-slate-900/5 h-36 overflow-hidden">
+                                            <img src="{{ $docUrl }}" alt="{{ $docInfo['label'] }}" loading="lazy"
+                                                 class="w-full h-full object-cover hover:scale-105 transition duration-200">
+                                        </a>
+                                    @else
+                                        <a href="{{ $docUrl }}" target="_blank"
+                                           class="h-28 bg-gradient-to-br from-rose-50 to-amber-50 flex flex-col items-center justify-center gap-1 border-b border-slate-200 hover:bg-rose-100/60 transition">
+                                            <span class="text-3xl">📄</span>
+                                            <span class="text-[11px] font-black text-rose-800">ملف PDF جاهز للعرض</span>
+                                        </a>
+                                    @endif
+                                    <div class="p-3 flex items-center justify-between gap-2 bg-white">
+                                        <span class="text-xs font-extrabold text-slate-800 truncate">{{ $docInfo['label'] }}</span>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <a href="{{ $docUrl }}" target="_blank"
+                                               class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 text-[11px] font-bold">
+                                                فتح ↗
+                                            </a>
+                                            <a href="{{ $docUrl }}?download=1"
+                                               class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-[11px] font-bold">
+                                                تحميل ⬇
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     @endif

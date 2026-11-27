@@ -4,7 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'بوابة مقدمي الخدمات' }} | منصة الفواتير المستقلة</title>
+    <meta name="theme-color" content="#141311">
+    <title>{{ $title ?? 'بوابة مقدمي الخدمات' }} | منصة ثقة</title>
+    <meta name="description" content="{{ $metaDescription ?? 'بوابة مقدمي الخدمات في منصة ثقة — سجّل الآن لإصدار فواتير إلكترونية وتحصيل مدفوعات عملائك عبر Apple Pay ومدى وفيزا وتابي وتمارا في السعودية.' }}">
+    <meta name="keywords" content="منصة ثقة, بوابة مقدمي الخدمات, تسجيل مقدم خدمة, فواتير إلكترونية, تابي, تمارا, Apple Pay, مدى">
+    <meta name="robots" content="{{ $metaRobots ?? 'index, follow, max-image-preview:large' }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ar_SA">
+    <meta property="og:site_name" content="منصة ثقة">
+    <meta property="og:title" content="{{ $title ?? 'بوابة مقدمي الخدمات' }} | منصة ثقة">
+    <meta property="og:description" content="{{ $metaDescription ?? 'نظام مستقل لمقدمي الخدمات في السعودية لإصدار الفواتير الإلكترونية وتحصيل المدفوعات وإدارة المحفظة.' }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $title ?? 'بوابة مقدمي الخدمات' }} | منصة ثقة">
+    <meta name="twitter:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">

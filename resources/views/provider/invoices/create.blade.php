@@ -351,6 +351,35 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => recalcFinancials(false));
+    document.addEventListener('DOMContentLoaded', function () {
+        recalcFinancials(false);
+
+        const qInput = document.querySelector('input[name="quote_attachment"]');
+        if (qInput) {
+            const box = document.createElement('div');
+            box.className = 'mt-2 hidden';
+            qInput.insertAdjacentElement('afterend', box);
+
+            qInput.addEventListener('change', function () {
+                box.innerHTML = '';
+                const file = qInput.files && qInput.files[0];
+                if (!file) { box.classList.add('hidden'); return; }
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                if (file.size > 5 * 1024 * 1024) {
+                    box.classList.remove('hidden');
+                    box.innerHTML = '<div class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">⚠️ حجم الملف (' + sizeMb + ' MB) يتجاوز 5 MB.</div>';
+                    qInput.value = '';
+                    return;
+                }
+                const blobUrl = URL.createObjectURL(file);
+                box.classList.remove('hidden');
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    box.innerHTML = '<div class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"><span class="font-bold text-slate-700 truncate">📄 ' + file.name + ' (' + sizeMb + ' MB)</span><a href="' + blobUrl + '" target="_blank" class="font-extrabold text-indigo-700 underline shrink-0">معاينة PDF ↗</a></div>';
+                } else if (file.type.startsWith('image/')) {
+                    box.innerHTML = '<div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-2"><img src="' + blobUrl + '" alt="preview" class="w-16 h-16 rounded-lg object-cover border shrink-0"><div class="text-xs min-w-0"><div class="font-bold text-emerald-700">✅ صورة عرض السعر جاهزة</div><div class="text-slate-500 truncate">' + file.name + ' (' + sizeMb + ' MB)</div></div></div>';
+                }
+            });
+        }
+    });
 </script>
 @endpush

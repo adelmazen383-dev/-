@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Provider;
 use App\Enums\ProviderServiceType;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceProvider;
+use App\Services\ProviderDocumentService;
 use App\Services\ProviderOtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -193,7 +194,7 @@ class AuthController extends Controller
         ];
         foreach ($fileMap as $inputName => $columnName) {
             if ($request->hasFile($inputName)) {
-                $docPaths[$columnName] = $request->file($inputName)->store($docDir, 'local');
+                $docPaths[$columnName] = ProviderDocumentService::store($request->file($inputName), $docDir, $inputName);
             }
         }
         if (!empty($docPaths)) {

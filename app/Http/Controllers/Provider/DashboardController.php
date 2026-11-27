@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Provider;
 use App\Enums\ProviderServiceType;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceProvider;
+use App\Services\ProviderDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -115,7 +116,7 @@ class DashboardController extends Controller
                 if (!empty($provider->{$col}) && Storage::disk('local')->exists($provider->{$col})) {
                     Storage::disk('local')->delete($provider->{$col});
                 }
-                $updates[$col] = $request->file($inputName)->store($docDir, 'local');
+                $updates[$col] = ProviderDocumentService::store($request->file($inputName), $docDir, $inputName);
             }
         }
 
@@ -124,17 +125,17 @@ class DashboardController extends Controller
         return back()->with('success', '✅ تم تحديث بياناتك ووثائقك وبيانات التحويل البنكي بنجاح.');
     }
 
-    public function downloadDocument(string $docKey)
+    public function downloadDocument(Request $request, string $docKey)
     {
         /** @var ServiceProvider $provider */
         $provider = Auth::guard('provider')->user();
         $path = $provider->documentPathForKey($docKey);
 
-        if (!$path || !Storage::disk('local')->exists($path)) {
+        if (!$path) {
             abort(404, 'المستند غير موجود.');
         }
 
-        return Storage::disk('local')->response($path);
+        return ProviderDocumentService::streamResponse($path, $request, "provider_{$provider->id}_{$docKey}");
     }
 
     public function updatePassword(Request $request)

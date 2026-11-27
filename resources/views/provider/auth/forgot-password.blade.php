@@ -1,4 +1,4 @@
-@extends('layouts.provider-guest', ['title' => 'استعادة كلمة المرور (OTP)'])
+@extends('layouts.provider-guest', ['title' => 'استعادة كلمة المرور (OTP)', 'metaRobots' => 'noindex, nofollow'])
 
 @section('content')
     <div class="mb-5">

@@ -142,11 +142,36 @@
                 @endif
 
                 @if($invoice->quote_attachment_path && $attachmentUrl)
-                    <a href="{{ $attachmentUrl }}" target="_blank"
-                       class="flex items-center justify-between gap-2 rounded-xl bg-amber-50/70 border border-amber-200 px-4 py-3 text-xs font-extrabold text-amber-950 hover:bg-amber-100/70 transition">
-                        <span>📎 صورة الفاتورة / عرض السعر المرفق</span>
-                        <span class="text-amber-800">عرض المرفق ↗</span>
-                    </a>
+                    @php
+                        $attachIsImage = \App\Services\ProviderDocumentService::isImage($invoice->quote_attachment_path);
+                    @endphp
+                    <div class="rounded-xl border border-amber-200 bg-amber-50/50 overflow-hidden">
+                        <div class="px-4 py-2.5 flex items-center justify-between gap-2 border-b border-amber-200/70">
+                            <span class="text-xs font-extrabold text-amber-950">
+                                {{ $attachIsImage ? '🖼️ صورة الفاتورة / عرض السعر المرفق' : '📄 ملف الفاتورة / عرض السعر المرفق (PDF)' }}
+                            </span>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a href="{{ $attachmentUrl }}" target="_blank"
+                                   class="px-2.5 py-1 rounded-lg bg-[#141311] text-[#e5cfa0] text-[11px] font-bold">
+                                    فتح كامل ↗
+                                </a>
+                                <a href="{{ $attachmentUrl }}?download=1"
+                                   class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-950 text-[11px] font-bold">
+                                    تحميل ⬇
+                                </a>
+                            </div>
+                        </div>
+                        @if($attachIsImage)
+                            <a href="{{ $attachmentUrl }}" target="_blank" class="block p-3 bg-white text-center">
+                                <img src="{{ $attachmentUrl }}" alt="عرض السعر المرفق" loading="lazy"
+                                     class="max-h-72 mx-auto rounded-lg object-contain border border-slate-100">
+                            </a>
+                        @else
+                            <div class="px-4 py-3 bg-white flex items-center justify-between gap-3 text-xs">
+                                <span class="text-slate-600 font-semibold">اضغط «فتح كامل» لعرض ملف PDF مباشرة على جهازك أو «تحميل» لحفظه.</span>
+                            </div>
+                        @endif
+                    </div>
                 @endif
             </div>
         @endif

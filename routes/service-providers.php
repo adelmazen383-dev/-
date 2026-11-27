@@ -13,6 +13,36 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// ─── 0. Public SEO Landing Page & Dynamic XML Sitemap ───
+Route::get('/providers', fn () => view('provider.landing'))->name('provider.landing');
+
+Route::get('/sitemap.xml', function () {
+    $lastmod = now()->toAtomString();
+    $urls = [
+        ['loc' => url('/'),                  'changefreq' => 'weekly',  'priority' => '1.0'],
+        ['loc' => url('/providers'),         'changefreq' => 'weekly',  'priority' => '0.9'],
+        ['loc' => url('/provider/register'), 'changefreq' => 'monthly', 'priority' => '0.8'],
+        ['loc' => url('/provider/login'),    'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['loc' => url('/terms'),             'changefreq' => 'yearly',  'priority' => '0.4'],
+        ['loc' => url('/privacy'),           'changefreq' => 'yearly',  'priority' => '0.4'],
+        ['loc' => url('/refund-policy'),     'changefreq' => 'yearly',  'priority' => '0.4'],
+    ];
+
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    foreach ($urls as $u) {
+        $xml .= "  <url>\n";
+        $xml .= '    <loc>' . e($u['loc']) . "</loc>\n";
+        $xml .= '    <lastmod>' . $lastmod . "</lastmod>\n";
+        $xml .= '    <changefreq>' . $u['changefreq'] . "</changefreq>\n";
+        $xml .= '    <priority>' . $u['priority'] . "</priority>\n";
+        $xml .= "  </url>\n";
+    }
+    $xml .= "</urlset>\n";
+
+    return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('seo.sitemap');
+
 // ─── 1. Public Customer Payment Portal for Service Provider Invoices ───
 Route::prefix('p-pay')->name('provider-pay.')->middleware('throttle:30,1')->group(function () {
     Route::get('/telr/callback', [ProviderPublicPaymentController::class, 'telrCallback'])->name('telr.callback');

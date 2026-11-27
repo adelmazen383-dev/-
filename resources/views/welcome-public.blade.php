@@ -4,9 +4,41 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <meta name="theme-color" content="#064e3b">
-    <title>ثقة | منصة توثيق العقود وإدارة الحجوزات</title>
-    <meta name="description" content="منصة ثقة لتوثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية - حلول دفع إلكتروني آمنة">
-    <meta name="keywords" content="توثيق عقود, إدارة حجوزات, وحدات سكنية, فندقية, دفع إلكتروني, Apple Pay, Visa, Mada, تابي, تمارا">
+    <title>ثقة | منصة توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات</title>
+    <meta name="description" content="منصة ثقة لتوثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية، وبوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وفيزا وتابي وتمارا في السعودية.">
+    <meta name="keywords" content="منصة ثقة, توثيق عقود, إدارة حجوزات, وحدات سكنية, أجنحة فندقية, بوابة مقدمي الخدمات, فواتير إلكترونية, دفع إلكتروني, Apple Pay, Visa, Mada, تابي, تمارا">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <link rel="canonical" href="{{ url('/') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ar_SA">
+    <meta property="og:site_name" content="منصة ثقة">
+    <meta property="og:title" content="ثقة | منصة توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات">
+    <meta property="og:description" content="منصة رقمية متكاملة في السعودية لتوثيق عقود الإيجار وإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وتابي وتمارا.">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="منصة ثقة | توثيق العقود والفواتير الإلكترونية">
+    <meta name="twitter:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
+    @php
+        $homeSchema = [
+            '@context' => 'https://schema.org',
+            '@graph'   => [
+                [
+                    '@type' => 'Organization',
+                    'name'  => 'منصة ثقة',
+                    'url'   => url('/'),
+                    'logo'  => asset('images/thiqa-gold-logo.png'),
+                ],
+                [
+                    '@type'      => 'WebSite',
+                    'name'       => 'منصة ثقة',
+                    'url'        => url('/'),
+                    'inLanguage' => 'ar-SA',
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($homeSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">

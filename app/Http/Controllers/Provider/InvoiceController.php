@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Provider;
 use App\Http\Controllers\Controller;
 use App\Models\ProviderInvoice;
 use App\Models\ServiceProvider;
+use App\Services\ProviderDocumentService;
 use App\Services\ProviderPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -136,7 +136,11 @@ class InvoiceController extends Controller
         ]);
 
         if ($request->hasFile('quote_attachment')) {
-            $path = $request->file('quote_attachment')->store("provider-invoice-attachments/{$provider->id}", 'local');
+            $path = ProviderDocumentService::store(
+                $request->file('quote_attachment'),
+                "provider-invoice-attachments/{$provider->id}",
+                'quote_' . $invoice->id
+            );
             $invoice->update(['quote_attachment_path' => $path]);
         }
 
@@ -144,17 +148,17 @@ class InvoiceController extends Controller
             ->with('success', '✅ تم إنشاء الفاتورة رقم ' . $invoice->invoice_number . ' بنجاح! شارك رابط الدفع مع العميل الآن.');
     }
 
-    public function downloadAttachment(ProviderInvoice $invoice)
+    public function downloadAttachment(Request $request, ProviderInvoice $invoice)
     {
         /** @var ServiceProvider $provider */
         $provider = Auth::guard('provider')->user();
         abort_unless($invoice->service_provider_id === $provider->id, 403);
 
-        if (!$invoice->quote_attachment_path || !Storage::disk('local')->exists($invoice->quote_attachment_path)) {
+        if (!$invoice->quote_attachment_path) {
             abort(404);
         }
 
-        return Storage::disk('local')->response($invoice->quote_attachment_path);
+        return ProviderDocumentService::streamResponse($invoice->quote_attachment_path, $request, "invoice_{$invoice->invoice_number}_attachment");
     }
 
     public function show(ProviderInvoice $invoice)

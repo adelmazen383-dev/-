@@ -1,4 +1,4 @@
-@extends('layouts.provider-guest', ['title' => 'تأكيد رمز OTP وتعيين كلمة مرور جديدة'])
+@extends('layouts.provider-guest', ['title' => 'تأكيد رمز OTP وتعيين كلمة مرور جديدة', 'metaRobots' => 'noindex, nofollow'])
 
 @section('content')
     <div class="mb-5">

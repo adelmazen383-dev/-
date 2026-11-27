@@ -161,6 +161,8 @@ class ServiceProvider extends Authenticatable
         $out = [];
         foreach ($map as $key => $info) {
             if (!empty($info['path'])) {
+                $info['is_image'] = \App\Services\ProviderDocumentService::isImage($info['path']);
+                $info['is_pdf']   = \App\Services\ProviderDocumentService::isPdf($info['path']);
                 $out[$key] = $info;
             }
         }

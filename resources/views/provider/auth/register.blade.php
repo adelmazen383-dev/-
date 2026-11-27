@@ -326,6 +326,40 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', updateServiceRequirements);
+    document.addEventListener('DOMContentLoaded', function () {
+        updateServiceRequirements();
+
+        // Live instant preview for all uploaded images & PDFs
+        document.querySelectorAll('input[type="file"]').forEach(function (input) {
+            const previewBox = document.createElement('div');
+            previewBox.className = 'mt-2 hidden';
+            input.insertAdjacentElement('afterend', previewBox);
+
+            input.addEventListener('change', function () {
+                previewBox.innerHTML = '';
+                const file = input.files && input.files[0];
+                if (!file) {
+                    previewBox.classList.add('hidden');
+                    return;
+                }
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                if (file.size > 5 * 1024 * 1024) {
+                    previewBox.classList.remove('hidden');
+                    previewBox.innerHTML = '<div class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5">⚠️ حجم الملف (' + sizeMb + ' MB) يتجاوز الحد المسموح (5 MB). يرجى اختيار ملف أصغر.</div>';
+                    input.value = '';
+                    return;
+                }
+
+                const blobUrl = URL.createObjectURL(file);
+                previewBox.classList.remove('hidden');
+
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    previewBox.innerHTML = '<div class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-lg px-2.5 py-2 text-xs"><span class="font-bold text-slate-700 truncate">📄 ' + file.name + ' (' + sizeMb + ' MB)</span><a href="' + blobUrl + '" target="_blank" class="font-extrabold text-indigo-700 shrink-0 underline">معاينة PDF ↗</a></div>';
+                } else if (file.type.startsWith('image/')) {
+                    previewBox.innerHTML = '<div class="flex items-center gap-2.5 bg-white border border-slate-200 rounded-lg p-2"><img src="' + blobUrl + '" alt="preview" class="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0"><div class="min-w-0 text-xs"><div class="font-bold text-emerald-700">✅ الصورة جاهزة للرفع</div><div class="text-slate-500 truncate">' + file.name + ' (' + sizeMb + ' MB)</div></div></div>';
+                }
+            });
+        });
+    });
 </script>
 @endpush

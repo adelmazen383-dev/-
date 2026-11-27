@@ -8,6 +8,7 @@ use App\Models\ProviderInvoice;
 use App\Models\ProviderWalletTransaction;
 use App\Models\ServiceProvider;
 use App\Services\MailConfigService;
+use App\Services\ProviderDocumentService;
 use App\Services\ProviderPaymentService;
 use App\Services\ProviderSubscriptionService;
 use App\Services\ProviderWalletService;
@@ -142,15 +143,15 @@ class ServiceProviderAdminController extends Controller
     /**
      * Securely stream a provider's private KYC document for Admin verification.
      */
-    public function downloadDocument(ServiceProvider $provider, string $docKey)
+    public function downloadDocument(Request $request, ServiceProvider $provider, string $docKey)
     {
         $path = $provider->documentPathForKey($docKey);
 
-        if (!$path || !Storage::disk('local')->exists($path)) {
+        if (!$path) {
             abort(404, 'المستند غير موجود.');
         }
 
-        return Storage::disk('local')->response($path);
+        return ProviderDocumentService::streamResponse($path, $request, "provider_{$provider->id}_{$docKey}");
     }
 
     /**
@@ -276,13 +277,13 @@ class ServiceProviderAdminController extends Controller
         return view('admin.providers.invoice-show', compact('invoice'));
     }
 
-    public function downloadInvoiceAttachment(ProviderInvoice $invoice)
+    public function downloadInvoiceAttachment(Request $request, ProviderInvoice $invoice)
     {
-        if (!$invoice->quote_attachment_path || !Storage::disk('local')->exists($invoice->quote_attachment_path)) {
+        if (!$invoice->quote_attachment_path) {
             abort(404);
         }
 
-        return Storage::disk('local')->response($invoice->quote_attachment_path);
+        return ProviderDocumentService::streamResponse($invoice->quote_attachment_path, $request, "invoice_{$invoice->invoice_number}_attachment");
     }
 
     /**

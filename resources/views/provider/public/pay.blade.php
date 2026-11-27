@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="robots" content="noindex, nofollow">
     <title>فاتورة {{ $invoice->invoice_number }} | {{ $provider->business_name }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
