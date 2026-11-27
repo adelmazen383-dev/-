@@ -23,15 +23,30 @@ return Application::configure(basePath: dirname(__DIR__))
         // ─── Verify payment amounts ───
         $middleware->append(\App\Http\Middleware\VerifyPaymentAmount::class);
 
+        // ─── Middleware aliases for Service Providers portal ───
+        $middleware->alias([
+            'provider.auth'       => \App\Http\Middleware\EnsureProviderAuthenticated::class,
+            'provider.guest'      => \App\Http\Middleware\EnsureProviderGuest::class,
+            'provider.subscribed' => \App\Http\Middleware\EnsureProviderSubscribed::class,
+        ]);
+
         // ─── CSRF exceptions for payment webhooks ───
         $middleware->validateCsrfTokens(except: [
             '/telr/*',
             '/payment/tabby/*',
             '/payment/tamara/*',
+            '/p-pay/telr/*',
+            '/p-pay/tamara/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('provider/login') || $request->routeIs('provider.login*')) {
+                return redirect()->route('provider.login')
+                    ->withInput($request->except('password', '_token'))
+                    ->with('warning', 'انتهت صلاحية الجلسة، تم تجديدها تلقائياً. يُرجى المحاولة مجدداً.');
+            }
+
             if ($request->is('login') || $request->routeIs('login')) {
                 return redirect()->route('login')
                     ->withInput($request->except('password', '_token'))
