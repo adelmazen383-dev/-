@@ -20,6 +20,7 @@ Route::prefix('p-pay')->name('provider-pay.')->middleware('throttle:30,1')->grou
     Route::post('/tamara/webhook', [ProviderPublicPaymentController::class, 'tamaraWebhook'])->name('tamara.webhook');
 
     Route::get('/{token}', [ProviderPublicPaymentController::class, 'show'])->name('show');
+    Route::get('/{token}/attachment', [ProviderPublicPaymentController::class, 'downloadAttachment'])->name('attachment');
     Route::match(['get', 'post'], '/{token}/pay', [ProviderPublicPaymentController::class, 'selectMethod'])
         ->middleware('throttle:20,5')
         ->name('select');
@@ -61,6 +62,7 @@ Route::prefix('provider')->name('provider.')->group(function () {
         });
         Route::get('/invoices/{invoice}', [ProviderInvoiceController::class, 'show'])->name('invoices.show');
         Route::get('/invoices/{invoice}/print', [ProviderInvoiceController::class, 'print'])->name('invoices.print');
+        Route::get('/invoices/{invoice}/attachment', [ProviderInvoiceController::class, 'downloadAttachment'])->name('invoices.attachment');
         Route::post('/invoices/{invoice}/check-status', [ProviderInvoiceController::class, 'checkStatus'])->name('invoices.check-status');
     });
 });
@@ -76,6 +78,7 @@ Route::prefix('admin/service-providers')
 
         Route::get('/invoices', [ServiceProviderAdminController::class, 'invoices'])->name('invoices.index');
         Route::get('/invoices/{invoice}', [ServiceProviderAdminController::class, 'showInvoice'])->name('invoices.show');
+        Route::get('/invoices/{invoice}/attachment', [ServiceProviderAdminController::class, 'downloadInvoiceAttachment'])->name('invoices.attachment');
         Route::post('/invoices/{invoice}/check-status', [ServiceProviderAdminController::class, 'checkInvoiceStatus'])->name('invoices.check-status');
         Route::post('/invoices/{invoice}/confirm-paid', [ServiceProviderAdminController::class, 'confirmInvoicePaid'])->name('invoices.confirm-paid');
 

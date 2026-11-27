@@ -63,7 +63,12 @@
         @endif
 
         <!-- Provider's Service-Specific Invoice Template -->
-        @include($invoice->templateView(), ['invoice' => $invoice, 'provider' => $provider])
+        @include($invoice->templateView(), [
+            'invoice'          => $invoice,
+            'provider'         => $provider,
+            'showMethodsStrip' => $invoice->isPaid(),
+            'attachmentUrl'    => $invoice->quote_attachment_path ? route('provider-pay.attachment', $invoice->public_token) : null,
+        ])
 
         <!-- Paid Confirmation Banner OR Interactive Payment Selector -->
         @if($invoice->isPaid())
@@ -141,7 +146,7 @@
                     @csrf
                     <input type="hidden" name="method" id="p-selected-method" value="standard">
                     <button type="submit" id="p-pay-submit"
-                            class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-l from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-black text-sm sm:text-base shadow-lg transition cursor-pointer">
+                            class="w-full py-3.5 px-5 rounded-xl bg-[#141311] hover:bg-black text-[#e5cfa0] border border-[#c8a464]/40 font-black text-sm sm:text-base shadow-lg transition cursor-pointer">
                         💳 متابعة الدفع عبر <span id="p-selected-label">بطاقة مدى / فيزا / ماستركارد</span> (<span id="p-selected-amount">{{ number_format($visaCalc['total'], 2) }}</span> ر.س)
                     </button>
                 </form>

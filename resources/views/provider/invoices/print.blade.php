@@ -27,7 +27,11 @@
             </a>
         </div>
 
-        @include($invoice->templateView(), ['invoice' => $invoice, 'provider' => $provider])
+        @include($invoice->templateView(), [
+            'invoice'       => $invoice,
+            'provider'      => $provider,
+            'attachmentUrl' => $invoice->quote_attachment_path ? route('provider.invoices.attachment', $invoice) : null,
+        ])
     </div>
 </body>
 </html>

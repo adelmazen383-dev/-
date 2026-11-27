@@ -20,14 +20,20 @@ class ProviderInvoice extends Model
         'customer_name',
         'customer_phone',
         'customer_email',
+        'customer_national_id',
         'title',
         'description',
         'service_details',
         'amount',
+        'agreed_amount',
+        'deposit_amount',
+        'paid_previously',
+        'remaining_amount',
         'gateway_fee_percentage',
         'gateway_fee_amount',
         'total_payable',
         'payment_method',
+        'payment_type',
         'status',
         'paid_at',
         'verified_at',
@@ -41,6 +47,7 @@ class ProviderInvoice extends Model
         'tamara_status',
         'tamara_url',
         'notes',
+        'quote_attachment_path',
     ];
 
     protected function casts(): array
@@ -48,6 +55,10 @@ class ProviderInvoice extends Model
         return [
             'service_details'        => 'array',
             'amount'                 => 'decimal:2',
+            'agreed_amount'          => 'decimal:2',
+            'deposit_amount'         => 'decimal:2',
+            'paid_previously'        => 'decimal:2',
+            'remaining_amount'       => 'decimal:2',
             'gateway_fee_percentage' => 'decimal:2',
             'gateway_fee_amount'     => 'decimal:2',
             'total_payable'          => 'decimal:2',
@@ -144,8 +155,35 @@ class ProviderInvoice extends Model
             'tamara'    => 'تمارا (Tamara)',
             'apple_pay' => 'Apple Pay',
             'standard'  => 'بطاقة مدى / فيزا / ماستركارد',
-            default     => 'الدفع الإلكتروني',
+            'cash'      => 'كاش (نقداً)',
+            default     => 'الدفع الإلكتروني (جميع الوسائل)',
         };
+    }
+
+    public function paymentTypeLabel(): ?string
+    {
+        return match ($this->payment_type) {
+            'full'    => 'مدفوع بالكامل',
+            'partial' => 'دفع جزئي',
+            default   => null,
+        };
+    }
+
+    public function effectiveAgreedAmount(): float
+    {
+        $agreed = round((float) $this->agreed_amount, 2);
+        return $agreed > 0 ? $agreed : round((float) $this->amount, 2);
+    }
+
+    public function effectiveRemainingAmount(): float
+    {
+        $agreed  = $this->effectiveAgreedAmount();
+        $deposit = round((float) $this->deposit_amount, 2);
+        $paid    = round((float) $this->paid_previously, 2);
+        if ((float) $this->remaining_amount > 0 || $paid > 0 || $deposit > 0) {
+            return max(0.0, round(($agreed + $deposit) - $paid, 2));
+        }
+        return round((float) $this->amount, 2);
     }
 
     public function calculateTotalForMethod(string $method): array

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProviderInvoice;
 use App\Services\ProviderPaymentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PublicPaymentController extends Controller
 {
@@ -25,6 +26,17 @@ class PublicPaymentController extends Controller
         $provider = $invoice->provider;
 
         return view('provider.public.pay', compact('invoice', 'provider'));
+    }
+
+    public function downloadAttachment(string $token)
+    {
+        $invoice = ProviderInvoice::where('public_token', $token)->firstOrFail();
+
+        if (!$invoice->quote_attachment_path || !Storage::disk('local')->exists($invoice->quote_attachment_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($invoice->quote_attachment_path);
     }
 
     /**

@@ -443,4 +443,108 @@ class ServiceProviderPortalTest extends TestCase
         $this->assertTrue($tamaraInv->fresh()->isPaid());
         $this->assertEquals(400.00, (float) $tamaraProvider->fresh()->wallet_balance);
     }
+
+    public function test_detailed_forms_for_photography_coordination_with_attachment_and_apartments_render_luxury_invoice(): void
+    {
+        $admin = $this->createAdmin();
+
+        // 1. Coordination invoice with quote attachment + financial breakdown
+        $coord = $this->createProvider([
+            'email'                  => 'coord-detail@example.com',
+            'phone'                  => '0558800001',
+            'service_type'           => 'coordination',
+            'subscription_status'    => 'active',
+            'subscription_starts_at' => now(),
+            'subscription_ends_at'   => now()->addMonth(),
+        ]);
+
+        $this->actingAs($coord, 'provider')->post(route('provider.invoices.store'), [
+            'customer_name'        => 'أحمد المنصور',
+            'customer_phone'       => '0551231111',
+            'customer_national_id' => '1099887766',
+            'title'                => 'تنسيق مناسبة',
+            'agreed_amount'        => 2000,
+            'paid_previously'      => 500,
+            'amount'               => 1000,
+            'payment_method'       => 'tabby',
+            'notes'                => 'تجهيز قبل الساعة 5 مساءً',
+            'quote_attachment'     => UploadedFile::fake()->image('quote.jpg'),
+            'service_details'      => [
+                'region'           => 'الرياض',
+                'venue'            => 'قاعة النرجس',
+                'event_date'       => '2026-12-10',
+                'event_time'       => '19:30',
+                'responsible_name' => 'المنسق ناصر',
+            ],
+        ])->assertRedirect();
+
+        $coordInv = $coord->invoices()->firstOrFail();
+        $this->assertEquals(2000.00, (float) $coordInv->agreed_amount);
+        $this->assertEquals(500.00, (float) $coordInv->paid_previously);
+        $this->assertEquals(1500.00, (float) $coordInv->remaining_amount);
+        $this->assertEquals(1000.00, (float) $coordInv->amount);
+        $this->assertNotNull($coordInv->quote_attachment_path);
+        Storage::disk('local')->assertExists($coordInv->quote_attachment_path);
+
+        $this->get(route('provider-pay.show', $coordInv->public_token))
+            ->assertOk()
+            ->assertSee('فاتورة إلكترونية')
+            ->assertSee('thiqa-gold-logo.png')
+            ->assertSee('2,000.00')
+            ->assertSee('500.00')
+            ->assertSee('1,500.00')
+            ->assertSee('1,000.00')
+            ->assertSee('قاعة النرجس')
+            ->assertSee('المنسق ناصر');
+
+        // Attachment accessible by provider, customer token, and admin
+        $this->actingAs($coord, 'provider')->get(route('provider.invoices.attachment', $coordInv))->assertOk();
+        $this->get(route('provider-pay.attachment', $coordInv->public_token))->assertOk();
+        $this->actingAs($admin, 'web')->get(route('admin.providers.invoices.attachment', $coordInv))->assertOk();
+
+        // 2. Serviced Suites / Apartment invoice with floor, suite, nights, deposit, full/partial, cash
+        $apt = $this->createProvider([
+            'email'                  => 'apt-detail@example.com',
+            'phone'                  => '0558800002',
+            'service_type'           => 'serviced_suites',
+            'property_kind'          => 'شقة',
+            'subscription_status'    => 'active',
+            'subscription_starts_at' => now(),
+            'subscription_ends_at'   => now()->addMonth(),
+        ]);
+
+        $this->actingAs($apt, 'provider')->post(route('provider.invoices.store'), [
+            'customer_name'        => 'سلطان العنزي',
+            'customer_phone'       => '0552223334',
+            'customer_national_id' => '1088776655',
+            'title'                => 'حجز شقة فندقية',
+            'agreed_amount'        => 1800,
+            'deposit_amount'       => 300,
+            'paid_previously'      => 600,
+            'amount'               => 1500,
+            'payment_method'       => 'cash',
+            'payment_type'         => 'partial',
+            'service_details'      => [
+                'floor_number'   => 'الدور الرابع',
+                'suite_number'   => 'شقة 402',
+                'check_in_date'  => '2026-12-01',
+                'check_out_date' => '2026-12-04',
+                'nights'         => '3',
+                'guests_count'   => '4',
+            ],
+        ])->assertRedirect();
+
+        $aptInv = $apt->invoices()->firstOrFail();
+        $this->assertEquals(1500.00, (float) $aptInv->remaining_amount);
+        $this->assertSame('partial', $aptInv->payment_type);
+        $this->assertSame('cash', $aptInv->payment_method);
+
+        $this->get(route('provider-pay.show', $aptInv->public_token))
+            ->assertOk()
+            ->assertSee('الدور الرابع')
+            ->assertSee('شقة 402')
+            ->assertSee('3 ليلة')
+            ->assertSee('دفع جزئي')
+            ->assertSee('300.00');
+    }
 }

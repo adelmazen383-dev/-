@@ -61,11 +61,11 @@
 <body class="flex flex-col items-center justify-center p-4 sm:p-6">
     <div class="w-full {{ $maxWidth ?? 'max-w-md' }} my-4">
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 text-white text-2xl shadow-lg mb-3">
-                🧾
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#141311] border border-[#c8a464]/40 shadow-lg mb-3 p-2">
+                <img src="{{ asset('images/thiqa-gold-logo.png') }}" alt="منصة ثقة" class="w-full h-full object-contain">
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">بوابة مقدمي الخدمات</h1>
-            <p class="text-xs sm:text-sm text-slate-300 mt-1">نظام مستقل لإصدار الفواتير وتحصيل المدفوعات وإدارة المحفظة</p>
+            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">منصة ثقة — بوابة مقدمي الخدمات</h1>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">نظام مستقل لإصدار الفواتير الإلكترونية وتحصيل المدفوعات وإدارة المحفظة</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200/80 p-5 sm:p-7">

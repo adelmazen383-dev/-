@@ -8,6 +8,7 @@ use App\Models\ServiceProvider;
 use App\Services\ProviderPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class InvoiceController extends Controller
 {
@@ -61,24 +62,39 @@ class InvoiceController extends Controller
         }
 
         $validated = $request->validate([
-            'customer_name'   => ['required', 'string', 'max:180'],
-            'customer_phone'  => ['required', 'string', 'min:9', 'max:25'],
-            'customer_email'  => ['nullable', 'email', 'max:180'],
-            'title'           => ['required', 'string', 'max:200'],
-            'description'     => ['nullable', 'string', 'max:2000'],
-            'amount'          => ['required', 'numeric', 'min:1', 'max:500000'],
-            'notes'           => ['nullable', 'string', 'max:1000'],
-            'service_details' => ['nullable', 'array'],
-            'service_details.*' => ['nullable', 'string', 'max:500'],
+            'customer_name'        => ['required', 'string', 'max:180'],
+            'customer_phone'       => ['required', 'string', 'min:9', 'max:25'],
+            'customer_email'       => ['nullable', 'email', 'max:180'],
+            'customer_national_id' => ['nullable', 'string', 'max:30'],
+            'title'                => ['required', 'string', 'max:200'],
+            'description'          => ['nullable', 'string', 'max:2000'],
+            'amount'               => ['required', 'numeric', 'min:1', 'max:500000'],
+            'agreed_amount'        => ['nullable', 'numeric', 'min:1', 'max:500000'],
+            'deposit_amount'       => ['nullable', 'numeric', 'min:0', 'max:500000'],
+            'paid_previously'      => ['nullable', 'numeric', 'min:0', 'max:500000'],
+            'payment_method'       => ['nullable', 'string', 'in:all,standard,apple_pay,tabby,tamara,cash'],
+            'payment_type'         => ['nullable', 'string', 'in:full,partial'],
+            'notes'                => ['nullable', 'string', 'max:1000'],
+            'quote_attachment'     => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+            'service_details'      => ['nullable', 'array'],
+            'service_details.*'    => ['nullable', 'string', 'max:500'],
         ], [
-            'customer_name.required'  => 'يرجى إدخال اسم العميل.',
-            'customer_phone.required' => 'يرجى إدخال رقم جوال العميل.',
-            'title.required'          => 'يرجى إدخال عنوان الخدمة أو الباقة.',
-            'amount.required'         => 'يرجى إدخال مبلغ الفاتورة.',
-            'amount.min'              => 'مبلغ الفاتورة يجب أن لا يقل عن 1 ريال.',
+            'customer_name.required'  => 'يرجى إدخال اسم العميل / المستأجر.',
+            'customer_phone.required' => 'يرجى إدخال رقم الجوال.',
+            'title.required'          => 'يرجى إدخال عنوان الخدمة أو الباقة المطلوبة.',
+            'amount.required'         => 'يرجى إدخال المبلغ المطلوب دفعه الآن.',
+            'amount.min'              => 'المبلغ المطلوب دفعه يجب أن لا يقل عن 1 ريال.',
+            'quote_attachment.mimes'  => 'مرفق الفاتورة/عرض السعر يجب أن يكون صورة (JPG/PNG/WEBP) أو PDF.',
+            'quote_attachment.max'    => 'حجم المرفق يجب أن لا يتجاوز 5 ميجابايت.',
         ]);
 
-        $amount = round((float) $validated['amount'], 2);
+        $amount         = round((float) $validated['amount'], 2);
+        $agreedAmount   = isset($validated['agreed_amount']) && $validated['agreed_amount'] !== null
+            ? round((float) $validated['agreed_amount'], 2)
+            : $amount;
+        $depositAmount  = round((float) ($validated['deposit_amount'] ?? 0), 2);
+        $paidPreviously = round((float) ($validated['paid_previously'] ?? 0), 2);
+        $remainingAmt   = max(0.0, round(($agreedAmount + $depositAmount) - $paidPreviously, 2));
 
         // Clean empty keys from service_details
         $details = collect($validated['service_details'] ?? [])
@@ -89,6 +105,11 @@ class InvoiceController extends Controller
         if ($provider->service_type === 'other' && empty($details['custom_service_type']) && $provider->custom_service_name) {
             $details['custom_service_type'] = $provider->custom_service_name;
         }
+        if (empty($details['responsible_name'])) {
+            $details['responsible_name'] = $provider->name;
+        }
+
+        $paymentType = $validated['payment_type'] ?? ($remainingAmt > $amount ? 'partial' : 'full');
 
         $invoice = ProviderInvoice::create([
             'service_provider_id'    => $provider->id,
@@ -96,20 +117,44 @@ class InvoiceController extends Controller
             'customer_name'          => trim($validated['customer_name']),
             'customer_phone'         => ServiceProvider::normalizePhone($validated['customer_phone']),
             'customer_email'         => $validated['customer_email'] ?? null,
+            'customer_national_id'   => !empty($validated['customer_national_id']) ? trim((string) $validated['customer_national_id']) : null,
             'title'                  => trim($validated['title']),
             'description'            => $validated['description'] ?? null,
             'service_details'        => $details,
             'amount'                 => $amount,
+            'agreed_amount'          => $agreedAmount,
+            'deposit_amount'         => $depositAmount,
+            'paid_previously'        => $paidPreviously,
+            'remaining_amount'       => $remainingAmt,
             'gateway_fee_percentage' => 0.00,
             'gateway_fee_amount'     => 0.00,
             'total_payable'          => $amount,
-            'payment_method'         => 'all',
+            'payment_method'         => $validated['payment_method'] ?? 'all',
+            'payment_type'           => $paymentType,
             'status'                 => 'pending',
             'notes'                  => $validated['notes'] ?? null,
         ]);
 
+        if ($request->hasFile('quote_attachment')) {
+            $path = $request->file('quote_attachment')->store("provider-invoice-attachments/{$provider->id}", 'local');
+            $invoice->update(['quote_attachment_path' => $path]);
+        }
+
         return redirect()->route('provider.invoices.show', $invoice)
             ->with('success', '✅ تم إنشاء الفاتورة رقم ' . $invoice->invoice_number . ' بنجاح! شارك رابط الدفع مع العميل الآن.');
+    }
+
+    public function downloadAttachment(ProviderInvoice $invoice)
+    {
+        /** @var ServiceProvider $provider */
+        $provider = Auth::guard('provider')->user();
+        abort_unless($invoice->service_provider_id === $provider->id, 403);
+
+        if (!$invoice->quote_attachment_path || !Storage::disk('local')->exists($invoice->quote_attachment_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($invoice->quote_attachment_path);
     }
 
     public function show(ProviderInvoice $invoice)

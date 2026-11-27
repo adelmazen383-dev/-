@@ -121,12 +121,12 @@
 
     <aside id="p-sidebar" class="p-sidebar">
         <div class="p-4 border-b border-white/10 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl shrink-0">
-                {{ $authProvider?->serviceTypeEnum()->icon() ?? '🧾' }}
+            <div class="w-10 h-10 rounded-xl bg-[#141311] border border-[#c8a464]/40 flex items-center justify-center p-1.5 shrink-0">
+                <img src="{{ asset('images/thiqa-gold-logo.png') }}" alt="منصة ثقة" class="w-full h-full object-contain">
             </div>
             <div class="overflow-hidden">
                 <div class="text-white font-extrabold text-sm truncate">{{ $authProvider?->business_name ?? 'مقدم خدمة' }}</div>
-                <div class="text-indigo-200 text-[11px] font-semibold truncate">{{ $authProvider?->service_type_label }}</div>
+                <div class="text-amber-300 text-[11px] font-semibold truncate">منصة ثقة · {{ $authProvider?->service_type_label }}</div>
             </div>
         </div>
 

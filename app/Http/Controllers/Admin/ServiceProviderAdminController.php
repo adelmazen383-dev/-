@@ -276,6 +276,15 @@ class ServiceProviderAdminController extends Controller
         return view('admin.providers.invoice-show', compact('invoice'));
     }
 
+    public function downloadInvoiceAttachment(ProviderInvoice $invoice)
+    {
+        if (!$invoice->quote_attachment_path || !Storage::disk('local')->exists($invoice->quote_attachment_path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($invoice->quote_attachment_path);
+    }
+
     /**
      * Admin triggers live gateway status verification (Telr / Tamara) for a provider invoice.
      */

@@ -66,7 +66,11 @@
 
         <!-- Invoice Template Preview -->
         <div class="max-w-3xl mx-auto">
-            @include($invoice->templateView(), ['invoice' => $invoice, 'provider' => $invoice->provider])
+            @include($invoice->templateView(), [
+                'invoice'       => $invoice,
+                'provider'      => $invoice->provider,
+                'attachmentUrl' => $invoice->quote_attachment_path ? route('admin.providers.invoices.attachment', $invoice) : null,
+            ])
         </div>
     </div>
 </x-app-layout>
