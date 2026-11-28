@@ -138,10 +138,11 @@ class ServiceProviderAdminController extends Controller
         $subscriptions = $provider->subscriptions()->with('activatedByAdmin')->latest()->take(15)->get();
         $transactions = $provider->walletTransactions()->with(['invoice', 'admin'])->latest()->take(20)->get();
         $invoices = $provider->invoices()->latest()->paginate(10);
+        $contracts = $provider->isServicedSuites() ? $provider->contracts()->latest()->take(15)->get() : collect();
         $subConfig = ProviderSubscriptionConfigService::getConfig();
         $serviceTypes = ProviderServiceType::options();
 
-        return view('admin.providers.show', compact('provider', 'subscriptions', 'transactions', 'invoices', 'subConfig', 'serviceTypes'));
+        return view('admin.providers.show', compact('provider', 'subscriptions', 'transactions', 'invoices', 'contracts', 'subConfig', 'serviceTypes'));
     }
 
     /**

@@ -876,4 +876,188 @@ class ServiceProviderPortalTest extends TestCase
         $this->assertSame('coordination', $provider->service_type);
         $this->assertSame('SA1122334455667788990011', $provider->iban);
     }
+
+    public function test_contracts_feature_is_exclusive_to_serviced_suites_and_runs_full_signing_and_verification_flow(): void
+    {
+        Storage::fake('public');
+
+        // 1. Non-serviced-suites providers (coordination, photography, other) are strictly blocked (403)
+        foreach (['coordination', 'photography', 'other'] as $idx => $type) {
+            $nonHotel = $this->createProvider([
+                'email'                  => "nocontract{$idx}@example.com",
+                'phone'                  => "055300000{$idx}",
+                'service_type'           => $type,
+                'custom_service_name'    => $type === 'other' ? 'ضيافة' : null,
+                'subscription_status'    => 'active',
+                'subscription_starts_at' => now(),
+                'subscription_ends_at'   => now()->addMonth(),
+            ]);
+
+            $this->actingAs($nonHotel, 'provider')
+                ->get(route('provider.dashboard'))
+                ->assertOk()
+                ->assertDontSee(route('provider.contracts.index'), false);
+
+            $this->actingAs($nonHotel, 'provider')
+                ->get(route('provider.contracts.index'))
+                ->assertForbidden();
+
+            $this->actingAs($nonHotel, 'provider')
+                ->get(route('provider.contracts.create'))
+                ->assertForbidden();
+        }
+
+        // 2. Unsubscribed serviced_suites provider can see index but cannot create until subscribed
+        $hotel = $this->createProvider([
+            'name'                   => 'خالد المالك',
+            'business_name'          => 'أجنحة النخبة الفندقية',
+            'email'                  => 'hotel-contracts@example.com',
+            'phone'                  => '0554000001',
+            'national_id_number'     => '1011223344',
+            'service_type'           => 'serviced_suites',
+            'property_kind'          => 'شقة',
+            'subscription_status'    => 'inactive',
+        ]);
+
+        $this->actingAs($hotel, 'provider')
+            ->get(route('provider.contracts.index'))
+            ->assertOk();
+
+        $this->actingAs($hotel, 'provider')
+            ->get(route('provider.contracts.create'))
+            ->assertRedirect(route('provider.dashboard'));
+
+        // Activate subscription
+        $hotel->update([
+            'subscription_status'    => 'active',
+            'subscription_starts_at' => now(),
+            'subscription_ends_at'   => now()->addMonth(),
+        ]);
+
+        // Dashboard shows Contracts link for serviced_suites
+        $this->actingAs($hotel, 'provider')
+            ->get(route('provider.dashboard'))
+            ->assertOk()
+            ->assertSee(route('provider.contracts.index'), false);
+
+        // Create an apartment invoice and verify 1-click prefill link on invoice show page
+        $inv = ProviderInvoice::create([
+            'service_provider_id'  => $hotel->id,
+            'service_type'         => 'serviced_suites',
+            'customer_name'        => 'سلطان المستأجر',
+            'customer_phone'       => '0557776665',
+            'customer_national_id' => '1099887755',
+            'title'                => 'حجز جناح 301',
+            'agreed_amount'        => 2200,
+            'deposit_amount'       => 500,
+            'amount'               => 2200,
+            'total_payable'        => 2200,
+            'status'               => 'paid',
+            'service_details'      => [
+                'floor_number'   => 'الدور الثالث',
+                'suite_number'   => 'جناح 301',
+                'check_in_date'  => '2026-12-10',
+                'check_out_date' => '2026-12-15',
+            ],
+        ]);
+
+        $this->actingAs($hotel, 'provider')
+            ->get(route('provider.invoices.show', $inv))
+            ->assertOk()
+            ->assertSee('إنشاء عقد إلكتروني لهذه الفاتورة');
+
+        $this->actingAs($hotel, 'provider')
+            ->get(route('provider.contracts.create', ['invoice_id' => $inv->id]))
+            ->assertOk()
+            ->assertSee('سلطان المستأجر')
+            ->assertSee('جناح 301');
+
+        // 3. Create contract -> generates unique PRENT number & Draft PDF
+        $this->actingAs($hotel, 'provider')
+            ->post(route('provider.contracts.store'), [
+                'provider_invoice_id'    => $inv->id,
+                'lessor_name'            => 'خالد المالك',
+                'lessor_national_id'     => '1011223344',
+                'lessor_phone'           => '0554000001',
+                'lessee_name'            => 'سلطان المستأجر',
+                'lessee_national_id'     => '1099887755',
+                'lessee_phone'           => '0557776665',
+                'property_details'       => 'أجنحة النخبة الفندقية — الدور الثالث — جناح 301',
+                'start_date'             => '2026-12-10T15:00',
+                'end_date'               => '2026-12-15T12:00',
+                'rent_amount'            => 2200,
+                'deposit_amount'         => 500,
+                'tourism_license_number' => '50012345',
+                'additional_terms'       => 'الهدوء والالتزام بالأنظمة',
+            ])->assertRedirect();
+
+        $contract = $hotel->contracts()->firstOrFail();
+        $this->assertStringStartsWith('PRENT-', $contract->contract_number);
+        $this->assertNotNull($contract->pdf_path);
+        $this->assertFileExists(storage_path('app/public/' . str_replace('storage/', '', $contract->pdf_path)));
+
+        // Core `contracts` table remains 100% isolated (0 rows)
+        $this->assertDatabaseCount('contracts', 0);
+
+        // 4. Another serviced_suites provider CANNOT view or edit this contract (403)
+        $otherHotel = $this->createProvider([
+            'email'                  => 'other-hotel@example.com',
+            'phone'                  => '0554000002',
+            'service_type'           => 'serviced_suites',
+            'subscription_status'    => 'active',
+            'subscription_starts_at' => now(),
+            'subscription_ends_at'   => now()->addMonth(),
+        ]);
+
+        $this->actingAs($otherHotel, 'provider')
+            ->get(route('provider.contracts.show', $contract))
+            ->assertForbidden();
+
+        // 5. Mark sent, then run full 2-party digital signature flow via /p-sign/{token}
+        $this->actingAs($hotel, 'provider')
+            ->post(route('provider.contracts.send', $contract))
+            ->assertRedirect();
+
+        $this->assertSame('sent', $contract->fresh()->status->value);
+
+        // Valid 1x1 PNG base64 signature
+        $tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+        // Lessee opens signing page -> status becomes viewed, then signs -> signed_by_lessee
+        $this->get(route('provider-sign.show', $contract->verification_token))
+            ->assertOk()
+            ->assertSee('سلطان المستأجر');
+
+        $this->assertSame('viewed', $contract->fresh()->status->value);
+
+        $this->postJson(route('provider-sign.store', $contract->verification_token), [
+            'signature' => $tinyPng,
+        ])->assertOk()->assertJson(['is_complete' => false]);
+
+        $this->assertSame('signed_by_lessee', $contract->fresh()->status->value);
+
+        // Lessor opens signing page & signs -> status becomes signed + signed PDF generated
+        $this->get(route('provider-sign.show', $contract->verification_token))
+            ->assertOk()
+            ->assertSee('خالد المالك');
+
+        $this->postJson(route('provider-sign.store', $contract->verification_token), [
+            'signature' => $tinyPng,
+        ])->assertOk()->assertJson(['is_complete' => true]);
+
+        $contract->refresh();
+        $this->assertSame('signed', $contract->status->value);
+        $this->assertNotNull($contract->signed_pdf_path);
+        $this->assertFileExists(storage_path('app/public/' . str_replace('storage/', '', $contract->signed_pdf_path)));
+
+        // Re-opening /p-sign/{token} after completion redirects to public /verify
+        $this->get(route('provider-sign.show', $contract->verification_token))
+            ->assertRedirect('/verify?contract_number=' . urlencode($contract->contract_number));
+
+        // 6. Public /verify?contract_number=PRENT-... verifies provider contract cleanly
+        $this->get(route('verify.index', ['contract_number' => $contract->contract_number]))
+            ->assertOk()
+            ->assertSee($contract->contract_number)
+            ->assertSee('عقد صالح وموقّع');
+    }
 }

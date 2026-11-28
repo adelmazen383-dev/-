@@ -43,6 +43,13 @@
                     طباعة
                 </a>
 
+                @if($provider->isServicedSuites() && $provider->hasActiveSubscription())
+                    <a href="{{ route('provider.contracts.create', ['invoice_id' => $invoice->id]) }}"
+                       class="px-3.5 py-2 rounded-xl bg-[#064e3b] hover:bg-emerald-800 text-white text-xs font-extrabold transition">
+                        إنشاء عقد إلكتروني لهذه الفاتورة
+                    </a>
+                @endif
+
                 @if(!$invoice->isPaid())
                     <form method="POST" action="{{ route('provider.invoices.check-status', $invoice) }}" class="inline">
                         @csrf

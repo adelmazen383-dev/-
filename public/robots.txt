@@ -12,11 +12,13 @@ Disallow: /admin/
 Disallow: /provider/dashboard
 Disallow: /provider/subscription
 Disallow: /provider/invoices
+Disallow: /provider/contracts
 Disallow: /provider/wallet
 Disallow: /provider/profile
 Disallow: /provider/forgot-password
 Disallow: /provider/reset-password-otp
 Disallow: /p-pay/
+Disallow: /p-sign/
 Disallow: /card/
 Disallow: /sign/
 Disallow: /dashboard

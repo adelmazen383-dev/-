@@ -111,8 +111,9 @@
         @if(request('contract_number'))
             @if($contract)
                 @php
-                    $statusClass = ['draft'=>'status-draft','sent'=>'status-sent','viewed'=>'status-viewed','signed'=>'status-signed','rejected'=>'status-rejected','cancelled'=>'status-cancelled'];
-                    $statusLabel = ['draft'=>'مسودة','sent'=>'مُرسل','viewed'=>'قيد المراجعة','signed'=>'✅ عقد صالح وموقّع','rejected'=>'مرفوض من العميل','cancelled'=>'ملغى'];
+                    $statusClass = ['draft'=>'status-draft','sent'=>'status-sent','viewed'=>'status-viewed','signed_by_lessee'=>'status-viewed','signed'=>'status-signed','rejected'=>'status-rejected','cancelled'=>'status-cancelled'];
+                    $statusLabel = ['draft'=>'مسودة','sent'=>'مُرسل','viewed'=>'قيد المراجعة','signed_by_lessee'=>'موقّع من المستأجر (بانتظار المالك)','signed'=>'عقد صالح وموقّع','rejected'=>'مرفوض من العميل','cancelled'=>'ملغى'];
+                    $displayLessee = $lesseeName ?? ($contract->customer->name ?? ($contract->lessee_name ?? '—'));
                 @endphp
                 <div class="result-card">
                     @if(now()->greaterThan($contract->end_date))
@@ -135,7 +136,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">اسم المستأجر</span>
-                        <span class="info-value">{{ Str::mask($contract->customer->name ?? '—', '*', 4) }}</span>
+                        <span class="info-value">{{ Str::mask($displayLessee, '*', 4) }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">تاريخ الإنشاء</span>

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\ServiceProviderAdminController;
 use App\Http\Controllers\Provider\AuthController as ProviderAuthController;
+use App\Http\Controllers\Provider\ContractController as ProviderContractController;
+use App\Http\Controllers\Provider\ContractSignatureController as ProviderContractSignatureController;
 use App\Http\Controllers\Provider\DashboardController as ProviderDashboardController;
 use App\Http\Controllers\Provider\InvoiceController as ProviderInvoiceController;
 use App\Http\Controllers\Provider\PublicPaymentController as ProviderPublicPaymentController;
@@ -57,6 +59,13 @@ Route::prefix('p-pay')->name('provider-pay.')->middleware('throttle:30,1')->grou
         ->name('select');
 });
 
+// ─── 1.5 Public Electronic Signing for Serviced Suites Provider Contracts ───
+Route::prefix('p-sign')->name('provider-sign.')->middleware('throttle:10,1')->group(function () {
+    Route::get('/{token}', [ProviderContractSignatureController::class, 'show'])->name('show');
+    Route::post('/{token}', [ProviderContractSignatureController::class, 'store'])->name('store');
+    Route::post('/{token}/reject', [ProviderContractSignatureController::class, 'reject'])->name('reject');
+});
+
 // ─── 2. Service Provider Authentication & OTP Password Recovery ───
 Route::prefix('provider')->name('provider.')->group(function () {
     Route::middleware('provider.guest')->group(function () {
@@ -96,6 +105,25 @@ Route::prefix('provider')->name('provider.')->group(function () {
         Route::get('/invoices/{invoice}/print', [ProviderInvoiceController::class, 'print'])->name('invoices.print');
         Route::get('/invoices/{invoice}/attachment', [ProviderInvoiceController::class, 'downloadAttachment'])->name('invoices.attachment');
         Route::post('/invoices/{invoice}/check-status', [ProviderInvoiceController::class, 'checkStatus'])->name('invoices.check-status');
+
+        // Electronic Contracts (EXCLUSIVELY for Serviced Suites / Hotel Apartments Providers)
+        Route::prefix('contracts')
+            ->name('contracts.')
+            ->middleware('provider.serviced_suites')
+            ->group(function () {
+                Route::get('/', [ProviderContractController::class, 'index'])->name('index');
+                Route::middleware('provider.subscribed')->group(function () {
+                    Route::get('/create', [ProviderContractController::class, 'create'])->name('create');
+                    Route::post('/', [ProviderContractController::class, 'store'])->name('store');
+                    Route::get('/{contract}/edit', [ProviderContractController::class, 'edit'])->name('edit');
+                    Route::put('/{contract}', [ProviderContractController::class, 'update'])->name('update');
+                    Route::post('/{contract}/send', [ProviderContractController::class, 'send'])->name('send');
+                    Route::post('/{contract}/cancel', [ProviderContractController::class, 'cancel'])->name('cancel');
+                    Route::post('/{contract}/regenerate-pdf', [ProviderContractController::class, 'regeneratePdf'])->name('regenerate-pdf');
+                    Route::delete('/{contract}', [ProviderContractController::class, 'destroy'])->name('destroy');
+                });
+                Route::get('/{contract}', [ProviderContractController::class, 'show'])->name('show');
+            });
     });
 });
 

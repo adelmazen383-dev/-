@@ -88,7 +88,17 @@ class ServiceProvider extends Authenticatable
         return $this->hasMany(ProviderPasswordOtp::class, 'service_provider_id');
     }
 
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(ProviderContract::class, 'service_provider_id');
+    }
+
     /* ── Service Type Helpers ── */
+
+    public function isServicedSuites(): bool
+    {
+        return $this->service_type === ProviderServiceType::SERVICED_SUITES->value;
+    }
 
     public function serviceTypeEnum(): ProviderServiceType
     {

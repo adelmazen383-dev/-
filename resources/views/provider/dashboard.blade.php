@@ -17,11 +17,19 @@
                     </div>
                     <h2 class="text-sm sm:text-base font-black mt-1 truncate">مرحباً {{ $provider->business_name }} — خدمة إصدار الفواتير مفعّلة</h2>
                 </div>
-                <a href="{{ route('provider.invoices.create') }}"
-                   class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs sm:text-sm shadow transition shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    إنشاء فاتورة جديدة
-                </a>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    @if($provider->isServicedSuites())
+                        <a href="{{ route('provider.contracts.index') }}"
+                           class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs sm:text-sm transition">
+                            العقود الإلكترونية
+                        </a>
+                    @endif
+                    <a href="{{ route('provider.invoices.create') }}"
+                       class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs sm:text-sm shadow transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        إنشاء فاتورة جديدة
+                    </a>
+                </div>
             </div>
         @else
             <div class="rounded-xl bg-[#064e3b] border border-emerald-700/50 text-white px-4 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">

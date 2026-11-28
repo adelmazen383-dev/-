@@ -25,9 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // ─── Middleware aliases for Service Providers portal ───
         $middleware->alias([
-            'provider.auth'       => \App\Http\Middleware\EnsureProviderAuthenticated::class,
-            'provider.guest'      => \App\Http\Middleware\EnsureProviderGuest::class,
-            'provider.subscribed' => \App\Http\Middleware\EnsureProviderSubscribed::class,
+            'provider.auth'            => \App\Http\Middleware\EnsureProviderAuthenticated::class,
+            'provider.guest'           => \App\Http\Middleware\EnsureProviderGuest::class,
+            'provider.subscribed'      => \App\Http\Middleware\EnsureProviderSubscribed::class,
+            'provider.serviced_suites' => \App\Http\Middleware\EnsureProviderServicedSuites::class,
         ]);
 
         // ─── CSRF exceptions for payment webhooks ───

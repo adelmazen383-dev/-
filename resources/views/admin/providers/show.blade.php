@@ -317,6 +317,53 @@
             </form>
         </details>
 
+        <!-- Provider Contracts (Serviced Suites Only) -->
+        @if($provider->isServicedSuites())
+            <div class="card">
+                <h3 class="text-sm font-black text-slate-900 mb-3">العقود الإلكترونية — {{ $provider->business_name }} ({{ $contracts->count() }})</h3>
+                @if($contracts->isEmpty())
+                    <p class="text-center py-6 text-xs text-slate-400">لم ينشئ مقدم الخدمة أي عقود إلكترونية بعد.</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم العقد</th>
+                                    <th>المستأجر</th>
+                                    <th>الفترة</th>
+                                    <th>الإيجار</th>
+                                    <th>الحالة</th>
+                                    <th>الملف</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($contracts as $c)
+                                    <tr>
+                                        <td class="font-mono text-xs font-bold text-emerald-800">{{ $c->contract_number }}</td>
+                                        <td class="font-bold">{{ $c->lessee_name }}</td>
+                                        <td class="text-xs text-slate-600">{{ $c->start_date?->format('Y-m-d') }} ← {{ $c->end_date?->format('Y-m-d') }}</td>
+                                        <td class="font-black">{{ number_format((float) $c->rent_amount, 2) }} ر.س</td>
+                                        <td>
+                                            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $c->status === \App\Enums\ContractStatus::SIGNED ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                                {{ $c->status->label() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if($c->signed_pdf_path)
+                                                <a href="{{ asset($c->signed_pdf_path) }}" target="_blank" class="btn btn-emerald btn-sm">الموقّع PDF</a>
+                                            @elseif($c->pdf_path)
+                                                <a href="{{ asset($c->pdf_path) }}" target="_blank" class="btn btn-ghost btn-sm">المسودة PDF</a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <!-- Provider Invoices -->
         <div class="card">
             <h3 class="text-sm font-black text-slate-900 mb-3">فواتير {{ $provider->business_name }}</h3>
