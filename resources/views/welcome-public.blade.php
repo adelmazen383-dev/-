@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <meta name="theme-color" content="#064e3b">
+    <meta name="google-site-verification" content="sboSkl7bJ_OFgDJocQCr2IWCxhAEfVkPDm8O8gbFE7Q" />
     <title>ثقة | منصة توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات</title>
     <meta name="description" content="منصة ثقة لتوثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية، وبوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وفيزا وتابي وتمارا في السعودية.">
     <meta name="keywords" content="منصة ثقة, توثيق عقود, إدارة حجوزات, وحدات سكنية, أجنحة فندقية, بوابة مقدمي الخدمات, فواتير إلكترونية, دفع إلكتروني, Apple Pay, Visa, Mada, تابي, تمارا">
