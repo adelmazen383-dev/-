@@ -19,6 +19,7 @@ Disallow: /provider/forgot-password
 Disallow: /provider/reset-password-otp
 Disallow: /p-pay/
 Disallow: /p-sign/
+Disallow: /p-sub-pay/
 Disallow: /card/
 Disallow: /sign/
 Disallow: /dashboard

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProviderSubscriptionOrder;
 use App\Models\ServiceProvider;
 use App\Services\ProviderDocumentService;
 use App\Services\ProviderSubscriptionConfigService;
+use App\Services\ProviderSubscriptionPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -25,6 +27,10 @@ class DashboardController extends Controller
         $recentTx        = $provider->walletTransactions()->latest()->take(5)->get();
         $subConfig       = ProviderSubscriptionConfigService::getConfig();
         $waSubscribeUrl  = ProviderSubscriptionConfigService::buildSubscribeWhatsAppUrl($provider);
+        $pendingApprovalOrder = $provider->subscriptionOrders()
+            ->where('status', ProviderSubscriptionOrder::STATUS_PAID_PENDING_APPROVAL)
+            ->latest()
+            ->first();
 
         return view('provider.dashboard', compact(
             'provider',
@@ -34,23 +40,32 @@ class DashboardController extends Controller
             'recentInvoices',
             'recentTx',
             'subConfig',
-            'waSubscribeUrl'
+            'waSubscribeUrl',
+            'pendingApprovalOrder'
         ));
     }
 
-    public function subscription()
+    public function subscription(ProviderSubscriptionPaymentService $subPaymentService)
     {
         /** @var ServiceProvider $provider */
         $provider       = Auth::guard('provider')->user();
         $subConfig      = ProviderSubscriptionConfigService::getConfig();
         $subscriptions  = $provider->subscriptions()->latest()->take(15)->get();
+        $subOrders      = $provider->subscriptionOrders()->latest()->take(15)->get();
+        $pendingApprovalOrder = $subOrders->firstWhere('status', ProviderSubscriptionOrder::STATUS_PAID_PENDING_APPROVAL);
         $waSubscribeUrl = ProviderSubscriptionConfigService::buildSubscribeWhatsAppUrl($provider);
+        $telrReady      = $subPaymentService->isTelrConfigured();
+        $tamaraReady    = $subPaymentService->isTamaraConfigured();
 
         return view('provider.subscription', compact(
             'provider',
             'subConfig',
             'subscriptions',
-            'waSubscribeUrl'
+            'subOrders',
+            'pendingApprovalOrder',
+            'waSubscribeUrl',
+            'telrReady',
+            'tamaraReady'
         ));
     }
 

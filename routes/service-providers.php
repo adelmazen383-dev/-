@@ -7,6 +7,7 @@ use App\Http\Controllers\Provider\ContractSignatureController as ProviderContrac
 use App\Http\Controllers\Provider\DashboardController as ProviderDashboardController;
 use App\Http\Controllers\Provider\InvoiceController as ProviderInvoiceController;
 use App\Http\Controllers\Provider\PublicPaymentController as ProviderPublicPaymentController;
+use App\Http\Controllers\Provider\SubscriptionPaymentController as ProviderSubscriptionPaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,6 +67,13 @@ Route::prefix('p-sign')->name('provider-sign.')->middleware('throttle:10,1')->gr
     Route::post('/{token}/reject', [ProviderContractSignatureController::class, 'reject'])->name('reject');
 });
 
+// ─── 1.6 Public Payment Gateway Callbacks for Provider Subscription Checkout ───
+Route::prefix('p-sub-pay')->name('provider-sub-pay.')->middleware('throttle:30,1')->group(function () {
+    Route::get('/telr/callback', [ProviderSubscriptionPaymentController::class, 'telrCallback'])->name('telr.callback');
+    Route::match(['get', 'post'], '/tamara/callback', [ProviderSubscriptionPaymentController::class, 'tamaraCallback'])->name('tamara.callback');
+    Route::post('/tamara/webhook', [ProviderSubscriptionPaymentController::class, 'tamaraWebhook'])->name('tamara.webhook');
+});
+
 // ─── 2. Service Provider Authentication & OTP Password Recovery ───
 Route::prefix('provider')->name('provider.')->group(function () {
     Route::middleware('provider.guest')->group(function () {
@@ -89,6 +97,11 @@ Route::prefix('provider')->name('provider.')->group(function () {
 
         Route::get('/dashboard', [ProviderDashboardController::class, 'index'])->name('dashboard');
         Route::get('/subscription', [ProviderDashboardController::class, 'subscription'])->name('subscription');
+        Route::post('/subscription/checkout', [ProviderSubscriptionPaymentController::class, 'checkout'])
+            ->middleware('throttle:15,5')
+            ->name('subscription.checkout');
+        Route::post('/subscription/orders/{order}/check-status', [ProviderSubscriptionPaymentController::class, 'checkStatus'])
+            ->name('subscription.check-status');
         Route::get('/wallet', [ProviderDashboardController::class, 'wallet'])->name('wallet');
         Route::get('/profile', [ProviderDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [ProviderDashboardController::class, 'updateProfile'])->name('profile.update');
@@ -144,6 +157,10 @@ Route::prefix('admin/service-providers')
 
         Route::get('/subscription-settings', [ServiceProviderAdminController::class, 'subscriptionSettings'])->name('subscription-settings.index');
         Route::post('/subscription-settings', [ServiceProviderAdminController::class, 'saveSubscriptionSettings'])->name('subscription-settings.save');
+
+        Route::post('/subscription-orders/{order}/approve', [ServiceProviderAdminController::class, 'approveSubscriptionOrder'])->name('sub-orders.approve');
+        Route::post('/subscription-orders/{order}/reject', [ServiceProviderAdminController::class, 'rejectSubscriptionOrder'])->name('sub-orders.reject');
+        Route::post('/subscription-orders/{order}/verify', [ServiceProviderAdminController::class, 'verifySubscriptionOrder'])->name('sub-orders.verify');
 
         Route::get('/mail-settings', [ServiceProviderAdminController::class, 'mailSettings'])->name('mail.index');
         Route::post('/mail-settings', [ServiceProviderAdminController::class, 'saveMailSettings'])->name('mail.save');

@@ -38,6 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
             '/payment/tamara/*',
             '/p-pay/telr/*',
             '/p-pay/tamara/*',
+            '/p-sub-pay/telr/*',
+            '/p-sub-pay/tamara/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

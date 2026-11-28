@@ -78,6 +78,11 @@ class ServiceProvider extends Authenticatable
         return $this->hasMany(ProviderSubscription::class, 'service_provider_id');
     }
 
+    public function subscriptionOrders(): HasMany
+    {
+        return $this->hasMany(ProviderSubscriptionOrder::class, 'service_provider_id');
+    }
+
     public function walletTransactions(): HasMany
     {
         return $this->hasMany(ProviderWalletTransaction::class, 'service_provider_id');

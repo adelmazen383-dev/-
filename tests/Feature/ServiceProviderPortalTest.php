@@ -1060,4 +1060,217 @@ class ServiceProviderPortalTest extends TestCase
             ->assertSee($contract->contract_number)
             ->assertSee('عقد صالح وموقّع');
     }
+
+    public function test_direct_subscription_checkout_uses_live_admin_prices_and_activates_only_after_admin_approval(): void
+    {
+        $admin = $this->createAdmin();
+
+        // 1. Admin configures live dynamic plan prices (1M = 275, 3M = 710, 6M disabled)
+        $this->actingAs($admin, 'web')
+            ->post(route('admin.providers.subscription-settings.save'), [
+                'plan_1m_enabled'  => '1',
+                'plan_1m_price'    => '275',
+                'plan_1m_label'    => 'الباقة الشهرية',
+                'plan_3m_enabled'  => '1',
+                'plan_3m_price'    => '710',
+                'plan_3m_label'    => 'باقة 3 أشهر',
+                'plan_6m_enabled'  => '0',
+                'plan_6m_price'    => '1200',
+                'plan_6m_label'    => 'باقة 6 أشهر',
+                'plan_12m_enabled' => '0',
+                'plan_12m_price'   => '2000',
+                'plan_12m_label'   => 'الباقة السنوية',
+            ])->assertRedirect();
+
+        $provider = $this->createProvider([
+            'email'               => 'direct-sub@example.com',
+            'phone'               => '0558881122',
+            'subscription_status' => 'inactive',
+        ]);
+
+        // Provider sees live Admin prices + "اشترك الآن" buttons
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.subscription'))
+            ->assertOk()
+            ->assertSee('اشترك الآن — ادفع 275.00 ر.س')
+            ->assertSee('اشترك الآن — ادفع 710.00 ر.س')
+            ->assertDontSee('1,200.00');
+
+        // Disabled plan (6 months) cannot be checked out
+        $this->actingAs($provider, 'provider')
+            ->post(route('provider.subscription.checkout'), [
+                'duration_months' => 6,
+                'method'          => 'telr',
+            ])->assertRedirect(route('provider.subscription'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('provider_subscription_orders', 0);
+
+        // Mock Telr order creation + status check (Code 3 = Paid)
+        $capturedTelrAmount = null;
+        Http::fake([
+            'https://secure.telr.com/gateway/order.json' => function ($request) use (&$capturedTelrAmount) {
+                $data = $request->data();
+                if (($data['ivp_method'] ?? '') === 'create') {
+                    $capturedTelrAmount = $data['ivp_amount'] ?? null;
+                    return Http::response([
+                        'order' => [
+                            'ref' => 'TELR-SUB-001',
+                            'url' => 'https://secure.telr.com/gateway/process.html?o=TELR-SUB-001',
+                        ],
+                    ], 200);
+                }
+                return Http::response([
+                    'order' => ['status' => ['code' => 3, 'text' => 'Paid']],
+                ], 200);
+            },
+        ]);
+
+        // 2. Provider clicks "اشترك الآن" on 1-month plan -> redirects directly to Telr with EXACT live Admin price 275.00
+        $this->actingAs($provider, 'provider')
+            ->post(route('provider.subscription.checkout'), [
+                'duration_months' => 1,
+                'method'          => 'telr',
+                'amount'          => 1, // tampered client value MUST be ignored!
+            ])->assertRedirect('https://secure.telr.com/gateway/process.html?o=TELR-SUB-001');
+
+        $this->assertSame('275.00', $capturedTelrAmount);
+
+        $order = $provider->subscriptionOrders()->firstOrFail();
+        $this->assertEquals(275.00, (float) $order->amount);
+        $this->assertSame('pending_payment', $order->status);
+
+        // 3. Telr callback verifies payment -> status becomes paid_pending_approval, subscription MUST STILL BE INACTIVE!
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider-sub-pay.telr.callback', [
+                'token'  => $order->public_token,
+                'status' => 'success',
+            ]))->assertRedirect(route('provider.subscription'))
+            ->assertSessionHas('success');
+
+        $order->refresh();
+        $provider->refresh();
+        $this->assertSame('paid_pending_approval', $order->status);
+        $this->assertNotNull($order->paid_at);
+        $this->assertFalse($provider->hasActiveSubscription());
+
+        // Provider is STILL blocked from creating invoices until Admin approves!
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.invoices.create'))
+            ->assertRedirect(route('provider.dashboard'));
+
+        // Provider sees waiting-for-approval confirmation on dashboard & subscription page
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.dashboard'))
+            ->assertOk()
+            ->assertSee('بانتظار موافقة الإدارة');
+
+        // Duplicate checkout while awaiting approval is blocked
+        $this->actingAs($provider, 'provider')
+            ->post(route('provider.subscription.checkout'), [
+                'duration_months' => 1,
+                'method'          => 'telr',
+            ])->assertRedirect(route('provider.subscription'))
+            ->assertSessionHas('error');
+
+        // 4. Admin updates 1-month price to 350.00 -> existing paid order stays 275.00, new orders use 350.00!
+        $this->actingAs($admin, 'web')
+            ->post(route('admin.providers.subscription-settings.save'), [
+                'plan_1m_enabled'  => '1',
+                'plan_1m_price'    => '350',
+                'plan_1m_label'    => 'الباقة الشهرية',
+                'plan_3m_enabled'  => '1',
+                'plan_3m_price'    => '710',
+                'plan_3m_label'    => 'باقة 3 أشهر',
+                'plan_6m_enabled'  => '0',
+                'plan_6m_price'    => '1200',
+                'plan_6m_label'    => 'باقة 6 أشهر',
+                'plan_12m_enabled' => '0',
+                'plan_12m_price'   => '2000',
+                'plan_12m_label'   => 'الباقة السنوية',
+            ])->assertRedirect();
+
+        $this->assertEquals(275.00, (float) $order->fresh()->amount);
+
+        // Admin sees the paid pending-approval order on dashboard & provider profile
+        $this->actingAs($admin, 'web')
+            ->get(route('admin.providers.dashboard'))
+            ->assertOk()
+            ->assertSee($order->order_number)
+            ->assertSee('موافقة وتفعيل الاشتراك');
+
+        // 5. Admin clicks Approve -> subscription activates immediately!
+        $this->actingAs($admin, 'web')
+            ->post(route('admin.providers.sub-orders.approve', $order))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $order->refresh();
+        $provider->refresh();
+        $this->assertSame('approved', $order->status);
+        $this->assertNotNull($order->provider_subscription_id);
+        $this->assertTrue($provider->hasActiveSubscription());
+
+        // Provider can NOW access invoice creation!
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.invoices.create'))
+            ->assertOk();
+
+        // 6. Second provider pays with updated 350.00 SAR via Tamara -> verified pending approval -> Admin rejects!
+        $provider2 = $this->createProvider([
+            'email'               => 'direct-sub-2@example.com',
+            'phone'               => '0558883344',
+            'subscription_status' => 'inactive',
+        ]);
+
+        $capturedTamaraAmount = null;
+        Http::fake([
+            'https://api-sandbox.tamara.co/checkout' => function ($request) use (&$capturedTamaraAmount) {
+                $capturedTamaraAmount = $request['total_amount']['amount'] ?? null;
+                return Http::response([
+                    'order_id'     => 'tmr-sub-002',
+                    'checkout_id'  => 'chk-sub-002',
+                    'checkout_url' => 'https://checkout-sandbox.tamara.co/sub-002',
+                    'status'       => 'new',
+                ], 200);
+            },
+            'https://api-sandbox.tamara.co/orders/tmr-sub-002' => Http::response([
+                'order_id' => 'tmr-sub-002',
+                'status'   => 'approved',
+            ], 200),
+            'https://api-sandbox.tamara.co/orders/tmr-sub-002/authorise' => Http::response([
+                'order_id'      => 'tmr-sub-002',
+                'status'        => 'authorised',
+                'auto_captured' => true,
+            ], 200),
+        ]);
+
+        $this->actingAs($provider2, 'provider')
+            ->post(route('provider.subscription.checkout'), [
+                'duration_months' => 1,
+                'method'          => 'tamara',
+            ])->assertRedirect('https://checkout-sandbox.tamara.co/sub-002');
+
+        $this->assertEquals(350.0, (float) $capturedTamaraAmount);
+
+        $order2 = $provider2->subscriptionOrders()->firstOrFail();
+        $this->actingAs($provider2, 'provider')
+            ->get(route('provider-sub-pay.tamara.callback', [
+                'token'   => $order2->public_token,
+                'status'  => 'success',
+                'orderId' => 'tmr-sub-002',
+            ]))->assertRedirect(route('provider.subscription'));
+
+        $this->assertSame('paid_pending_approval', $order2->fresh()->status);
+        $this->assertFalse($provider2->fresh()->hasActiveSubscription());
+
+        // Admin rejects order2 -> stays inactive
+        $this->actingAs($admin, 'web')
+            ->post(route('admin.providers.sub-orders.reject', $order2), [
+                'admin_notes' => 'الهوية غير واضحة',
+            ])->assertRedirect();
+
+        $this->assertSame('rejected', $order2->fresh()->status);
+        $this->assertFalse($provider2->fresh()->hasActiveSubscription());
+    }
 }

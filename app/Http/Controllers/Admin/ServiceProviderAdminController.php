@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ProviderServiceType;
 use App\Http\Controllers\Controller;
 use App\Models\ProviderInvoice;
+use App\Models\ProviderSubscriptionOrder;
 use App\Models\ProviderWalletTransaction;
 use App\Models\ServiceProvider;
 use App\Services\MailConfigService;
 use App\Services\ProviderDocumentService;
 use App\Services\ProviderPaymentService;
 use App\Services\ProviderSubscriptionConfigService;
+use App\Services\ProviderSubscriptionPaymentService;
 use App\Services\ProviderSubscriptionService;
 use App\Services\ProviderWalletService;
 use Illuminate\Validation\Rule;
@@ -23,6 +25,7 @@ class ServiceProviderAdminController extends Controller
 {
     public function __construct(
         private ProviderSubscriptionService $subscriptionService,
+        private ProviderSubscriptionPaymentService $subPaymentService,
         private ProviderWalletService $walletService,
         private ProviderPaymentService $paymentService
     ) {
@@ -58,6 +61,10 @@ class ServiceProviderAdminController extends Controller
 
         $recentProviders = ServiceProvider::latest()->take(6)->get();
         $recentInvoices = ProviderInvoice::with('provider')->latest()->take(8)->get();
+        $pendingApprovalOrders = ProviderSubscriptionOrder::with('provider')
+            ->where('status', ProviderSubscriptionOrder::STATUS_PAID_PENDING_APPROVAL)
+            ->latest('paid_at')
+            ->get();
 
         $byServiceType = [];
         foreach (ProviderServiceType::cases() as $type) {
@@ -80,6 +87,7 @@ class ServiceProviderAdminController extends Controller
             'providersWithBalance',
             'recentProviders',
             'recentInvoices',
+            'pendingApprovalOrders',
             'byServiceType'
         ));
     }
@@ -136,13 +144,59 @@ class ServiceProviderAdminController extends Controller
     public function show(ServiceProvider $provider)
     {
         $subscriptions = $provider->subscriptions()->with('activatedByAdmin')->latest()->take(15)->get();
+        $subscriptionOrders = $provider->subscriptionOrders()->with('approvedByAdmin')->latest()->take(15)->get();
         $transactions = $provider->walletTransactions()->with(['invoice', 'admin'])->latest()->take(20)->get();
         $invoices = $provider->invoices()->latest()->paginate(10);
         $contracts = $provider->isServicedSuites() ? $provider->contracts()->latest()->take(15)->get() : collect();
         $subConfig = ProviderSubscriptionConfigService::getConfig();
         $serviceTypes = ProviderServiceType::options();
 
-        return view('admin.providers.show', compact('provider', 'subscriptions', 'transactions', 'invoices', 'contracts', 'subConfig', 'serviceTypes'));
+        return view('admin.providers.show', compact('provider', 'subscriptions', 'subscriptionOrders', 'transactions', 'invoices', 'contracts', 'subConfig', 'serviceTypes'));
+    }
+
+    /**
+     * Admin approves a paid direct subscription order -> activates the provider's subscription immediately.
+     */
+    public function approveSubscriptionOrder(Request $request, ProviderSubscriptionOrder $order)
+    {
+        $notes = trim((string) $request->input('admin_notes', ''));
+        $res = $this->subPaymentService->approveOrder($order, (int) Auth::id(), $notes !== '' ? $notes : null);
+
+        if (! $res['success']) {
+            return back()->with('error', $res['error']);
+        }
+
+        $sub = $res['subscription'];
+        return back()->with('success', 'تمت الموافقة وتفعيل اشتراك ' . $order->provider->business_name . ' (' . $order->plan_name . ') حتى تاريخ ' . $sub->ends_at->format('Y-m-d') . ' بنجاح.');
+    }
+
+    /**
+     * Admin rejects a paid subscription order.
+     */
+    public function rejectSubscriptionOrder(Request $request, ProviderSubscriptionOrder $order)
+    {
+        $notes = trim((string) $request->input('admin_notes', ''));
+        $res = $this->subPaymentService->rejectOrder($order, (int) Auth::id(), $notes !== '' ? $notes : null);
+
+        if (! $res['success']) {
+            return back()->with('error', $res['error']);
+        }
+
+        return back()->with('success', 'تم رفض طلب الاشتراك رقم ' . $order->order_number . '.');
+    }
+
+    /**
+     * Admin checks live gateway status for a pending subscription order.
+     */
+    public function verifySubscriptionOrder(ProviderSubscriptionOrder $order)
+    {
+        $res = $this->subPaymentService->verifyAndMarkPaid($order);
+
+        if (! empty($res['paid'])) {
+            return back()->with('success', 'تم التحقق من سداد الطلب رقم ' . $order->order_number . ' بنجاح وهو الآن جاهز للموافقة والتفعيل.');
+        }
+
+        return back()->with('error', $res['error'] ?? 'لم يتم تأكيد سداد هذا الطلب لدى بوابة الدفع بعد.');
     }
 
     /**

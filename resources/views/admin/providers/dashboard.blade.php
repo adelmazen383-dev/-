@@ -33,6 +33,64 @@
             </div>
         </div>
 
+        <!-- Paid Subscription Orders Awaiting Admin Approval -->
+        @if($pendingApprovalOrders->isNotEmpty())
+            <div class="bg-amber-50/90 rounded-xl border-2 border-amber-400 overflow-hidden shadow-xs">
+                <div class="px-4 py-3 border-b border-amber-200 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h3 class="text-xs sm:text-sm font-black text-amber-950">
+                            طلبات اشتراك مدفوعة إلكترونياً بانتظار موافقتك ({{ $pendingApprovalOrders->count() }})
+                        </h3>
+                    </div>
+                    <span class="text-[11px] font-bold text-amber-800">راجع الوثائق ثم اضغط موافقة للتفعيل الفوري</span>
+                </div>
+                <div class="divide-y divide-amber-200/70 bg-white">
+                    @foreach($pendingApprovalOrders as $ord)
+                        <div class="px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <a href="{{ route('admin.providers.show', $ord->provider) }}" class="text-sm font-black text-slate-900 hover:text-emerald-700">
+                                        {{ $ord->provider?->business_name }}
+                                    </a>
+                                    <span class="text-xs text-slate-500">({{ $ord->provider?->name }})</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black tabular-nums">
+                                        مدفوع {{ number_format((float) $ord->amount, 2) }} ر.س
+                                    </span>
+                                </div>
+                                <div class="text-[11.5px] text-slate-600 mt-0.5">
+                                    الباقة: <strong>{{ $ord->plan_name }}</strong> ({{ $ord->duration_months }} شهر) ·
+                                    {{ $ord->paymentMethodLabel() }} ·
+                                    رقم الطلب: <span class="font-mono font-bold">{{ $ord->order_number }}</span>
+                                    @if($ord->paid_at) · وقت الدفع: {{ $ord->paid_at->format('Y-m-d H:i') }} @endif
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                <a href="{{ route('admin.providers.show', $ord->provider) }}" class="btn btn-ghost btn-sm">
+                                    مراجعة الوثائق
+                                </a>
+                                <form method="POST" action="{{ route('admin.providers.sub-orders.approve', $ord) }}"
+                                      onsubmit="return confirm('تأكيد الموافقة وتفعيل اشتراك {{ $ord->provider?->business_name }} ({{ $ord->plan_name }}) الآن؟')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-emerald btn-sm">
+                                        موافقة وتفعيل الاشتراك
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.providers.sub-orders.reject', $ord) }}"
+                                      onsubmit="return confirm('هل أنت متأكد من رفض طلب الاشتراك هذا؟')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-rose btn-sm">
+                                        رفض
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <!-- Unified Compact Executive Metrics Strip (Zero Bulky Squares) -->
         <div class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div class="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 divide-slate-100">

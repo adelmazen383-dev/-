@@ -402,9 +402,17 @@
             <div class="my-3 mx-3 border-t border-emerald-400/20"></div>
             <p class="sidebar-nav-title" style="color:#a5b4fc;">بوابة مقدمي الخدمات (مستقل)</p>
 
+            @php
+                $pendingSubApprovalsCount = \Illuminate\Support\Facades\Schema::hasTable('provider_subscription_orders')
+                    ? \App\Models\ProviderSubscriptionOrder::where('status', 'paid_pending_approval')->count()
+                    : 0;
+            @endphp
             <a href="{{ route('admin.providers.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.providers.dashboard') ? 'active' : '' }}">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                لوحة مقدمي الخدمات
+                <span class="flex-1">لوحة مقدمي الخدمات</span>
+                @if($pendingSubApprovalsCount > 0)
+                    <span class="px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black leading-none">{{ $pendingSubApprovalsCount }}</span>
+                @endif
             </a>
 
             <a href="{{ route('admin.providers.index') }}" class="sidebar-link {{ request()->routeIs('admin.providers.index', 'admin.providers.show') ? 'active' : '' }}">

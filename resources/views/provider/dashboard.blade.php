@@ -34,33 +34,45 @@
         @else
             <div class="rounded-xl bg-[#064e3b] border border-emerald-700/50 text-white px-4 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="min-w-0">
-                    <div class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-200 text-[11px] font-bold">
-                        {{ $provider->subscriptionStatusLabel() }}
-                    </div>
-                    <h2 class="text-sm sm:text-base font-black mt-1">
-                        @if($subStatus === 'expired')
-                            انتهت مدة اشتراكك الشهري
-                        @elseif($subStatus === 'suspended')
-                            تم إيقاف اشتراكك مؤقتاً
-                        @else
-                            فعّل اشتراكك الشهري لبدء إصدار الفواتير
-                        @endif
-                    </h2>
-                    <p class="text-xs text-emerald-100/80 mt-0.5 leading-relaxed">
-                        {{ $subConfig['contact_note'] ?: 'تواصل مع الإدارة لتفعيل اشتراكك الشهري وفتح خدمة إصدار الفواتير فوراً.' }}
-                    </p>
+                    @if(! empty($pendingApprovalOrder))
+                        <div class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-300/35 text-emerald-100 text-[11px] font-bold">
+                            تم استلام الدفع — بانتظار موافقة الإدارة
+                        </div>
+                        <h2 class="text-sm sm:text-base font-black mt-1">
+                            تم سداد اشتراكك ({{ $pendingApprovalOrder->plan_name }} — {{ number_format((float) $pendingApprovalOrder->amount, 2) }} ر.س)
+                        </h2>
+                        <p class="text-xs text-emerald-100/85 mt-0.5 leading-relaxed">
+                            طلبك الآن قيد المراجعة لدى الإدارة، وبمجرد الموافقة سيتم تفعيل اشتراكك وفتح إصدار الفواتير فوراً.
+                        </p>
+                    @else
+                        <div class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-400/20 border border-amber-300/30 text-amber-200 text-[11px] font-bold">
+                            {{ $provider->subscriptionStatusLabel() }}
+                        </div>
+                        <h2 class="text-sm sm:text-base font-black mt-1">
+                            @if($subStatus === 'expired')
+                                انتهت مدة اشتراكك الشهري
+                            @elseif($subStatus === 'suspended')
+                                تم إيقاف اشتراكك مؤقتاً
+                            @else
+                                اشترك الآن لبدء إصدار الفواتير الإلكترونية
+                            @endif
+                        </h2>
+                        <p class="text-xs text-emerald-100/80 mt-0.5 leading-relaxed">
+                            اختر باقتك وادفع مباشرة إلكترونياً، وسيتم تفعيل اشتراكك فور موافقة الإدارة.
+                        </p>
+                    @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    @if(!empty($waSubscribeUrl))
+                    <a href="{{ route('provider.subscription') }}"
+                       class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs sm:text-sm shadow transition">
+                        {{ ! empty($pendingApprovalOrder) ? 'عرض تفاصيل الطلب' : 'اشترك الآن' }}
+                    </a>
+                    @if(! empty($waSubscribeUrl) && empty($pendingApprovalOrder))
                         <a href="{{ $waSubscribeUrl }}" target="_blank"
-                           class="inline-flex items-center justify-center px-3.5 py-2 rounded-lg bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs shadow transition">
-                            تواصل واتساب للاشتراك
+                           class="inline-flex items-center justify-center px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs transition">
+                            استفسار واتساب
                         </a>
                     @endif
-                    <a href="{{ route('provider.subscription') }}"
-                       class="inline-flex items-center justify-center px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs transition">
-                        الباقات والأسعار والتواصل
-                    </a>
                 </div>
             </div>
         @endif

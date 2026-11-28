@@ -133,6 +133,48 @@
             <!-- Monthly Subscription Control -->
             <div class="card border-emerald-200">
                 <h3 class="text-sm font-black text-slate-900 mb-3">إدارة الاشتراك الشهري (تفعيل إصدار الفواتير)</h3>
+
+                @php
+                    $actionableSubOrders = $subscriptionOrders->filter(fn ($o) => $o->isPaidPendingApproval() || $o->isPendingPayment());
+                @endphp
+                @if($actionableSubOrders->isNotEmpty())
+                    <div class="mb-4 space-y-2.5">
+                        @foreach($actionableSubOrders as $ord)
+                            <div class="p-3 rounded-xl {{ $ord->isPaidPendingApproval() ? 'bg-amber-50 border-2 border-amber-400' : 'bg-slate-50 border border-slate-200' }} text-xs space-y-2">
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <strong class="text-slate-900">{{ $ord->plan_name }} — {{ number_format((float) $ord->amount, 2) }} ر.س</strong>
+                                    <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold {{ $ord->isPaidPendingApproval() ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700' }}">
+                                        {{ $ord->statusLabel() }}
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-600">
+                                    رقم الطلب: <span class="font-mono font-bold">{{ $ord->order_number }}</span> · {{ $ord->paymentMethodLabel() }}
+                                    @if($ord->paid_at) · تم السداد: {{ $ord->paid_at->format('Y-m-d H:i') }} @endif
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2 pt-1">
+                                    @if($ord->isPaidPendingApproval())
+                                        <form method="POST" action="{{ route('admin.providers.sub-orders.approve', $ord) }}"
+                                              onsubmit="return confirm('تأكيد الموافقة وتفعيل اشتراك {{ $provider->business_name }} ({{ $ord->plan_name }}) الآن؟')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-emerald btn-sm">موافقة وتفعيل الاشتراك الآن</button>
+                                        </form>
+                                        <form method="POST" action="{{ route('admin.providers.sub-orders.reject', $ord) }}"
+                                              onsubmit="return confirm('هل أنت متأكد من رفض هذا الطلب؟')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-rose btn-sm">رفض الطلب</button>
+                                        </form>
+                                    @elseif($ord->isPendingPayment())
+                                        <form method="POST" action="{{ route('admin.providers.sub-orders.verify', $ord) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-ghost btn-sm">التحقق من حالة الدفع لدى البوابة</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <div class="p-3 rounded-xl mb-4 {{ $provider->hasActiveSubscription() ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200' }} text-xs">
                     <div>الحالة الحالية: <strong>{{ $provider->subscriptionStatusLabel() }}</strong></div>
                     @if($provider->subscription_ends_at)
