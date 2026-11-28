@@ -1,4 +1,4 @@
-@extends('layouts.provider', ['title' => 'محفظتي والتحويلات', 'header' => 'محفظتي والتحويلات المالية'])
+@extends('layouts.provider', ['title' =>'محفظتي والتحويلات', 'header' =>'محفظتي والتحويلات المالية'])
 
 @section('content')
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -24,11 +24,11 @@
     <!-- Bank Account Info -->
     <div class="p-card mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-            <h3 class="text-sm font-black text-slate-900">🏦 بيانات الحساب البنكي للتحويل</h3>
+            <h3 class="text-sm font-black text-slate-900">بيانات الحساب البنكي للتحويل</h3>
             @if($provider->iban)
                 <p class="text-xs text-slate-600 mt-1">
-                    البنك: <strong>{{ $provider->bank_name ?: 'غير محدد' }}</strong> ·
-                    صاحب الحساب: <strong>{{ $provider->bank_account_name ?: $provider->name }}</strong> ·
+                    البنك: <strong>{{ $provider->bank_name ?: 'غير محدد' }}</strong>·
+                    صاحب الحساب: <strong>{{ $provider->bank_account_name ?: $provider->name }}</strong>·
                     IBAN: <strong class="font-mono" dir="ltr">{{ $provider->iban }}</strong>
                 </p>
             @else
@@ -36,7 +36,7 @@
             @endif
         </div>
         <a href="{{ route('provider.profile') }}" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold shrink-0 text-center">
-            تحديث بيانات البنك
+            عرض الحساب / طلب تعديل
         </a>
     </div>
 
@@ -66,9 +66,9 @@
                                 <td class="py-3 px-3 text-slate-500 whitespace-nowrap">{{ $tx->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="py-3 px-3 whitespace-nowrap">
                                     @if($tx->type === 'credit')
-                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">➕ إيداع فاتورة</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">إيداع فاتورة</span>
                                     @else
-                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">🏦 تحويل وتصفير</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800">تحويل وتصفير</span>
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 font-black whitespace-nowrap {{ $tx->type === 'credit' ? 'text-emerald-700' : 'text-rose-700' }}" dir="ltr">
@@ -77,7 +77,7 @@
                                 <td class="py-3 px-3 font-bold text-slate-800 whitespace-nowrap">{{ number_format((float) $tx->balance_after, 2) }} ر.س</td>
                                 <td class="py-3 px-3 text-slate-600">
                                     @if($tx->reference)
-                                        <span class="font-mono text-[11px] font-bold text-slate-700">{{ $tx->reference }}</span> —
+                                        <span class="font-mono text-[11px] font-bold text-slate-700">{{ $tx->reference }}</span>—
                                     @endif
                                     {{ $tx->notes }}
                                 </td>

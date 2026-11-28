@@ -3,7 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>الشروط والأحكام | ثقة</title>
+    <meta name="theme-color" content="#064e3b">
+    <title>الشروط والأحكام | منصة ثقة</title>
+    <meta name="description" content="الشروط والأحكام الخاصة باستخدام منصة ثقة (thiqa.me) لتوثيق عقود الإيجار وإدارة الحجوزات وبوابة مقدمي الخدمات في المملكة العربية السعودية.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url('/terms') }}">
+    <link rel="alternate" hreflang="ar-SA" href="{{ url('/terms') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/image.png') }}">
+    <meta property="og:title" content="الشروط والأحكام | منصة ثقة">
+    <meta property="og:image" content="{{ asset('images/og-thiqa.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>

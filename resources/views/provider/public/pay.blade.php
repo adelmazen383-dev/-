@@ -37,12 +37,12 @@
 </head>
 <body>
     @php
-        $appleCalc  = $invoice->calculateTotalForMethod('apple_pay');
-        $visaCalc   = $invoice->calculateTotalForMethod('standard');
-        $tabbyCalc  = $invoice->calculateTotalForMethod('tabby');
+        $appleCalc = $invoice->calculateTotalForMethod('apple_pay');
+        $visaCalc = $invoice->calculateTotalForMethod('standard');
+        $tabbyCalc = $invoice->calculateTotalForMethod('tabby');
         $tamaraCalc = $invoice->calculateTotalForMethod('tamara');
 
-        $tabbyInst  = round($tabbyCalc['total'] / 4, 2);
+        $tabbyInst = round($tabbyCalc['total'] / 4, 2);
         $tamaraInst = round($tamaraCalc['total'] / 4, 2);
     @endphp
 
@@ -65,23 +65,22 @@
 
         <!-- Provider's Service-Specific Invoice Template -->
         @include($invoice->templateView(), [
-            'invoice'          => $invoice,
-            'provider'         => $provider,
-            'showMethodsStrip' => $invoice->isPaid(),
-            'attachmentUrl'    => $invoice->quote_attachment_path ? route('provider-pay.attachment', $invoice->public_token) : null,
+            'invoice' =>$invoice,
+            'provider' =>$provider,
+            'showMethodsStrip' =>$invoice->isPaid(),
+            'attachmentUrl' =>$invoice->quote_attachment_path ? route('provider-pay.attachment', $invoice->public_token) : null,
         ])
 
         <!-- Paid Confirmation Banner OR Interactive Payment Selector -->
         @if($invoice->isPaid())
             <div class="rounded-2xl bg-emerald-50 border-2 border-emerald-400 p-6 text-center shadow-sm">
-                <div class="text-4xl mb-2">✅</div>
                 <h2 class="text-lg font-black text-emerald-900">تم سداد الفاتورة بنجاح!</h2>
                 <p class="text-xs sm:text-sm text-emerald-800 font-semibold mt-1">
                     تم تأكيد الدفع عبر <strong>{{ $invoice->paymentMethodCleanLabel() }}</strong>
                     بتاريخ {{ $invoice->paid_at?->format('Y-m-d H:i') }}
                 </p>
                 <button onclick="window.print()" class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold cursor-pointer">
-                    🖨️ طباعة / حفظ الفاتورة
+                    طباعة / حفظ الفاتورة
                 </button>
             </div>
         @elseif($invoice->status !== 'cancelled')
@@ -95,9 +94,8 @@
                     <!-- 1. Apple Pay -->
                     <div class="pay-card" id="p-method-apple_pay" onclick="pickProviderMethod('apple_pay', 'Apple Pay', '{{ number_format($appleCalc['total'], 2) }}')">
                         <div class="flex items-center justify-between mb-2">
-                            <span id="p-apple-badge" class="px-2.5 py-0.5 rounded-full bg-black text-white text-[11px] font-bold"> دفع فوري</span>
-                            <span class="w-4 h-4 rounded-full border-2 border-slate-300 method-dot"></span>
-                        </div>
+                            <span id="p-apple-badge" class="px-2.5 py-0.5 rounded-full bg-black text-white text-[11px] font-bold">دفع فوري</span>
+                            </div>
                         <div class="font-black text-sm text-slate-900">Apple Pay</div>
                         <div class="text-xl font-black text-emerald-700 mt-1">{{ number_format($appleCalc['total'], 2) }} <span class="text-xs font-bold">ر.س</span></div>
                         <div class="text-[11px] text-slate-500 mt-0.5">محفظة Apple Wallet · سداد فوري</div>
@@ -107,9 +105,8 @@
                     <div class="pay-card selected" id="p-method-standard" onclick="pickProviderMethod('standard', 'بطاقة مدى / فيزا / ماستركارد', '{{ number_format($visaCalc['total'], 2) }}')">
                         <div class="flex items-center justify-between mb-2">
                             <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold">دفع مباشر</span>
-                            <span class="w-4 h-4 rounded-full border-2 border-indigo-600 bg-indigo-600 method-dot"></span>
-                        </div>
-                        <div class="font-black text-sm text-slate-900">💳 بطاقة مدى / فيزا</div>
+                            </div>
+                        <div class="font-black text-sm text-slate-900">بطاقة مدى / فيزا</div>
                         <div class="text-xl font-black text-emerald-700 mt-1">{{ number_format($visaCalc['total'], 2) }} <span class="text-xs font-bold">ر.س</span></div>
                         <div class="text-[11px] text-slate-500 mt-0.5">مدى · Visa · Mastercard</div>
                     </div>
@@ -118,8 +115,7 @@
                     <div class="pay-card" id="p-method-tabby" onclick="pickProviderMethod('tabby', 'تابي (4 دفعات)', '{{ number_format($tabbyCalc['total'], 2) }}')">
                         <div class="flex items-center justify-between mb-2">
                             <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[11px] font-bold">4 دفعات</span>
-                            <span class="w-4 h-4 rounded-full border-2 border-slate-300 method-dot"></span>
-                        </div>
+                            </div>
                         <div class="font-black text-sm text-slate-900 flex items-center gap-1.5">
                             <span class="px-1.5 py-0.5 rounded bg-[#3EFEBA] text-slate-900 text-[10px] font-black">tabby</span>
                             تابي
@@ -132,8 +128,7 @@
                     <div class="pay-card" id="p-method-tamara" onclick="pickProviderMethod('tamara', 'تمارا (4 دفعات)', '{{ number_format($tamaraCalc['total'], 2) }}')">
                         <div class="flex items-center justify-between mb-2">
                             <span class="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-900 text-[11px] font-bold">4 دفعات</span>
-                            <span class="w-4 h-4 rounded-full border-2 border-slate-300 method-dot"></span>
-                        </div>
+                            </div>
                         <div class="font-black text-sm text-slate-900 flex items-center gap-1.5">
                             <span class="px-1.5 py-0.5 rounded bg-orange-200 text-orange-950 text-[10px] font-black">تمارا</span>
                             تمارا
@@ -148,7 +143,7 @@
                     <input type="hidden" name="method" id="p-selected-method" value="standard">
                     <button type="submit" id="p-pay-submit"
                             class="w-full py-3.5 px-5 rounded-xl bg-[#141311] hover:bg-black text-[#e5cfa0] border border-[#c8a464]/40 font-black text-sm sm:text-base shadow-lg transition cursor-pointer">
-                        💳 متابعة الدفع عبر <span id="p-selected-label">بطاقة مدى / فيزا / ماستركارد</span> (<span id="p-selected-amount">{{ number_format($visaCalc['total'], 2) }}</span> ر.س)
+                        متابعة الدفع عبر <span id="p-selected-label">بطاقة مدى / فيزا / ماستركارد</span>(<span id="p-selected-amount">{{ number_format($visaCalc['total'], 2) }}</span>ر.س)
                     </button>
                 </form>
             </div>
@@ -161,7 +156,7 @@
             document.getElementById('p-selected-label').textContent = label;
             document.getElementById('p-selected-amount').textContent = amount;
 
-            document.querySelectorAll('.pay-card').forEach(el => {
+            document.querySelectorAll('.pay-card').forEach(el =>{
                 el.classList.remove('selected');
                 const dot = el.querySelector('.method-dot');
                 if (dot) {
@@ -185,7 +180,7 @@
             const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && !window.MSStream;
             if (isApple) {
                 const badge = document.getElementById('p-apple-badge');
-                if (badge) badge.textContent = '🍎 موصى به لجهازك';
+                if (badge) badge.textContent = 'موصى به لجهازك';
                 pickProviderMethod('apple_pay', 'Apple Pay', '{{ number_format($appleCalc['total'], 2) }}');
             }
         });

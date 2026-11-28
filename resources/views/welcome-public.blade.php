@@ -5,36 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <meta name="theme-color" content="#064e3b">
     <meta name="google-site-verification" content="sboSkl7bJ_OFgDJocQCr2IWCxhAEfVkPDm8O8gbFE7Q" />
-    <title>ثقة | منصة توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات</title>
-    <meta name="description" content="منصة ثقة لتوثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية، وبوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وفيزا وتابي وتمارا في السعودية.">
-    <meta name="keywords" content="منصة ثقة, توثيق عقود, إدارة حجوزات, وحدات سكنية, أجنحة فندقية, بوابة مقدمي الخدمات, فواتير إلكترونية, دفع إلكتروني, Apple Pay, Visa, Mada, تابي, تمارا">
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+    <title>منصة ثقة | توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات في السعودية</title>
+    <meta name="description" content="منصة ثقة (thiqa.me) في المملكة العربية السعودية لتوثيق عقود الإيجار وإدارة حجوزات الشقق والأجنحة الفندقية، وبوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وفيزا وتابي وتمارا.">
+    <meta name="keywords" content="منصة ثقة, thiqa.me, توثيق عقود الإيجار السعودية, إدارة حجوزات شقق فندقية, بوابة مقدمي الخدمات, إصدار فواتير إلكترونية, رابط دفع تابي وتمارا, دفع إلكتروني Apple Pay ومدى, فواتير منسقي الحفلات, فواتير المصورين">
+    <meta name="author" content="مؤسسة موقع أمر التجارية — منصة ثقة">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="{{ url('/') }}">
+    <link rel="alternate" hreflang="ar-SA" href="{{ url('/') }}">
+    <link rel="alternate" hreflang="x-default" href="{{ url('/') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/image.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/image.png') }}">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_SA">
     <meta property="og:site_name" content="منصة ثقة">
-    <meta property="og:title" content="ثقة | منصة توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات">
-    <meta property="og:description" content="منصة رقمية متكاملة في السعودية لتوثيق عقود الإيجار وإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وتابي وتمارا.">
+    <meta property="og:title" content="منصة ثقة | توثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات">
+    <meta property="og:description" content="منصة رقمية متكاملة في السعودية لتوثيق عقود الإيجار وإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وفيزا وتابي وتمارا.">
     <meta property="og:url" content="{{ url('/') }}">
-    <meta property="og:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
+    <meta property="og:image" content="{{ asset('images/og-thiqa.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="منصة ثقة لتوثيق العقود وبوابة مقدمي الخدمات في السعودية">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="منصة ثقة | توثيق العقود والفواتير الإلكترونية">
-    <meta name="twitter:image" content="{{ asset('images/thiqa-gold-logo.png') }}">
+    <meta name="twitter:title" content="منصة ثقة | توثيق العقود وبوابة مقدمي الخدمات">
+    <meta name="twitter:description" content="توثيق عقود الإيجار وإصدار الفواتير الإلكترونية وتحصيل المدفوعات عبر Apple Pay ومدى وتابي وتمارا في السعودية.">
+    <meta name="twitter:image" content="{{ asset('images/og-thiqa.png') }}">
     @php
         $homeSchema = [
             '@context' => 'https://schema.org',
             '@graph'   => [
                 [
-                    '@type' => 'Organization',
-                    'name'  => 'منصة ثقة',
-                    'url'   => url('/'),
-                    'logo'  => asset('images/thiqa-gold-logo.png'),
+                    '@type'         => 'Organization',
+                    '@id'           => url('/') . '#organization',
+                    'name'          => 'منصة ثقة',
+                    'alternateName' => ['ثقة', 'Thiqa', 'مؤسسة موقع أمر التجارية'],
+                    'url'           => url('/'),
+                    'logo'          => [
+                        '@type' => 'ImageObject',
+                        'url'   => asset('images/image.png'),
+                    ],
+                    'image'         => asset('images/og-thiqa.png'),
+                    'email'         => 'info@thiqa.me',
+                    'telephone'     => '+966597819851',
+                    'areaServed'    => [
+                        '@type' => 'Country',
+                        'name'  => 'Saudi Arabia',
+                    ],
+                    'contactPoint'  => [
+                        [
+                            '@type'             => 'ContactPoint',
+                            'telephone'         => '+966597819851',
+                            'contactType'       => 'customer service',
+                            'areaServed'        => 'SA',
+                            'availableLanguage' => ['Arabic'],
+                        ],
+                    ],
                 ],
                 [
                     '@type'      => 'WebSite',
+                    '@id'        => url('/') . '#website',
                     'name'       => 'منصة ثقة',
                     'url'        => url('/'),
                     'inLanguage' => 'ar-SA',
+                    'publisher'  => ['@id' => url('/') . '#organization'],
+                ],
+                [
+                    '@type'           => 'ProfessionalService',
+                    '@id'             => url('/') . '#service',
+                    'name'            => 'منصة ثقة لتوثيق العقود وبوابة مقدمي الخدمات',
+                    'url'             => url('/'),
+                    'image'           => asset('images/og-thiqa.png'),
+                    'telephone'       => '+966597819851',
+                    'email'           => 'info@thiqa.me',
+                    'areaServed'      => 'المملكة العربية السعودية',
+                    'paymentAccepted' => 'Apple Pay, Visa, Mastercard, Mada, Tabby, Tamara',
+                    'currenciesAccepted' => 'SAR',
+                ],
+                [
+                    '@type'      => 'FAQPage',
+                    'mainEntity' => [
+                        [
+                            '@type'          => 'Question',
+                            'name'           => 'ما هي الخدمات التي تقدمها منصة ثقة؟',
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text'  => 'تقدم منصة ثقة خدمة توثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية، بالإضافة إلى بوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات في المملكة العربية السعودية.',
+                            ],
+                        ],
+                        [
+                            '@type'          => 'Question',
+                            'name'           => 'ما هي طرق الدفع المتاحة في منصة ثقة؟',
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text'  => 'تدعم منصة ثقة الدفع الإلكتروني عبر Apple Pay ومدى وفيزا وماستركارد، بالإضافة إلى التقسيط على 4 دفعات عبر تابي (Tabby) وتمارا (Tamara).',
+                            ],
+                        ],
+                        [
+                            '@type'          => 'Question',
+                            'name'           => 'كيف يمكنني التسجيل في بوابة مقدمي الخدمات؟',
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text'  => 'يمكن لأصحاب الأجنحة الفندقية والشقق والفلل والشاليهات ومنسقي الحفلات والمصورين والخدمات الحرة إنشاء حساب من صفحة التسجيل ورفع الوثائق المطلوبة، ثم التواصل مع الإدارة لتفعيل الاشتراك الشهري.',
+                            ],
+                        ],
+                        [
+                            '@type'          => 'Question',
+                            'name'           => 'كيف أتحقق من صحة عقد موثّق عبر منصة ثقة؟',
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text'  => 'يمكن لأي طرف التحقق الفوري من صحة أي عقد موثّق عبر صفحة التحقق من العقود بإدخال رقم العقد أو رمز التحقق.',
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -723,6 +804,7 @@
             <!-- Desktop Nav Links -->
             <div class="navbar-links">
                 <a href="#features" class="nav-item">المميزات</a>
+                <a href="{{ route('provider.landing') }}" class="nav-item" style="color: #6ee7b7; font-weight: 800;">بوابة مقدمي الخدمات</a>
                 <a href="#properties" class="nav-item">العقارات المدارة</a>
                 <a href="#payment" class="nav-item">طرق الدفع</a>
                 <a href="{{ route('verify.index') }}" class="nav-item">التحقق من عقد</a>
@@ -749,20 +831,22 @@
         <!-- Mobile Dropdown Menu -->
         <div id="mobileMenu" class="mobile-menu">
             <ul class="mobile-menu-links">
-                <li><a href="#features" onclick="toggleMobileMenu()">✨ المميزات والخدمات</a></li>
-                <li><a href="#properties" onclick="toggleMobileMenu()">🏢 العقارات والوحدات</a></li>
-                <li><a href="#payment" onclick="toggleMobileMenu()">💳 طرق الدفع المعتمدة</a></li>
-                <li><a href="{{ route('verify.index') }}">🔍 التحقق من صحة عقد</a></li>
-                <li><a href="/terms">📜 الشروط والأحكام</a></li>
-                <li><a href="/privacy">🔒 سياسة الخصوصية</a></li>
-                <li><a href="/refund-policy">🔄 سياسة الاسترجاع والإلغاء</a></li>
+                <li><a href="{{ route('provider.landing') }}" style="color:#6ee7b7; font-weight:800;">بوابة مقدمي الخدمات</a></li>
+                <li><a href="{{ route('provider.register') }}">التسجيل كمقدم خدمة</a></li>
+                <li><a href="#features" onclick="toggleMobileMenu()">المميزات والخدمات</a></li>
+                <li><a href="#properties" onclick="toggleMobileMenu()">العقارات والوحدات</a></li>
+                <li><a href="#payment" onclick="toggleMobileMenu()">طرق الدفع المعتمدة</a></li>
+                <li><a href="{{ route('verify.index') }}">التحقق من صحة عقد</a></li>
+                <li><a href="/terms">الشروط والأحكام</a></li>
+                <li><a href="/privacy">سياسة الخصوصية</a></li>
+                <li><a href="/refund-policy">سياسة الاسترجاع والإلغاء</a></li>
             </ul>
             <div class="mobile-menu-actions">
                 <a href="{{ route('login') }}" class="btn-cta-primary" style="width: 100%; justify-content: center;">
                     <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                     </svg>
-                    دخول إلى لوحة التحكم
+                    دخول إلى النظام
                 </a>
             </div>
         </div>
@@ -785,6 +869,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                 </svg>
                 <span>تسجيل الدخول للنظام</span>
+            </a>
+            <a href="{{ route('provider.landing') }}" class="btn-cta-secondary">
+                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>بوابة مقدمي الخدمات</span>
             </a>
             <a href="{{ route('verify.index') }}" class="btn-cta-secondary">
                 <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -899,6 +989,38 @@
         </div>
     </section>
 
+    <!-- Service Providers Portal Highlight (Strong Internal SEO Link + Brand Cohesion) -->
+    <section class="features-section" id="providers-portal" style="padding-top: 20px;">
+        <div class="section-header">
+            <h2>بوابة مقدمي الخدمات في منصة ثقة</h2>
+            <p>أصدر فواتيرك الإلكترونية الفاخرة لعملائك ووفّر لهم الدفع عبر Apple Pay ومدى وفيزا وتابي وتمارا مع محفظة مالية متكاملة</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>الشقق والأجنحة الفندقية</h3>
+                <p>نموذج فاتورة مخصص للشقق والفلل والشاليهات والأجنحة المخدومة يشمل تفاصيل الوحدة وتواريخ الدخول والخروج والتأمين.</p>
+            </div>
+            <div class="feature-card">
+                <h3>منسقو الحفلات والمناسبات</h3>
+                <p>نموذج طلب منسق متكامل يوثّق تفاصيل المناسبة والدفعات وإرفاق عرض السعر مع رابط دفع إلكتروني فوري للعميل.</p>
+            </div>
+            <div class="feature-card">
+                <h3>المصورون والخدمات الحرة</h3>
+                <p>نماذج متخصصة للمصورين ومختلف الخدمات التجارية لتنظيم الباقات والدفعات واستلام المستحقات في المحفظة البنكية.</p>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:26px;">
+            <a href="{{ route('provider.register') }}" class="btn-cta-primary">
+                <span>سجّل الآن كمقدم خدمة</span>
+            </a>
+            <a href="{{ route('provider.landing') }}" class="btn-cta-secondary">
+                <span>تعرّف على بوابة مقدمي الخدمات</span>
+            </a>
+        </div>
+    </section>
+
     <!-- Payment Methods -->
     <section class="payment-section" id="payment">
         <div class="section-header">
@@ -934,6 +1056,32 @@
         </div>
     </section>
 
+    <!-- Visible FAQ Section matching FAQPage JSON-LD for Google Rich Results -->
+    <section class="features-section" id="faq" style="padding-top: 10px;">
+        <div class="section-header">
+            <h2>الأسئلة الشائعة حول منصة ثقة</h2>
+            <p>إجابات سريعة حول توثيق العقود، بوابة مقدمي الخدمات، وطرق الدفع المعتمدة في السعودية</p>
+        </div>
+        <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+            <div class="feature-card">
+                <h3>ما هي الخدمات التي تقدمها منصة ثقة؟</h3>
+                <p>تقدم منصة ثقة خدمة توثيق عقود الإيجار وإدارة حجوزات الوحدات السكنية والفندقية، بالإضافة إلى بوابة مقدمي الخدمات لإصدار الفواتير الإلكترونية وتحصيل المدفوعات في المملكة العربية السعودية.</p>
+            </div>
+            <div class="feature-card">
+                <h3>ما هي طرق الدفع المتاحة في منصة ثقة؟</h3>
+                <p>تدعم منصة ثقة الدفع الإلكتروني عبر Apple Pay ومدى وفيزا وماستركارد، بالإضافة إلى التقسيط على 4 دفعات عبر تابي (Tabby) وتمارا (Tamara).</p>
+            </div>
+            <div class="feature-card">
+                <h3>كيف يمكنني التسجيل في بوابة مقدمي الخدمات؟</h3>
+                <p>يمكن لأصحاب الأجنحة الفندقية والشقق والفلل والشاليهات ومنسقي الحفلات والمصورين والخدمات الحرة إنشاء حساب من <a href="{{ route('provider.register') }}" style="color:#34d399; font-weight:700;">صفحة التسجيل</a> ورفع الوثائق المطلوبة، ثم التواصل مع الإدارة لتفعيل الاشتراك الشهري.</p>
+            </div>
+            <div class="feature-card">
+                <h3>كيف أتحقق من صحة عقد موثّق عبر منصة ثقة؟</h3>
+                <p>يمكن لأي طرف التحقق الفوري من صحة أي عقد موثّق عبر <a href="{{ route('verify.index') }}" style="color:#34d399; font-weight:700;">صفحة التحقق من العقود</a> بإدخال رقم العقد أو رمز التحقق.</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Bottom CTA Banner -->
     <div class="bottom-cta-banner">
         <div class="bottom-cta-card">
@@ -964,7 +1112,9 @@
             <div>
                 <h4>روابط مهمة</h4>
                 <ul class="footer-links">
-                    <li><a href="{{ route('login') }}">تسجيل الدخول</a></li>
+                    <li><a href="{{ route('login') }}">تسجيل الدخول (الإدارة ومقدمي الخدمات)</a></li>
+                    <li><a href="{{ route('provider.landing') }}">بوابة مقدمي الخدمات</a></li>
+                    <li><a href="{{ route('provider.register') }}">التسجيل كمقدم خدمة جديد</a></li>
                     <li><a href="{{ route('verify.index') }}">التحقق من صحة عقد</a></li>
                     <li><a href="/terms">الشروط والأحكام</a></li>
                     <li><a href="/privacy">سياسة الخصوصية</a></li>

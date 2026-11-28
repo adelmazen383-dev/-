@@ -1,4 +1,4 @@
-@extends('layouts.provider', ['title' => 'فاتورة ' . $invoice->invoice_number, 'header' => 'تفاصيل الفاتورة ' . $invoice->invoice_number])
+@extends('layouts.provider', ['title' =>'فاتورة ' . $invoice->invoice_number, 'header' =>'تفاصيل الفاتورة ' . $invoice->invoice_number])
 
 @section('content')
     <div class="space-y-5">
@@ -8,14 +8,14 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-mono text-sm font-black text-indigo-700">{{ $invoice->invoice_number }}</span>
                     @if($invoice->isPaid())
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">✅ مدفوعة ومؤكدة</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">مدفوعة ومؤكدة</span>
                     @elseif($invoice->status === 'failed')
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">❌ فشلت العملية</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">فشلت العملية</span>
                     @else
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">⏳ بانتظار سداد العميل</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">بانتظار سداد العميل</span>
                     @endif
                     @if($invoice->isWalletCredited())
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">💰 أُضيفت لمحفظتك ({{ number_format((float) $invoice->amount, 2) }} ر.س)</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">أُضيفت لمحفظتك ({{ number_format((float) $invoice->amount, 2) }} ر.س)</span>
                     @endif
                 </div>
                 <p class="text-xs text-slate-500 mt-1">تاريخ الإصدار: {{ $invoice->created_at->format('Y-m-d H:i') }}</p>
@@ -23,9 +23,9 @@
 
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button"
-                        onclick="navigator.clipboard.writeText('{{ $invoice->public_payment_url }}').then(() => alert('تم نسخ رابط الفاتورة والدفع للعميل!'))"
+                        onclick="navigator.clipboard.writeText('{{ $invoice->public_payment_url }}').then(() =>alert('تم نسخ رابط الفاتورة والدفع للعميل!'))"
                         class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold">
-                    🔗 نسخ رابط الدفع للعميل
+                    نسخ رابط الدفع للعميل
                 </button>
 
                 @php
@@ -35,19 +35,19 @@
                 @endphp
                 <a href="https://wa.me/{{ $waPhone }}?text={{ $waText }}" target="_blank"
                    class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold">
-                    💬 إرسال عبر واتساب
+                    إرسال عبر واتساب
                 </a>
 
                 <a href="{{ route('provider.invoices.print', $invoice) }}" target="_blank"
                    class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold">
-                    🖨️ طباعة
+                    طباعة
                 </a>
 
                 @if(!$invoice->isPaid())
                     <form method="POST" action="{{ route('provider.invoices.check-status', $invoice) }}" class="inline">
                         @csrf
                         <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-extrabold">
-                            🔄 تحديث حالة الدفع
+                            تحديث حالة الدفع
                         </button>
                     </form>
                 @endif
@@ -69,9 +69,9 @@
         <!-- Invoice Template Preview -->
         <div>
             @include($invoice->templateView(), [
-                'invoice'       => $invoice,
-                'provider'      => $provider,
-                'attachmentUrl' => $invoice->quote_attachment_path ? route('provider.invoices.attachment', $invoice) : null,
+                'invoice' =>$invoice,
+                'provider' =>$provider,
+                'attachmentUrl' =>$invoice->quote_attachment_path ? route('provider.invoices.attachment', $invoice) : null,
             ])
         </div>
     </div>

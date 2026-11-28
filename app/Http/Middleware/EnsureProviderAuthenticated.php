@@ -11,7 +11,7 @@ class EnsureProviderAuthenticated
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::guard('provider')->check()) {
-            return redirect()->guest(route('provider.login'));
+            return redirect()->guest(route('login'));
         }
 
         $provider = Auth::guard('provider')->user();
@@ -20,7 +20,7 @@ class EnsureProviderAuthenticated
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('provider.login')
+            return redirect()->route('login')
                 ->with('error', 'تم إيقاف حسابك مؤقتاً من قبل الإدارة. يُرجى التواصل مع الدعم.');
         }
 

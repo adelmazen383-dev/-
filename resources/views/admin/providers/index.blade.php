@@ -64,8 +64,8 @@
                                         <div dir="ltr" class="text-slate-500">{{ $p->email }}</div>
                                     </td>
                                     <td>
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $docCount > 0 ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500' }}">
-                                            📎 {{ $docCount }} ملفات
+                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold {{ $docCount >0 ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-500' }}">
+                                            {{ $docCount }} ملفات
                                         </span>
                                     </td>
                                     <td>
@@ -79,7 +79,7 @@
                                     <td class="text-xs font-bold">
                                         {{ $p->paid_invoices_count }} مدفوعة / {{ $p->invoices_count }}
                                     </td>
-                                    <td class="font-black {{ (float) $p->wallet_balance > 0 ? 'text-indigo-700' : 'text-slate-400' }}">
+                                    <td class="font-black {{ (float) $p->wallet_balance >0 ? 'text-indigo-700' : 'text-slate-400' }}">
                                         {{ number_format((float) $p->wallet_balance, 2) }} ر.س
                                     </td>
                                     <td>

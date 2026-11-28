@@ -11,7 +11,7 @@
                     </span>
                     @if($invoice->isWalletCredited())
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
-                            💰 أُضيفت لمحفظة مقدم الخدمة ({{ number_format((float) $invoice->amount, 2) }} ر.س)
+                            أُضيفت لمحفظة مقدم الخدمة ({{ number_format((float) $invoice->amount, 2) }} ر.س)
                         </span>
                     @endif
                 </div>
@@ -29,14 +29,14 @@
                     @if($invoice->telr_order_ref || $invoice->tamara_order_id)
                         <form method="POST" action="{{ route('admin.providers.invoices.check-status', $invoice) }}" class="inline">
                             @csrf
-                            <button type="submit" class="btn btn-indigo btn-sm">🔄 التحقق من البوابة</button>
+                            <button type="submit" class="btn btn-indigo btn-sm">التحقق من البوابة</button>
                         </form>
                     @endif
 
                     <form method="POST" action="{{ route('admin.providers.invoices.confirm-paid', $invoice) }}" class="inline"
                           onsubmit="return confirm('هل تأكدت من سداد الفاتورة وتريد تأكيدها وإضافة {{ number_format((float) $invoice->amount, 2) }} ر.س إلى محفظة مقدم الخدمة؟')">
                         @csrf
-                        <button type="submit" class="btn btn-emerald btn-sm">✅ تأكيد السداد وإضافة للمحفظة</button>
+                        <button type="submit" class="btn btn-emerald btn-sm">تأكيد السداد وإضافة للمحفظة</button>
                     </form>
                 @endif
             </div>
@@ -67,9 +67,9 @@
         <!-- Invoice Template Preview -->
         <div class="max-w-3xl mx-auto">
             @include($invoice->templateView(), [
-                'invoice'       => $invoice,
-                'provider'      => $invoice->provider,
-                'attachmentUrl' => $invoice->quote_attachment_path ? route('admin.providers.invoices.attachment', $invoice) : null,
+                'invoice' =>$invoice,
+                'provider' =>$invoice->provider,
+                'attachmentUrl' =>$invoice->quote_attachment_path ? route('admin.providers.invoices.attachment', $invoice) : null,
             ])
         </div>
     </div>

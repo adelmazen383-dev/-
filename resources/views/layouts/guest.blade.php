@@ -2,9 +2,29 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>ثقة | تسجيل الدخول</title>
+    <meta name="theme-color" content="#064e3b">
+    <title>منصة ثقة | تسجيل الدخول — الإدارة ومقدمي الخدمات</title>
+    <meta name="description" content="بوابة تسجيل الدخول الموحدة في منصة ثقة (thiqa.me) للإدارة ومقدمي الخدمات في المملكة العربية السعودية باستخدام البريد الإلكتروني.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="alternate" hreflang="ar-SA" href="{{ url()->current() }}">
+    <link rel="alternate" hreflang="x-default" href="{{ url()->current() }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/image.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/image.png') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ar_SA">
+    <meta property="og:site_name" content="منصة ثقة">
+    <meta property="og:title" content="منصة ثقة | تسجيل الدخول — الإدارة ومقدمي الخدمات">
+    <meta property="og:description" content="بوابة الدخول الموحدة لمنصة ثقة لتوثيق العقود وإدارة الحجوزات وبوابة مقدمي الخدمات في السعودية.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/og-thiqa.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="منصة ثقة | تسجيل الدخول">
+    <meta name="twitter:image" content="{{ asset('images/og-thiqa.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -207,7 +227,7 @@
             </a>
             <div class="brand-badge">
                 <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>بوابة الإدارة المعتمدة</span>
+                <span>بوابة الدخول الموحدة</span>
             </div>
         </div>
 

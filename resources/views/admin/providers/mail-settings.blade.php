@@ -6,7 +6,7 @@
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h2 class="text-sm font-black {{ $mail['is_live_ready'] ? 'text-emerald-900' : 'text-amber-900' }}">
-                        {{ $mail['is_live_ready'] ? '✅ خدمة إرسال البريد ورموز OTP مهيأة وجاهزة' : '⚠️ خدمة SMTP غير مفعّلة بعد (وضع السجل log فقط)' }}
+                        {{ $mail['is_live_ready'] ? 'خدمة إرسال البريد ورموز OTP مهيأة وجاهزة' : 'خدمة SMTP غير مفعّلة بعد (وضع السجل log فقط)' }}
                     </h2>
                     <p class="text-xs text-slate-600 mt-1">
                         المرسل النشط حالياً: <strong class="font-mono">{{ $mail['effective_mailer'] }}</strong>.
@@ -68,13 +68,13 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-emerald">💾 حفظ إعدادات البريد و OTP</button>
+                <button type="submit" class="btn btn-emerald">حفظ إعدادات البريد و OTP</button>
             </form>
         </div>
 
         <!-- Test SMTP -->
         <div class="card">
-            <h3 class="text-sm font-black text-slate-900 mb-2">🧪 اختبار إرسال البريد و OTP</h3>
+            <h3 class="text-sm font-black text-slate-900 mb-2">اختبار إرسال البريد و OTP</h3>
             <p class="text-xs text-slate-500 mb-3">أدخل بريدك الإلكتروني واضغط اختبار للتأكد من وصول رسائل OTP فعلياً إلى البريد الوارد.</p>
             <form method="POST" action="{{ route('admin.providers.mail.test') }}" class="flex flex-col sm:flex-row gap-2.5">
                 @csrf

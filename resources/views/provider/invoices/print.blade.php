@@ -20,7 +20,7 @@
     <div class="max-w-3xl mx-auto">
         <div class="no-print flex items-center justify-between mb-4">
             <button onclick="window.print()" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-extrabold cursor-pointer">
-                🖨️ طباعة / حفظ PDF
+                طباعة / حفظ PDF
             </button>
             <a href="{{ url()->previous() }}" class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 text-xs font-bold">
                 رجوع
@@ -28,9 +28,9 @@
         </div>
 
         @include($invoice->templateView(), [
-            'invoice'       => $invoice,
-            'provider'      => $provider,
-            'attachmentUrl' => $invoice->quote_attachment_path ? route('provider.invoices.attachment', $invoice) : null,
+            'invoice' =>$invoice,
+            'provider' =>$provider,
+            'attachmentUrl' =>$invoice->quote_attachment_path ? route('provider.invoices.attachment', $invoice) : null,
         ])
     </div>
 </body>

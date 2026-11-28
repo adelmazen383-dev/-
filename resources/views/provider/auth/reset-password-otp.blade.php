@@ -1,4 +1,4 @@
-@extends('layouts.provider-guest', ['title' => 'تأكيد رمز OTP وتعيين كلمة مرور جديدة', 'metaRobots' => 'noindex, nofollow'])
+@extends('layouts.provider-guest', ['title' =>'تأكيد رمز OTP وتعيين كلمة مرور جديدة', 'metaRobots' =>'noindex, nofollow'])
 
 @section('content')
     <div class="mb-5">
@@ -46,10 +46,10 @@
         <form method="POST" action="{{ route('provider.password.otp.resend') }}">
             @csrf
             <button type="submit" id="resend-otp-btn"
-                    {{ $cooldown > 0 ? 'disabled' : '' }}
+                    {{ $cooldown >0 ? 'disabled' : '' }}
                     class="font-extrabold text-indigo-600 hover:text-indigo-800 disabled:text-slate-400 disabled:cursor-not-allowed">
-                @if($cooldown > 0)
-                    إعادة إرسال الرمز بعد (<span id="cooldown-sec">{{ $cooldown }}</span> ث)
+                @if($cooldown >0)
+                    إعادة إرسال الرمز بعد (<span id="cooldown-sec">{{ $cooldown }}</span>ث)
                 @else
                     إعادة إرسال رمز جديد
                 @endif
@@ -68,8 +68,8 @@
         let sec = {{ (int) $cooldown }};
         const btn = document.getElementById('resend-otp-btn');
         const span = document.getElementById('cooldown-sec');
-        if (sec > 0 && btn && span) {
-            const timer = setInterval(() => {
+        if (sec >0 && btn && span) {
+            const timer = setInterval(() =>{
                 sec--;
                 if (sec <= 0) {
                     clearInterval(timer);

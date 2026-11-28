@@ -19,10 +19,11 @@ Route::get('/providers', fn () => view('provider.landing'))->name('provider.land
 Route::get('/sitemap.xml', function () {
     $lastmod = now()->toAtomString();
     $urls = [
-        ['loc' => url('/'),                  'changefreq' => 'weekly',  'priority' => '1.0'],
-        ['loc' => url('/providers'),         'changefreq' => 'weekly',  'priority' => '0.9'],
-        ['loc' => url('/provider/register'), 'changefreq' => 'monthly', 'priority' => '0.8'],
-        ['loc' => url('/provider/login'),    'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['loc' => url('/'),                  'changefreq' => 'daily',   'priority' => '1.0'],
+        ['loc' => url('/providers'),         'changefreq' => 'weekly',  'priority' => '0.95'],
+        ['loc' => url('/provider/register'), 'changefreq' => 'monthly', 'priority' => '0.85'],
+        ['loc' => url('/login'),             'changefreq' => 'monthly', 'priority' => '0.8'],
+        ['loc' => url('/verify'),            'changefreq' => 'monthly', 'priority' => '0.7'],
         ['loc' => url('/terms'),             'changefreq' => 'yearly',  'priority' => '0.4'],
         ['loc' => url('/privacy'),           'changefreq' => 'yearly',  'priority' => '0.4'],
         ['loc' => url('/refund-policy'),     'changefreq' => 'yearly',  'priority' => '0.4'],
@@ -78,6 +79,7 @@ Route::prefix('provider')->name('provider.')->group(function () {
         Route::post('/logout', [ProviderAuthController::class, 'logout'])->name('logout');
 
         Route::get('/dashboard', [ProviderDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/subscription', [ProviderDashboardController::class, 'subscription'])->name('subscription');
         Route::get('/wallet', [ProviderDashboardController::class, 'wallet'])->name('wallet');
         Route::get('/profile', [ProviderDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [ProviderDashboardController::class, 'updateProfile'])->name('profile.update');
@@ -112,11 +114,15 @@ Route::prefix('admin/service-providers')
         Route::post('/invoices/{invoice}/check-status', [ServiceProviderAdminController::class, 'checkInvoiceStatus'])->name('invoices.check-status');
         Route::post('/invoices/{invoice}/confirm-paid', [ServiceProviderAdminController::class, 'confirmInvoicePaid'])->name('invoices.confirm-paid');
 
+        Route::get('/subscription-settings', [ServiceProviderAdminController::class, 'subscriptionSettings'])->name('subscription-settings.index');
+        Route::post('/subscription-settings', [ServiceProviderAdminController::class, 'saveSubscriptionSettings'])->name('subscription-settings.save');
+
         Route::get('/mail-settings', [ServiceProviderAdminController::class, 'mailSettings'])->name('mail.index');
         Route::post('/mail-settings', [ServiceProviderAdminController::class, 'saveMailSettings'])->name('mail.save');
         Route::post('/mail-settings/test', [ServiceProviderAdminController::class, 'testMailSettings'])->name('mail.test');
 
         Route::get('/{provider}', [ServiceProviderAdminController::class, 'show'])->name('show');
+        Route::put('/{provider}', [ServiceProviderAdminController::class, 'updateProvider'])->name('update');
         Route::get('/{provider}/documents/{docKey}', [ServiceProviderAdminController::class, 'downloadDocument'])->name('document');
         Route::post('/{provider}/subscription/activate', [ServiceProviderAdminController::class, 'activateSubscription'])->name('subscription.activate');
         Route::post('/{provider}/subscription/suspend', [ServiceProviderAdminController::class, 'suspendSubscription'])->name('subscription.suspend');

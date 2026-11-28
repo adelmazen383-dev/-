@@ -3,7 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>التحقق من العقد | نظام العقود</title>
+    <meta name="theme-color" content="#064e3b">
+    <title>التحقق من صحة العقد | منصة ثقة</title>
+    <meta name="description" content="تحقق فوراً من صحة وموثوقية أي عقد موثّق عبر منصة ثقة (thiqa.me) في المملكة العربية السعودية بإدخال رقم العقد.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url('/verify') }}">
+    <link rel="alternate" hreflang="ar-SA" href="{{ url('/verify') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/image.png') }}">
+    <meta property="og:title" content="التحقق من صحة العقد | منصة ثقة">
+    <meta property="og:image" content="{{ asset('images/og-thiqa.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }

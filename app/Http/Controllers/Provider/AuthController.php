@@ -25,40 +25,46 @@ class AuthController extends Controller
 
     public function showLogin()
     {
-        return view('provider.auth.login');
+        return redirect()->route('login', [], 301);
     }
 
     public function login(Request $request)
     {
+        $request->merge([
+            'email' => strtolower(trim((string) $request->input('email', ''))),
+        ]);
+
         $validated = $request->validate([
-            'login'    => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
         ], [
-            'login.required'    => 'يرجى إدخال البريد الإلكتروني أو رقم الجوال.',
+            'email.required'    => 'يرجى إدخال البريد الإلكتروني.',
+            'email.email'       => 'يرجى إدخال بريد إلكتروني صحيح (تسجيل الدخول متاح بالبريد الإلكتروني فقط).',
             'password.required' => 'يرجى إدخال كلمة المرور.',
         ]);
 
-        $throttleKey = 'provider-login:' . Str::lower(trim($validated['login'])) . '|' . $request->ip();
+        $email = $validated['email'];
+        $throttleKey = 'provider-login:' . $email . '|' . $request->ip();
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
             return back()
-                ->withInput($request->only('login', 'remember'))
-                ->withErrors(['login' => "تم تجاوز عدد محاولات الدخول المسموح بها. يرجى المحاولة بعد {$seconds} ثانية."]);
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => "تم تجاوز عدد محاولات الدخول المسموح بها. يرجى المحاولة بعد {$seconds} ثانية."]);
         }
 
-        $provider = $this->otpService->findProviderByIdentifier($validated['login']);
+        $provider = ServiceProvider::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (!$provider || !Hash::check($validated['password'], $provider->password)) {
             RateLimiter::hit($throttleKey, 60);
             return back()
-                ->withInput($request->only('login', 'remember'))
-                ->withErrors(['login' => 'بيانات تسجيل الدخول غير صحيحة. تأكد من البريد/الجوال وكلمة المرور.']);
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors(['email' => 'بيانات تسجيل الدخول غير صحيحة. تأكد من البريد الإلكتروني وكلمة المرور.']);
         }
 
         if (!$provider->is_active) {
             return back()
-                ->withInput($request->only('login'))
-                ->withErrors(['login' => 'تم إيقاف هذا الحساب مؤقتاً. يُرجى التواصل مع الإدارة.']);
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'تم إيقاف هذا الحساب مؤقتاً. يُرجى التواصل مع الإدارة.']);
         }
 
         RateLimiter::clear($throttleKey);
@@ -84,115 +90,115 @@ class AuthController extends Controller
         $rawPhone = (string) $request->input('phone', '');
         $normalizedPhone = ServiceProvider::normalizePhone($rawPhone);
         $request->merge([
-            'email' => strtolower(trim((string) $request->input('email', ''))),
-            'phone' => $normalizedPhone,
+            'email' =>strtolower(trim((string) $request->input('email', ''))),
+            'phone' =>$normalizedPhone,
         ]);
 
         $serviceType = (string) $request->input('service_type', '');
 
         $rules = [
-            'name'                => ['required', 'string', 'max:150'],
-            'business_name'       => ['required', 'string', 'max:150'],
-            'email'               => ['required', 'email', 'max:180', 'unique:service_providers,email'],
-            'phone'               => ['required', 'string', 'min:9', 'max:20', 'unique:service_providers,phone'],
-            'service_type'        => ['required', 'string', Rule::in(ProviderServiceType::values())],
-            'property_kind'       => ['nullable', 'string', 'max:60'],
-            'custom_service_name' => ['nullable', 'required_if:service_type,other', 'string', 'max:150'],
-            'service_description' => ['required', 'string', 'min:10', 'max:1000'],
-            'city'                => ['nullable', 'string', 'max:100'],
-            'commercial_register' => ['nullable', 'string', 'max:100'],
-            'national_id_number'  => ['nullable', 'string', 'max:30'],
-            'bank_name'           => ['required', 'string', 'max:120'],
-            'bank_account_name'   => ['required', 'string', 'max:150'],
-            'iban'                => ['required', 'string', 'min:15', 'max:50'],
-            'bank_owner_confirmed'=> $serviceType === 'serviced_suites' ? ['accepted'] : ['nullable'],
-            'password'            => ['required', 'confirmed', Password::min(8)],
+            'name' =>['required', 'string', 'max:150'],
+            'business_name' =>['required', 'string', 'max:150'],
+            'email' =>['required', 'email', 'max:180', 'unique:service_providers,email'],
+            'phone' =>['required', 'string', 'min:9', 'max:20', 'unique:service_providers,phone'],
+            'service_type' =>['required', 'string', Rule::in(ProviderServiceType::values())],
+            'property_kind' =>['nullable', 'string', 'max:60'],
+            'custom_service_name' =>['nullable', 'required_if:service_type,other', 'string', 'max:150'],
+            'service_description' =>['required', 'string', 'min:10', 'max:1000'],
+            'city' =>['nullable', 'string', 'max:100'],
+            'commercial_register' =>['nullable', 'string', 'max:100'],
+            'national_id_number' =>['nullable', 'string', 'max:30'],
+            'bank_name' =>['required', 'string', 'max:120'],
+            'bank_account_name' =>['required', 'string', 'max:150'],
+            'iban' =>['required', 'string', 'min:15', 'max:50'],
+            'bank_owner_confirmed'=>$serviceType === 'serviced_suites' ? ['accepted'] : ['nullable'],
+            'password' =>['required', 'confirmed', Password::min(8)],
 
             // KYC Document Uploads (images or PDF, max 5MB each)
-            'national_id_front'   => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'national_id_back'    => $serviceType === 'serviced_suites'
+            'national_id_front' =>['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+            'national_id_back' =>$serviceType === 'serviced_suites'
                 ? ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']
                 : ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'tourism_license'     => $serviceType === 'serviced_suites'
+            'tourism_license' =>$serviceType === 'serviced_suites'
                 ? ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']
                 : ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'commercial_doc'      => in_array($serviceType, ['coordination', 'photography'], true)
+            'commercial_doc' =>in_array($serviceType, ['coordination', 'photography'], true)
                 ? ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']
                 : ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
-            'photography_license' => $serviceType === 'photography'
+            'photography_license' =>$serviceType === 'photography'
                 ? ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']
                 : ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
         ];
 
         $validated = $request->validate($rules, [
-            'name.required'                   => 'يرجى إدخال اسم الشخص أو المسؤول.',
-            'business_name.required'          => 'يرجى إدخال اسم المنشأة أو اسم الشخص/العلامة التجارية.',
-            'email.required'                  => 'يرجى إدخال البريد الإلكتروني.',
-            'email.email'                     => 'صيغة البريد الإلكتروني غير صحيحة.',
-            'email.unique'                    => 'هذا البريد الإلكتروني مسجل مسبقاً.',
-            'phone.required'                  => 'يرجى إدخال رقم الجوال.',
-            'phone.unique'                    => 'رقم الجوال هذا مسجل مسبقاً.',
-            'service_type.required'           => 'يرجى اختيار نوع الخدمة التي تقدمها.',
-            'custom_service_name.required_if' => 'يرجى كتابة اسم الخدمة عند اختيار (أخرى).',
-            'service_description.required'    => 'يرجى كتابة وصف واضح للخدمة التي تقدمها.',
-            'service_description.min'         => 'يرجى كتابة وصف لا يقل عن 10 أحرف عن خدمتك.',
-            'bank_name.required'              => 'يرجى إدخال اسم البنك.',
-            'bank_account_name.required'      => 'يرجى إدخال اسم صاحب الحساب البنكي.',
-            'iban.required'                   => 'يرجى إدخال رقم الآيبان (IBAN).',
-            'iban.min'                        => 'يرجى إدخال رقم آيبان صحيح.',
-            'bank_owner_confirmed.accepted'   => 'يجب الإقرار بأن الحساب البنكي بنفس اسم صاحب النشاط.',
-            'national_id_front.required'      => 'يرجى إرفاق صورة الهوية الوطنية (الوجه الأمامي).',
-            'national_id_back.required'       => 'يرجى إرفاق صورة الهوية الوطنية (الوجه الخلفي) لأصحاب العقارات والأجنحة الفندقية.',
-            'tourism_license.required'        => 'يرجى إرفاق رخصة السياحة للأجنحة الفندقية / العقار.',
-            'commercial_doc.required'         => 'يرجى إرفاق وثيقة العمل الحر أو السجل التجاري.',
-            'photography_license.required'    => 'يرجى إرفاق ترخيص التصوير للمصورين.',
-            '*.mimes'                         => 'صيغة الملف يجب أن تكون صورة (JPG / PNG / WEBP) أو PDF.',
-            '*.max'                           => 'حجم الملف الواحد يجب أن لا يتجاوز 5 ميجابايت.',
-            'password.required'               => 'يرجى إدخال كلمة المرور.',
-            'password.confirmed'              => 'تأكيد كلمة المرور غير مطابق.',
-            'password.min'                    => 'كلمة المرور يجب أن لا تقل عن 8 أحرف.',
+            'name.required' =>'يرجى إدخال اسم الشخص أو المسؤول.',
+            'business_name.required' =>'يرجى إدخال اسم المنشأة أو اسم الشخص/العلامة التجارية.',
+            'email.required' =>'يرجى إدخال البريد الإلكتروني.',
+            'email.email' =>'صيغة البريد الإلكتروني غير صحيحة.',
+            'email.unique' =>'هذا البريد الإلكتروني مسجل مسبقاً.',
+            'phone.required' =>'يرجى إدخال رقم الجوال.',
+            'phone.unique' =>'رقم الجوال هذا مسجل مسبقاً.',
+            'service_type.required' =>'يرجى اختيار نوع الخدمة التي تقدمها.',
+            'custom_service_name.required_if' =>'يرجى كتابة اسم الخدمة عند اختيار (أخرى).',
+            'service_description.required' =>'يرجى كتابة وصف واضح للخدمة التي تقدمها.',
+            'service_description.min' =>'يرجى كتابة وصف لا يقل عن 10 أحرف عن خدمتك.',
+            'bank_name.required' =>'يرجى إدخال اسم البنك.',
+            'bank_account_name.required' =>'يرجى إدخال اسم صاحب الحساب البنكي.',
+            'iban.required' =>'يرجى إدخال رقم الآيبان (IBAN).',
+            'iban.min' =>'يرجى إدخال رقم آيبان صحيح.',
+            'bank_owner_confirmed.accepted' =>'يجب الإقرار بأن الحساب البنكي بنفس اسم صاحب النشاط.',
+            'national_id_front.required' =>'يرجى إرفاق صورة الهوية الوطنية (الوجه الأمامي).',
+            'national_id_back.required' =>'يرجى إرفاق صورة الهوية الوطنية (الوجه الخلفي) لأصحاب العقارات والأجنحة الفندقية.',
+            'tourism_license.required' =>'يرجى إرفاق رخصة السياحة للأجنحة الفندقية / العقار.',
+            'commercial_doc.required' =>'يرجى إرفاق وثيقة العمل الحر أو السجل التجاري.',
+            'photography_license.required' =>'يرجى إرفاق ترخيص التصوير للمصورين.',
+            '*.mimes' =>'صيغة الملف يجب أن تكون صورة (JPG / PNG / WEBP) أو PDF.',
+            '*.max' =>'حجم الملف الواحد يجب أن لا يتجاوز 5 ميجابايت.',
+            'password.required' =>'يرجى إدخال كلمة المرور.',
+            'password.confirmed' =>'تأكيد كلمة المرور غير مطابق.',
+            'password.min' =>'كلمة المرور يجب أن لا تقل عن 8 أحرف.',
         ]);
 
         $provider = ServiceProvider::create([
-            'name'                 => trim($validated['name']),
-            'business_name'        => trim($validated['business_name']),
-            'email'                => $validated['email'],
-            'phone'                => $validated['phone'],
-            'password'             => $validated['password'],
-            'service_type'         => $validated['service_type'],
-            'property_kind'        => $validated['service_type'] === 'serviced_suites'
+            'name' =>trim($validated['name']),
+            'business_name' =>trim($validated['business_name']),
+            'email' =>$validated['email'],
+            'phone' =>$validated['phone'],
+            'password' =>$validated['password'],
+            'service_type' =>$validated['service_type'],
+            'property_kind' =>$validated['service_type'] === 'serviced_suites'
                 ? ($validated['property_kind'] ?? null)
                 : null,
-            'custom_service_name'  => $validated['service_type'] === 'other'
+            'custom_service_name' =>$validated['service_type'] === 'other'
                 ? trim((string) $validated['custom_service_name'])
                 : null,
-            'service_description'  => trim($validated['service_description']),
-            'city'                 => $validated['city'] ?? null,
-            'commercial_register'  => $validated['commercial_register'] ?? null,
-            'national_id_number'   => $validated['national_id_number'] ?? null,
-            'bank_name'            => trim($validated['bank_name']),
-            'bank_account_name'    => trim($validated['bank_account_name']),
-            'iban'                 => strtoupper(preg_replace('/\s+/', '', $validated['iban'])),
-            'bank_owner_confirmed' => $request->boolean('bank_owner_confirmed'),
-            'is_active'            => true,
-            'subscription_status'  => 'inactive',
-            'wallet_balance'       => 0.00,
-            'total_earned'         => 0.00,
-            'total_settled'        => 0.00,
-            'last_login_at'        => now(),
+            'service_description' =>trim($validated['service_description']),
+            'city' =>$validated['city'] ?? null,
+            'commercial_register' =>$validated['commercial_register'] ?? null,
+            'national_id_number' =>$validated['national_id_number'] ?? null,
+            'bank_name' =>trim($validated['bank_name']),
+            'bank_account_name' =>trim($validated['bank_account_name']),
+            'iban' =>strtoupper(preg_replace('/\s+/', '', $validated['iban'])),
+            'bank_owner_confirmed' =>$request->boolean('bank_owner_confirmed'),
+            'is_active' =>true,
+            'subscription_status' =>'inactive',
+            'wallet_balance' =>0.00,
+            'total_earned' =>0.00,
+            'total_settled' =>0.00,
+            'last_login_at' =>now(),
         ]);
 
         // Store uploaded KYC documents securely on the private local disk
         $docDir = "provider-documents/{$provider->id}";
         $docPaths = [];
         $fileMap = [
-            'national_id_front'   => 'national_id_front_path',
-            'national_id_back'    => 'national_id_back_path',
-            'tourism_license'     => 'tourism_license_path',
-            'commercial_doc'      => 'commercial_doc_path',
-            'photography_license' => 'photography_license_path',
+            'national_id_front' =>'national_id_front_path',
+            'national_id_back' =>'national_id_back_path',
+            'tourism_license' =>'tourism_license_path',
+            'commercial_doc' =>'commercial_doc_path',
+            'photography_license' =>'photography_license_path',
         ];
-        foreach ($fileMap as $inputName => $columnName) {
+        foreach ($fileMap as $inputName =>$columnName) {
             if ($request->hasFile($inputName)) {
                 $docPaths[$columnName] = ProviderDocumentService::store($request->file($inputName), $docDir, $inputName);
             }
@@ -215,7 +221,7 @@ class AuthController extends Controller
         Auth::guard('provider')->logout();
         $request->session()->regenerateToken();
 
-        return redirect()->route('provider.login')
+        return redirect()->route('login')
             ->with('success', 'تم تسجيل الخروج بنجاح.');
     }
 
@@ -229,9 +235,9 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $validated = $request->validate([
-            'identifier' => ['required', 'string', 'max:255'],
+            'identifier' =>['required', 'string', 'max:255'],
         ], [
-            'identifier.required' => 'يرجى إدخال البريد الإلكتروني أو رقم الجوال المسجل.',
+            'identifier.required' =>'يرجى إدخال البريد الإلكتروني أو رقم الجوال المسجل.',
         ]);
 
         $provider = $this->otpService->findProviderByIdentifier($validated['identifier']);
@@ -239,13 +245,13 @@ class AuthController extends Controller
         if (!$provider) {
             return back()
                 ->withInput()
-                ->withErrors(['identifier' => 'لم نتمكن من العثور على حساب مقدم خدمة مطابق لهذا البريد الإلكتروني أو رقم الجوال.']);
+                ->withErrors(['identifier' =>'لم نتمكن من العثور على حساب مقدم خدمة مطابق لهذا البريد الإلكتروني أو رقم الجوال.']);
         }
 
         if (!$provider->is_active) {
             return back()
                 ->withInput()
-                ->withErrors(['identifier' => 'هذا الحساب موقوف حالياً. يُرجى التواصل مع الإدارة.']);
+                ->withErrors(['identifier' =>'هذا الحساب موقوف حالياً. يُرجى التواصل مع الإدارة.']);
         }
 
         $result = $this->otpService->sendResetOtp($provider, $request->ip());
@@ -253,9 +259,9 @@ class AuthController extends Controller
         if (!$result['success']) {
             if (!empty($result['cooldown'])) {
                 $request->session()->put('provider_otp_reset', [
-                    'provider_id'  => $provider->id,
-                    'masked_email' => $provider->maskedEmail(),
-                    'sent_at'      => now()->timestamp - (ProviderOtpService::RESEND_COOLDOWN_SECONDS - $result['cooldown']),
+                    'provider_id' =>$provider->id,
+                    'masked_email' =>$provider->maskedEmail(),
+                    'sent_at' =>now()->timestamp - (ProviderOtpService::RESEND_COOLDOWN_SECONDS - $result['cooldown']),
                 ]);
                 return redirect()->route('provider.password.verify.form')
                     ->with('warning', $result['error']);
@@ -264,9 +270,9 @@ class AuthController extends Controller
         }
 
         $request->session()->put('provider_otp_reset', [
-            'provider_id'  => $provider->id,
-            'masked_email' => $result['masked_email'],
-            'sent_at'      => now()->timestamp,
+            'provider_id' =>$provider->id,
+            'masked_email' =>$result['masked_email'],
+            'sent_at' =>now()->timestamp,
         ]);
 
         return redirect()->route('provider.password.verify.form')
@@ -281,12 +287,12 @@ class AuthController extends Controller
                 ->with('error', 'يرجى إدخال بريدك الإلكتروني أو رقم جوالك أولاً لطلب رمز التحقق.');
         }
 
-        $elapsed  = max(0, now()->timestamp - (int) ($ctx['sent_at'] ?? 0));
+        $elapsed = max(0, now()->timestamp - (int) ($ctx['sent_at'] ?? 0));
         $cooldown = max(0, ProviderOtpService::RESEND_COOLDOWN_SECONDS - $elapsed);
 
         return view('provider.auth.reset-password-otp', [
-            'maskedEmail' => $ctx['masked_email'] ?? '***',
-            'cooldown'    => $cooldown,
+            'maskedEmail' =>$ctx['masked_email'] ?? '***',
+            'cooldown' =>$cooldown,
         ]);
     }
 
@@ -309,9 +315,9 @@ class AuthController extends Controller
         }
 
         $request->session()->put('provider_otp_reset', [
-            'provider_id'  => $provider->id,
-            'masked_email' => $result['masked_email'],
-            'sent_at'      => now()->timestamp,
+            'provider_id' =>$provider->id,
+            'masked_email' =>$result['masked_email'],
+            'sent_at' =>now()->timestamp,
         ]);
 
         return back()->with('success', 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني: ' . $result['masked_email']);
@@ -326,14 +332,14 @@ class AuthController extends Controller
         }
 
         $validated = $request->validate([
-            'otp_code' => ['required', 'string', 'size:6'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'otp_code' =>['required', 'string', 'size:6'],
+            'password' =>['required', 'confirmed', Password::min(8)],
         ], [
-            'otp_code.required'  => 'يرجى إدخال رمز التحقق المكوّن من 6 أرقام.',
-            'otp_code.size'      => 'رمز التحقق يجب أن يتكون من 6 أرقام.',
-            'password.required'  => 'يرجى إدخال كلمة المرور الجديدة.',
-            'password.confirmed' => 'تأكيد كلمة المرور غير مطابق.',
-            'password.min'       => 'كلمة المرور يجب أن لا تقل عن 8 أحرف.',
+            'otp_code.required' =>'يرجى إدخال رمز التحقق المكوّن من 6 أرقام.',
+            'otp_code.size' =>'رمز التحقق يجب أن يتكون من 6 أرقام.',
+            'password.required' =>'يرجى إدخال كلمة المرور الجديدة.',
+            'password.confirmed' =>'تأكيد كلمة المرور غير مطابق.',
+            'password.min' =>'كلمة المرور يجب أن لا تقل عن 8 أحرف.',
         ]);
 
         $provider = ServiceProvider::find($ctx['provider_id']);
@@ -350,12 +356,12 @@ class AuthController extends Controller
         );
 
         if (!$result['success']) {
-            return back()->withInput($request->only('otp_code'))->withErrors(['otp_code' => $result['error']]);
+            return back()->withInput($request->only('otp_code'))->withErrors(['otp_code' =>$result['error']]);
         }
 
         $request->session()->forget('provider_otp_reset');
 
-        return redirect()->route('provider.login')
-            ->with('success', '✅ تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.');
+        return redirect()->route('login')
+            ->with('success', 'تم تحديث كلمة المرور بنجاح! يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.');
     }
 }

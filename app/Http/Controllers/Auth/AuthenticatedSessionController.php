@@ -16,6 +16,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function create()
     {
+        if (Auth::guard('provider')->check()) {
+            return redirect()->route('provider.dashboard');
+        }
+
         return response()
             ->view('auth.login')
             ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
@@ -24,13 +28,23 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authentication request (Unified for Admin/Staff and Service Providers).
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $guard = $request->authenticateUnified();
 
-        if ($request->user()->hasRole('admin')) {
+        $request->session()->regenerate();
+
+        if ($guard === 'provider') {
+            $provider = Auth::guard('provider')->user();
+            return redirect()->intended(route('provider.dashboard', absolute: false))
+                ->with('success', 'أهلاً بك يا ' . ($provider?->name ?? '') . '!');
+        }
+
+        $user = Auth::guard('web')->user();
+
+        if ($user && $user->hasRole('admin')) {
             return redirect()->intended(route('dashboard', absolute: false));
         }
 

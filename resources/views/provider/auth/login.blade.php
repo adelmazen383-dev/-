@@ -1,19 +1,19 @@
-@extends('layouts.provider-guest', ['title' => 'تسجيل الدخول'])
+@extends('layouts.provider-guest', ['title' =>'تسجيل الدخول'])
 
 @section('content')
     <div class="mb-5">
         <h2 class="text-lg font-black text-slate-900">تسجيل دخول مقدم الخدمة</h2>
-        <p class="text-xs text-slate-500 mt-0.5">ادخل باستخدام البريد الإلكتروني أو رقم الجوال المسجل</p>
+        <p class="text-xs text-slate-500 mt-0.5">ادخل باستخدام البريد الإلكتروني المسجل في حسابك</p>
     </div>
 
     <form method="POST" action="{{ route('provider.login.submit') }}" class="space-y-4">
         @csrf
 
         <div>
-            <label for="login" class="block text-xs font-bold text-slate-700 mb-1.5">البريد الإلكتروني أو رقم الجوال</label>
-            <input type="text" id="login" name="login" value="{{ old('login') }}" required autofocus
-                   class="p-input" placeholder="example@domain.com أو 05xxxxxxxx" dir="ltr">
-            @error('login')
+            <label for="email" class="block text-xs font-bold text-slate-700 mb-1.5">البريد الإلكتروني</label>
+            <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email"
+                   class="p-input" placeholder="example@domain.com" dir="ltr">
+            @error('email')
                 <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>
             @enderror
         </div>

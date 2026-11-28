@@ -1,9 +1,9 @@
 @php
-    $agreed    = $invoice->effectiveAgreedAmount();
-    $deposit   = round((float) $invoice->deposit_amount, 2);
-    $paidPrev  = round((float) $invoice->paid_previously, 2);
+    $agreed = $invoice->effectiveAgreedAmount();
+    $deposit = round((float) $invoice->deposit_amount, 2);
+    $paidPrev = round((float) $invoice->paid_previously, 2);
     $remaining = $invoice->effectiveRemainingAmount();
-    $dueNow    = round((float) $invoice->amount, 2);
+    $dueNow = round((float) $invoice->amount, 2);
     $showMethodsStrip = $showMethodsStrip ?? true;
     $attachmentUrl = $attachmentUrl ?? null;
 @endphp
@@ -51,7 +51,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach($rows as $label => $value)
+                        @foreach($rows as $label =>$value)
                             @if($value !== null && $value !== '')
                                 <tr>
                                     <td class="py-2.5 text-slate-500 font-semibold text-xs sm:text-sm whitespace-nowrap pl-3">{{ $label }}</td>
@@ -73,7 +73,7 @@
                     <span class="font-black text-slate-900">{{ number_format($agreed, 2) }} ر.س</span>
                 </div>
 
-                @if($deposit > 0)
+                @if($deposit >0)
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500 font-semibold">مبلغ التأمين</span>
                         <span class="font-black text-slate-900">{{ number_format($deposit, 2) }} ر.س</span>
@@ -116,11 +116,11 @@
                 <div class="mt-3">
                     @if($invoice->isPaid())
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold">
-                            ✅ تم الدفع بنجاح
+                            تم الدفع بنجاح
                         </span>
                     @elseif($invoice->status === 'failed')
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-extrabold">
-                            ❌ لم تكتمل المحاولة
+                            لم تكتمل المحاولة
                         </span>
                     @else
                         <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-600/25 border border-amber-500/35 text-amber-300 text-xs font-extrabold">
@@ -148,7 +148,7 @@
                     <div class="rounded-xl border border-amber-200 bg-amber-50/50 overflow-hidden">
                         <div class="px-4 py-2.5 flex items-center justify-between gap-2 border-b border-amber-200/70">
                             <span class="text-xs font-extrabold text-amber-950">
-                                {{ $attachIsImage ? '🖼️ صورة الفاتورة / عرض السعر المرفق' : '📄 ملف الفاتورة / عرض السعر المرفق (PDF)' }}
+                                {{ $attachIsImage ? 'صورة الفاتورة / عرض السعر المرفق' : 'ملف الفاتورة / عرض السعر المرفق (PDF)' }}
                             </span>
                             <div class="flex items-center gap-2 shrink-0">
                                 <a href="{{ $attachmentUrl }}" target="_blank"
@@ -157,7 +157,7 @@
                                 </a>
                                 <a href="{{ $attachmentUrl }}?download=1"
                                    class="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-950 text-[11px] font-bold">
-                                    تحميل ⬇
+                                    تحميل 
                                 </a>
                             </div>
                         </div>

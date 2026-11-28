@@ -334,20 +334,20 @@ class ServiceProviderPortalTest extends TestCase
         $otpRow = ProviderPasswordOtp::where('service_provider_id', $provider->id)->latest('id')->firstOrFail();
         $this->assertSame(1, $otpRow->attempts);
 
-        // 3. Valid 6-digit OTP resets password cleanly
+        // 3. Valid 6-digit OTP resets password cleanly and redirects to unified login
         $this->post(route('provider.password.otp.reset'), [
             'otp_code'              => $capturedCode,
             'password'              => 'NewSecret999!',
             'password_confirmation' => 'NewSecret999!',
-        ])->assertRedirect(route('provider.login'));
+        ])->assertRedirect(route('login'));
 
         $provider->refresh();
         $this->assertTrue(Hash::check('NewSecret999!', $provider->password));
         $this->assertFalse(Hash::check('OldPassword123!', $provider->password));
 
-        // 4. Provider can now log in with the new password
-        $this->post(route('provider.login.submit'), [
-            'login'    => 'otp-user@example.com',
+        // 4. Provider can now log in with the new password via unified /login (email only)
+        $this->post(route('login'), [
+            'email'    => 'otp-user@example.com',
             'password' => 'NewSecret999!',
         ])->assertRedirect(route('provider.dashboard'));
     }
@@ -629,17 +629,26 @@ class ServiceProviderPortalTest extends TestCase
         $this->get(route('provider.landing'))
             ->assertOk()
             ->assertSee('rel="canonical"', false)
+            ->assertSee('hreflang="ar-SA"', false)
+            ->assertSee('og-thiqa.png', false)
             ->assertSee('application/ld+json', false)
+            ->assertSee('BreadcrumbList', false)
             ->assertSee('FAQPage', false)
             ->assertSee('og:title', false)
             ->assertSee('بوابة مقدمي الخدمات');
 
-        // Homepage SEO + JSON-LD
+        // Homepage SEO + JSON-LD + Internal Links to /providers & /provider/register
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('rel="canonical"', false)
+            ->assertSee('hreflang="ar-SA"', false)
+            ->assertSee('og-thiqa.png', false)
             ->assertSee('application/ld+json', false)
-            ->assertSee('og:site_name', false);
+            ->assertSee('FAQPage', false)
+            ->assertSee('ProfessionalService', false)
+            ->assertSee('og:site_name', false)
+            ->assertSee(route('provider.landing'), false)
+            ->assertSee(route('provider.register'), false);
 
         // Dynamic XML Sitemap
         $sitemap = $this->get(route('seo.sitemap'));
@@ -647,6 +656,9 @@ class ServiceProviderPortalTest extends TestCase
         $this->assertStringContainsString('application/xml', (string) $sitemap->headers->get('Content-Type'));
         $sitemap->assertSee('/providers', false)
             ->assertSee('/provider/register', false)
+            ->assertSee('/login', false)
+            ->assertSee('/verify', false)
+            ->assertDontSee('/provider/login', false)
             ->assertSee('<urlset', false);
 
         // Private OTP & customer payment pages MUST be noindex, nofollow
@@ -669,5 +681,199 @@ class ServiceProviderPortalTest extends TestCase
         $this->get(route('provider-pay.show', $inv->public_token))
             ->assertOk()
             ->assertSee('noindex, nofollow', false);
+    }
+
+    public function test_provider_login_accepts_email_only_rejects_phone_and_logout_works(): void
+    {
+        $admin = $this->createAdmin();
+        $admin->update(['password' => bcrypt('AdminSecret123!')]);
+
+        $provider = $this->createProvider([
+            'email'    => 'emailonly@example.com',
+            'phone'    => '0556667778',
+            'password' => 'SecretPass123!',
+        ]);
+
+        // 0. Legacy /provider/login cleanly 301-redirects to unified /login
+        $this->get(route('provider.login'))
+            ->assertStatus(301)
+            ->assertRedirect(route('login'));
+
+        // Unified /login page renders with Thiqa identity & registration CTA
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('بوابة الدخول الموحدة')
+            ->assertSee(route('provider.register'), false);
+
+        // 1. Attempting to log in with phone number MUST fail validation on email
+        $this->post(route('login'), [
+            'email'    => '0556667778',
+            'password' => 'SecretPass123!',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertGuest('provider');
+        $this->assertGuest('web');
+
+        // 2. Logging in as Service Provider via unified /login succeeds & routes to provider.dashboard
+        $this->post(route('login'), [
+            'email'    => 'EmailOnly@Example.com',
+            'password' => 'SecretPass123!',
+        ])->assertRedirect(route('provider.dashboard'));
+
+        $this->assertAuthenticatedAs($provider, 'provider');
+        $this->assertGuest('web');
+
+        // 3. Dashboard and Profile show logout action cleanly
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.dashboard'))
+            ->assertOk()
+            ->assertSee(route('provider.logout'), false)
+            ->assertSee('تسجيل الخروج');
+
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.profile'))
+            ->assertOk()
+            ->assertSee('تسجيل الخروج الآن');
+
+        // 4. Logging out signs provider out cleanly and redirects to unified /login
+        $this->actingAs($provider, 'provider')
+            ->post(route('provider.logout'))
+            ->assertRedirect(route('login'));
+
+        $this->assertGuest('provider');
+
+        // 5. Logging in as Admin via the EXACT SAME unified /login succeeds & routes to Admin dashboard
+        $this->post(route('login'), [
+            'email'    => $admin->email,
+            'password' => 'AdminSecret123!',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->assertAuthenticatedAs($admin, 'web');
+        $this->assertGuest('provider');
+    }
+
+    public function test_admin_subscription_pricing_control_panel_updates_provider_subscription_and_contact_page(): void
+    {
+        $admin    = $this->createAdmin();
+        $provider = $this->createProvider([
+            'email'               => 'sub-check@example.com',
+            'phone'               => '0559990011',
+            'subscription_status' => 'inactive',
+        ]);
+
+        // 1. Admin can view and save subscription pricing & contact channels
+        $this->actingAs($admin, 'web')
+            ->get(route('admin.providers.subscription-settings.index'))
+            ->assertOk();
+
+        $this->actingAs($admin, 'web')
+            ->post(route('admin.providers.subscription-settings.save'), [
+                'plan_1m_enabled'  => '1',
+                'plan_1m_price'    => '249',
+                'plan_1m_label'    => 'الباقة الشهرية المميزة',
+                'plan_3m_enabled'  => '1',
+                'plan_3m_price'    => '650',
+                'plan_3m_label'    => 'باقة 3 أشهر الذهبية',
+                'plan_6m_enabled'  => '1',
+                'plan_6m_price'    => '1199',
+                'plan_6m_label'    => 'باقة 6 أشهر',
+                'plan_12m_enabled' => '0',
+                'plan_12m_price'   => '1999',
+                'plan_12m_label'   => 'الباقة السنوية',
+                'features_text'    => "فواتير غير محدودة\nدعم فني فوري عبر الواتساب",
+                'whatsapp'         => '0559991122',
+                'phone'            => '0559991122',
+                'email'            => 'sub@thiqa.me',
+                'bank_name'        => 'مصرف الراجحي',
+                'bank_account'     => 'مؤسسة موقع أمر التجارية',
+                'bank_iban'        => 'sa0380000000608010167519',
+                'contact_note'     => 'راسلنا الآن لتفعيل باقتك خلال دقائق.',
+            ])->assertRedirect();
+
+        // 2. Newly registered provider sees the configured plans, prices & direct WhatsApp link
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.subscription'))
+            ->assertOk()
+            ->assertSee('الباقة الشهرية المميزة')
+            ->assertSee('249.00')
+            ->assertSee('650.00')
+            ->assertSee('1,199.00')
+            ->assertDontSee('1,999.00')
+            ->assertSee('https://wa.me/966559991122', false)
+            ->assertSee('SA0380000000608010167519')
+            ->assertSee('sub@thiqa.me')
+            ->assertSee('راسلنا الآن لتفعيل باقتك خلال دقائق.');
+
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.dashboard'))
+            ->assertOk()
+            ->assertSee('https://wa.me/966559991122', false)
+            ->assertSee(route('provider.subscription'), false);
+    }
+
+    public function test_provider_profile_is_strictly_read_only_while_password_and_admin_edits_work(): void
+    {
+        $admin    = $this->createAdmin();
+        $provider = $this->createProvider([
+            'name'                => 'فهد الأصلي',
+            'business_name'       => 'استوديو فهد',
+            'email'               => 'locked@example.com',
+            'phone'               => '0551119990',
+            'password'            => 'OldPass123!',
+            'service_type'        => 'photography',
+            'service_description' => 'تصوير مناسبات احترافي',
+            'iban'                => 'SA0380000000608010167519',
+        ]);
+
+        // 1. Profile view shows Read-Only badge and does NOT expose update form
+        $this->actingAs($provider, 'provider')
+            ->get(route('provider.profile'))
+            ->assertOk()
+            ->assertSee('للعرض فقط')
+            ->assertDontSee('حفظ التعديلات');
+
+        // 2. Direct PUT /provider/profile is blocked with 403 Forbidden and DB stays unchanged
+        $this->actingAs($provider, 'provider')
+            ->put(route('provider.profile.update'), [
+                'name'          => 'اسم مختلف',
+                'business_name' => 'نشاط مختلف',
+                'service_type'  => 'coordination',
+                'iban'          => 'SA9999999999999999999999',
+            ])->assertForbidden();
+
+        $provider->refresh();
+        $this->assertSame('فهد الأصلي', $provider->name);
+        $this->assertSame('استوديو فهد', $provider->business_name);
+        $this->assertSame('photography', $provider->service_type);
+        $this->assertSame('SA0380000000608010167519', $provider->iban);
+
+        // 3. Provider CAN still change their own password
+        $this->actingAs($provider, 'provider')
+            ->put(route('provider.profile.password'), [
+                'current_password'      => 'OldPass123!',
+                'password'              => 'NewStrongPass99!',
+                'password_confirmation' => 'NewStrongPass99!',
+            ])->assertRedirect();
+
+        $this->assertTrue(Hash::check('NewStrongPass99!', $provider->fresh()->password));
+
+        // 4. Admin CAN update provider's locked details
+        $this->actingAs($admin, 'web')
+            ->put(route('admin.providers.update', $provider), [
+                'name'                => 'فهد المعدل إدارياً',
+                'business_name'       => 'استوديو فهد المعتمد',
+                'service_type'        => 'coordination',
+                'service_description' => 'تنسيق مناسبات وحفلات معتمد من الإدارة',
+                'city'                => 'الرياض',
+                'bank_name'           => 'مصرف الإنماء',
+                'bank_account_name'   => 'فهد المعدل إدارياً',
+                'iban'                => 'SA1122334455667788990011',
+            ])->assertRedirect();
+
+        $provider->refresh();
+        $this->assertSame('فهد المعدل إدارياً', $provider->name);
+        $this->assertSame('استوديو فهد المعتمد', $provider->business_name);
+        $this->assertSame('coordination', $provider->service_type);
+        $this->assertSame('SA1122334455667788990011', $provider->iban);
     }
 }

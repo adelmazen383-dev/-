@@ -35,7 +35,7 @@
                             </div>
 
                             <p style="margin:0 0 10px; font-size:13px; color:#334155;">
-                                ⏱️ هذا الرمز صالح لمدة <strong>{{ $expiresInMinutes }} دقائق</strong> فقط ويُستخدم لمرة واحدة.
+                                هذا الرمز صالح لمدة <strong>{{ $expiresInMinutes }} دقائق</strong>فقط ويُستخدم لمرة واحدة.
                             </p>
                             <p style="margin:0; font-size:12px; color:#94a3b8; line-height:1.6;">
                                 إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان ولن يطرأ أي تغيير على حسابك. لا تشارك هذا الرمز مع أي شخص.

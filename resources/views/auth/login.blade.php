@@ -2,14 +2,26 @@
     <!-- Brand & Header -->
     <div class="text-center mb-6">
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white p-2.5 shadow-xl shadow-emerald-950/40 mb-3 border border-emerald-400/30">
-            <img src="{{ asset('images/image.png') }}" alt="ثقة" class="w-full h-full object-contain">
+            <img src="{{ asset('images/image.png') }}" alt="شعار منصة ثقة" class="w-full h-full object-contain">
         </div>
         <h1 class="text-2xl font-black text-white">تسجيل الدخول</h1>
-        <p class="text-emerald-200/80 text-xs sm:text-sm mt-1">لوحة إدارة منصة ثقة لتوثيق العقود والحجوزات</p>
+        <p class="text-emerald-200/85 text-xs sm:text-sm mt-1">بوابة موحدة للإدارة ومقدمي الخدمات عبر البريد الإلكتروني</p>
     </div>
 
     <!-- Session Status / Alerts -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
+
+    @if (session('success'))
+        <div class="mb-4 p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-100 text-xs sm:text-sm font-bold leading-relaxed">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 p-3.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-100 text-xs sm:text-sm font-bold leading-relaxed">
+            {{ session('error') }}
+        </div>
+    @endif
 
     @if (session('warning'))
         <div class="mb-5 p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs sm:text-sm leading-relaxed flex items-start gap-2.5">
@@ -29,8 +41,8 @@
                 البريد الإلكتروني
             </label>
             <div class="relative">
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                       class="input-field pl-10" placeholder="admin@thiqa.me">
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email" dir="ltr"
+                       class="input-field pl-10" placeholder="example@domain.com">
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300/60 pointer-events-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
@@ -67,17 +79,15 @@
         </div>
 
         <!-- Remember + Forgot -->
-        <div class="flex items-center justify-between mb-5 pt-1">
+        <div class="flex items-center justify-between gap-2 mb-5 pt-1 flex-wrap">
             <label for="remember_me" class="inline-flex items-center cursor-pointer select-none">
                 <input id="remember_me" type="checkbox" name="remember" checked
                        class="rounded bg-emerald-950/60 border-emerald-400/40 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 w-4 h-4">
                 <span class="mr-2 text-xs sm:text-sm text-emerald-100 font-medium">تذكر تسجيل الدخول</span>
             </label>
-            @if (Route::has('password.request'))
-                <a class="text-xs sm:text-sm text-emerald-300 hover:text-white transition font-medium" href="{{ route('password.request') }}">
-                    نسيت كلمة المرور؟
-                </a>
-            @endif
+            <a class="text-xs sm:text-sm text-emerald-300 hover:text-white transition font-medium" href="{{ route('provider.password.request') }}">
+                نسيت كلمة المرور؟ (OTP)
+            </a>
         </div>
 
         <!-- Submit Button -->
@@ -88,6 +98,24 @@
             <span id="btn-text">دخول إلى النظام</span>
         </button>
     </form>
+
+    <!-- Service Providers Registration & Portal Link -->
+    <div class="mt-6 pt-5 border-t border-emerald-400/20 space-y-3 text-center">
+        <p class="text-xs text-emerald-100/85 font-semibold">
+            هل تقدم خدمات شقق فندقية أو تنسيق مناسبات أو تصوير أو خدمات حرة؟
+        </p>
+        <a href="{{ route('provider.register') }}"
+           class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-950/55 hover:bg-emerald-900/75 border border-emerald-400/35 text-emerald-100 hover:text-white text-xs sm:text-sm font-extrabold transition">
+            إنشاء حساب مقدم خدمة جديد
+        </a>
+        <div class="flex items-center justify-center gap-4 text-[11.5px] text-emerald-300/90 pt-0.5">
+            <a href="{{ route('provider.landing') }}" class="hover:text-white underline">تعرّف على بوابة مقدمي الخدمات</a>
+            @if (Route::has('password.request'))
+                <span class="text-emerald-500/50">|</span>
+                <a href="{{ route('password.request') }}" class="hover:text-white">استعادة كلمة مرور الإدارة</a>
+            @endif
+        </div>
+    </div>
 
     <script>
         function togglePasswordVisibility() {

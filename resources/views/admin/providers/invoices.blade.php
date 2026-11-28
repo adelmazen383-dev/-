@@ -75,7 +75,7 @@
                                             {{ $inv->statusLabel() }}
                                         </span>
                                     </td>
-                                    <td class="text-xs font-bold">{{ $inv->isWalletCredited() ? '✅ أُضيفت' : '—' }}</td>
+                                    <td class="text-xs font-bold">{{ $inv->isWalletCredited() ? 'أُضيفت' : '—' }}</td>
                                     <td class="text-xs text-slate-500">{{ $inv->created_at->format('Y-m-d H:i') }}</td>
                                     <td><a href="{{ route('admin.providers.invoices.show', $inv) }}" class="btn btn-indigo btn-sm">عرض</a></td>
                                 </tr>

@@ -1,4 +1,4 @@
-@extends('layouts.provider-guest', ['title' => 'استعادة كلمة المرور (OTP)', 'metaRobots' => 'noindex, nofollow'])
+@extends('layouts.provider-guest', ['title' =>'استعادة كلمة المرور (OTP)', 'metaRobots' =>'noindex, nofollow'])
 
 @section('content')
     <div class="mb-5">
@@ -26,7 +26,7 @@
     </form>
 
     <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-        <a href="{{ route('provider.login') }}" class="text-xs font-bold text-slate-600 hover:text-indigo-700">
+        <a href="{{ route('login') }}" class="text-xs font-bold text-slate-600 hover:text-emerald-700">
             ← العودة إلى تسجيل الدخول
         </a>
     </div>

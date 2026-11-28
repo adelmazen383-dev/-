@@ -1,8 +1,8 @@
-@extends('layouts.provider', ['title' => 'إنشاء فاتورة جديدة', 'header' => 'إنشاء فاتورة إلكترونية جديدة'])
+@extends('layouts.provider', ['title' =>'إنشاء فاتورة جديدة', 'header' =>'إنشاء فاتورة إلكترونية جديدة'])
 
 @section('content')
     @php
-        $type     = $provider->service_type;
+        $type = $provider->service_type;
         $typeEnum = $provider->serviceTypeEnum();
     @endphp
 
@@ -39,12 +39,12 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">اسم العميل <span class="text-rose-500">*</span></label>
                                 <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="p-input" placeholder="الاسم الكامل للعميل">
-                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال <span class="text-rose-500">*</span></label>
                                 <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required class="p-input" placeholder="05xxxxxxxx" dir="ltr">
-                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">نوع التصوير <span class="text-rose-500">*</span></label>
@@ -69,7 +69,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">الباقة المطلوبة <span class="text-rose-500">*</span></label>
                                 <input type="text" name="title" value="{{ old('title') }}" required class="p-input" placeholder="مثال: الباقة الذهبية (صور + فيديو)">
-                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="block text-xs font-bold text-slate-700 mb-1">اسم المصور المسؤول</label>
@@ -86,12 +86,12 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">اسم العميل <span class="text-rose-500">*</span></label>
                                 <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="p-input" placeholder="الاسم الكامل للعميل">
-                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال <span class="text-rose-500">*</span></label>
                                 <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required class="p-input" placeholder="05xxxxxxxx" dir="ltr">
-                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الهوية</label>
@@ -100,7 +100,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">نوع الخدمة / المناسبة <span class="text-rose-500">*</span></label>
                                 <input type="text" name="title" value="{{ old('title', 'تنسيق مناسبة') }}" required class="p-input" placeholder="مثال: تنسيق مناسبة، تجهيز غرفة، استقبال...">
-                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">المنطقة</label>
@@ -133,12 +133,12 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">اسم المستأجر <span class="text-rose-500">*</span></label>
                                 <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="p-input" placeholder="الاسم الكامل للمستأجر">
-                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال <span class="text-rose-500">*</span></label>
                                 <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required class="p-input" placeholder="05xxxxxxxx" dir="ltr">
-                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الهوية</label>
@@ -147,7 +147,7 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">وصف / نوع الحجز <span class="text-rose-500">*</span></label>
                                 <input type="text" name="title" value="{{ old('title', 'حجز ' . ($provider->property_kind ?: 'جناح فندقي مخدوم')) }}" required class="p-input">
-                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الدور</label>
@@ -184,17 +184,17 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">اسم العميل <span class="text-rose-500">*</span></label>
                                 <input type="text" name="customer_name" value="{{ old('customer_name') }}" required class="p-input">
-                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_name') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">رقم الجوال <span class="text-rose-500">*</span></label>
                                 <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}" required class="p-input" placeholder="05xxxxxxxx" dir="ltr">
-                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('customer_phone') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">نوع / عنوان الخدمة <span class="text-rose-500">*</span></label>
                                 <input type="text" name="title" value="{{ old('title', $provider->custom_service_name) }}" required class="p-input">
-                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                                @error('title') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1">المسؤول</label>
@@ -224,7 +224,7 @@
                             <input type="number" step="0.01" min="1" max="500000" id="agreed_amount" name="agreed_amount"
                                    value="{{ old('agreed_amount') }}" required oninput="recalcFinancials(true)"
                                    class="p-input font-bold" placeholder="مثال: 2000" dir="ltr">
-                            @error('agreed_amount') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                            @error('agreed_amount') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                         </div>
 
                         @if($type === 'serviced_suites')
@@ -259,7 +259,7 @@
                                    class="w-full rounded-xl bg-white/10 border border-amber-400/50 text-white text-xl font-black px-4 py-2.5 focus:outline-none focus:border-amber-300"
                                    placeholder="مثال: 1000" dir="ltr">
                             <p class="text-[11px] text-slate-300 mt-1.5">هذا هو المبلغ الذي سيظهر بارزاً للعميل للدفع الإلكتروني ويُضاف لرصيد محفظتك عند تأكيد السداد.</p>
-                            @error('amount') <p class="text-rose-400 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                            @error('amount') <p class="text-rose-400 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                         </div>
 
                         @if($type === 'serviced_suites')
@@ -292,11 +292,11 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">
-                            📎 صورة الفاتورة أو عرض السعر (اختياري — JPG / PNG / PDF)
+                            صورة الفاتورة أو عرض السعر (اختياري — JPG / PNG / PDF)
                         </label>
                         <input type="file" name="quote_attachment" accept=".jpg,.jpeg,.png,.webp,.pdf"
                                class="block w-full text-xs text-slate-600 p-2 rounded-xl border border-slate-200 bg-slate-50 file:ml-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white cursor-pointer">
-                        @error('quote_attachment') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p> @enderror
+                        @error('quote_attachment') <p class="text-rose-600 text-xs font-bold mt-1">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
@@ -310,7 +310,7 @@
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                     <a href="{{ route('provider.invoices.index') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">إلغاء</a>
                     <button type="submit" class="px-6 py-3 rounded-xl bg-[#141311] hover:bg-black text-amber-300 text-sm font-black shadow-lg transition">
-                        ✨ إصدار الفاتورة الإلكترونية وتوليد رابط الدفع
+                        إصدار الفاتورة الإلكترونية وتوليد رابط الدفع
                     </button>
                 </div>
             </form>
@@ -323,20 +323,20 @@
     let amountTouchedManually = {{ old('amount') ? 'true' : 'false' }};
     const amountEl = document.getElementById('amount');
     if (amountEl) {
-        amountEl.addEventListener('input', () => { amountTouchedManually = true; });
+        amountEl.addEventListener('input', () =>{ amountTouchedManually = true; });
     }
 
     function recalcFinancials(autoFillAmount) {
-        const agreed  = parseFloat(document.getElementById('agreed_amount')?.value || '0') || 0;
+        const agreed = parseFloat(document.getElementById('agreed_amount')?.value || '0') || 0;
         const deposit = parseFloat(document.getElementById('deposit_amount')?.value || '0') || 0;
-        const paid    = parseFloat(document.getElementById('paid_previously')?.value || '0') || 0;
+        const paid = parseFloat(document.getElementById('paid_previously')?.value || '0') || 0;
         const remaining = Math.max(0, (agreed + deposit) - paid);
 
         const remEl = document.getElementById('remaining_preview');
         if (remEl) {
             remEl.value = remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
         }
-        if (amountEl && (!amountTouchedManually || autoFillAmount) && remaining > 0) {
+        if (amountEl && (!amountTouchedManually || autoFillAmount) && remaining >0) {
             amountEl.value = remaining.toFixed(2);
         }
     }
@@ -347,7 +347,7 @@
         const nEl = document.getElementById('nights_input');
         if (ci && co && nEl) {
             const diff = Math.round((new Date(co) - new Date(ci)) / (1000 * 60 * 60 * 24));
-            if (diff > 0) nEl.value = diff;
+            if (diff >0) nEl.value = diff;
         }
     }
 
@@ -365,18 +365,18 @@
                 const file = qInput.files && qInput.files[0];
                 if (!file) { box.classList.add('hidden'); return; }
                 const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-                if (file.size > 5 * 1024 * 1024) {
+                if (file.size >5 * 1024 * 1024) {
                     box.classList.remove('hidden');
-                    box.innerHTML = '<div class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">⚠️ حجم الملف (' + sizeMb + ' MB) يتجاوز 5 MB.</div>';
+                    box.innerHTML = '<div class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">حجم الملف (' + sizeMb + ' MB) يتجاوز 5 MB.</div>';
                     qInput.value = '';
                     return;
                 }
                 const blobUrl = URL.createObjectURL(file);
                 box.classList.remove('hidden');
                 if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                    box.innerHTML = '<div class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"><span class="font-bold text-slate-700 truncate">📄 ' + file.name + ' (' + sizeMb + ' MB)</span><a href="' + blobUrl + '" target="_blank" class="font-extrabold text-indigo-700 underline shrink-0">معاينة PDF ↗</a></div>';
+                    box.innerHTML = '<div class="flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"><span class="font-bold text-slate-700 truncate">' + file.name + ' (' + sizeMb + ' MB)</span><a href="' + blobUrl + '" target="_blank" class="font-extrabold text-indigo-700 underline shrink-0">معاينة PDF ↗</a></div>';
                 } else if (file.type.startsWith('image/')) {
-                    box.innerHTML = '<div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-2"><img src="' + blobUrl + '" alt="preview" class="w-16 h-16 rounded-lg object-cover border shrink-0"><div class="text-xs min-w-0"><div class="font-bold text-emerald-700">✅ صورة عرض السعر جاهزة</div><div class="text-slate-500 truncate">' + file.name + ' (' + sizeMb + ' MB)</div></div></div>';
+                    box.innerHTML = '<div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-2"><img src="' + blobUrl + '" alt="preview" class="w-16 h-16 rounded-lg object-cover border shrink-0"><div class="text-xs min-w-0"><div class="font-bold text-emerald-700">صورة عرض السعر جاهزة</div><div class="text-slate-500 truncate">' + file.name + ' (' + sizeMb + ' MB)</div></div></div>';
                 }
             });
         }

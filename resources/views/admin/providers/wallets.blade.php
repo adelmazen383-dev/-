@@ -2,29 +2,31 @@
     <x-slot name="header">المحافظ والتحويلات — تسوية نهاية اليوم</x-slot>
 
     <div class="space-y-6">
-        <!-- Totals -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="stat-card border-indigo-200 bg-indigo-50/40">
-                <div class="text-xs font-bold text-indigo-700">إجمالي أرصدة المحافظ المستحقة حالياً</div>
-                <div class="text-2xl font-black text-indigo-950 mt-1">{{ number_format($totalOwed, 2) }} <span class="text-xs">ر.س</span></div>
-            </div>
-            <div class="stat-card">
-                <div class="text-xs font-bold text-slate-500">إجمالي ما تم تحويله وتصفيره</div>
-                <div class="text-2xl font-black text-emerald-700 mt-1">{{ number_format($totalSettled, 2) }} <span class="text-xs">ر.س</span></div>
-            </div>
-            <div class="stat-card">
-                <div class="text-xs font-bold text-slate-500">إجمالي أرباح مقدمي الخدمات</div>
-                <div class="text-2xl font-black text-slate-900 mt-1">{{ number_format($totalEarned, 2) }} <span class="text-xs">ر.س</span></div>
+        <!-- Compact Unified Financial Totals Bar -->
+        <div class="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 divide-slate-100">
+                <div class="px-4 py-3.5 sm:border-l border-slate-100">
+                    <div class="text-[11.5px] font-bold text-slate-500">أرصدة المحافظ المستحقة حالياً</div>
+                    <div class="text-xl font-black text-amber-700 mt-0.5 tabular-nums">{{ number_format($totalOwed, 2) }} <span class="text-xs text-slate-400">ر.س</span></div>
+                </div>
+                <div class="px-4 py-3.5 sm:border-l border-slate-100">
+                    <div class="text-[11.5px] font-bold text-slate-500">إجمالي ما تم تحويله وتصفيره</div>
+                    <div class="text-xl font-black text-emerald-700 mt-0.5 tabular-nums">{{ number_format($totalSettled, 2) }} <span class="text-xs text-slate-400">ر.س</span></div>
+                </div>
+                <div class="px-4 py-3.5">
+                    <div class="text-[11.5px] font-bold text-slate-500">إجمالي أرباح مقدمي الخدمات</div>
+                    <div class="text-xl font-black text-slate-900 mt-0.5 tabular-nums">{{ number_format($totalEarned, 2) }} <span class="text-xs text-slate-400">ر.س</span></div>
+                </div>
             </div>
         </div>
 
         <!-- Providers Ready for Payout & Zeroing -->
         <div class="card">
-            <h3 class="text-base font-black text-slate-900 mb-4">🏦 محافظ بها رصيد جاهز للتحويل والتصفير ({{ $providersWithBalance->count() }})</h3>
+            <h3 class="text-base font-black text-slate-900 mb-4">محافظ بها رصيد جاهز للتحويل والتصفير ({{ $providersWithBalance->count() }})</h3>
 
             @if($providersWithBalance->isEmpty())
                 <div class="text-center py-8 text-sm font-bold text-emerald-700 bg-emerald-50 rounded-xl">
-                    ✅ جميع محافظ مقدمي الخدمات مصفّرة حالياً (0.00 ر.س).
+                    جميع محافظ مقدمي الخدمات مصفّرة حالياً (0.00 ر.س).
                 </div>
             @else
                 <div class="space-y-3">
@@ -36,8 +38,8 @@
                                     <span class="text-xs text-slate-500">({{ $p->name }})</span>
                                 </div>
                                 <div class="text-xs text-slate-600 mt-1">
-                                    البنك: <strong>{{ $p->bank_name ?: 'غير محدد' }}</strong> ·
-                                    صاحب الحساب: <strong>{{ $p->bank_account_name ?: 'غير محدد' }}</strong> ·
+                                    البنك: <strong>{{ $p->bank_name ?: 'غير محدد' }}</strong>·
+                                    صاحب الحساب: <strong>{{ $p->bank_account_name ?: 'غير محدد' }}</strong>·
                                     IBAN: <strong class="font-mono text-indigo-800" dir="ltr">{{ $p->iban ?: 'غير محدد' }}</strong>
                                 </div>
                             </div>
@@ -49,7 +51,7 @@
                                 <input type="hidden" name="settle_mode" value="full">
                                 <input type="text" name="reference" placeholder="مرجع الحوالة (اختياري)" class="form-input w-44 text-xs">
                                 <button type="submit" class="btn btn-emerald">
-                                    ✅ تحويل {{ number_format((float) $p->wallet_balance, 2) }} ر.س وتصفير المحفظة
+                                    تحويل {{ number_format((float) $p->wallet_balance, 2) }} ر.س وتصفير المحفظة
                                 </button>
                             </form>
                         </div>
@@ -61,7 +63,7 @@
         <!-- Complete Wallet Transactions Ledger -->
         <div class="card p-0 overflow-hidden">
             <div class="p-4 border-b border-slate-100">
-                <h3 class="text-sm font-black text-slate-900">📜 سجل جميع حركات المحافظ والتحويلات</h3>
+                <h3 class="text-sm font-black text-slate-900">سجل جميع حركات المحافظ والتحويلات</h3>
             </div>
             @if($transactions->isEmpty())
                 <div class="p-8 text-center text-xs text-slate-400">لا توجد حركات مالية مسجلة بعد.</div>
@@ -95,7 +97,7 @@
                                     <td class="text-xs text-slate-600">{{ number_format((float) $tx->balance_before, 2) }}</td>
                                     <td class="text-xs font-extrabold text-slate-900">{{ number_format((float) $tx->balance_after, 2) }}</td>
                                     <td class="text-xs text-slate-600">
-                                        <span class="font-mono font-bold">{{ $tx->reference }}</span> — {{ $tx->notes }}
+                                        <span class="font-mono font-bold">{{ $tx->reference }}</span>— {{ $tx->notes }}
                                     </td>
                                 </tr>
                             @endforeach

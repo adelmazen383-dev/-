@@ -3,7 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>سياسة الخصوصية | ثقة</title>
+    <meta name="theme-color" content="#064e3b">
+    <title>سياسة الخصوصية | منصة ثقة</title>
+    <meta name="description" content="سياسة الخصوصية وحماية البيانات في منصة ثقة (thiqa.me) — مؤسسة موقع أمر التجارية بالمملكة العربية السعودية.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url('/privacy') }}">
+    <link rel="alternate" hreflang="ar-SA" href="{{ url('/privacy') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/image.png') }}">
+    <meta property="og:title" content="سياسة الخصوصية | منصة ثقة">
+    <meta property="og:image" content="{{ asset('images/og-thiqa.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
